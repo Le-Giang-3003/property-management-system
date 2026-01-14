@@ -6,4 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+    <Folder Include="Filters\" />
+    <Folder Include="Middlewares\" />
+    <Folder Include="ViewModels\" />
+  </ItemGroup>
+
 </Project>
