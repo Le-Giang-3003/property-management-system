@@ -1,6 +1,5 @@
 <Solution>
-  <Project Path="PropertyManagementSystem.Models/PropertyManagementSystem.Models.csproj" />
-  <Project Path="PropertyManagementSystem.Repositories/PropertyManagementSystem.Repositories.csproj" />
-  <Project Path="PropertyManagementSystem.Services/PropertyManagementSystem.Services.csproj" />
+  <Project Path="PropertyManagementSystem.Repositories/PropertyManagementSystem.DAL.csproj" />
+  <Project Path="PropertyManagementSystem.Services/PropertyManagementSystem.BLL.csproj" />
   <Project Path="PropertyManagementSystem.Web/PropertyManagementSystem.Web.csproj" />
 </Solution>
