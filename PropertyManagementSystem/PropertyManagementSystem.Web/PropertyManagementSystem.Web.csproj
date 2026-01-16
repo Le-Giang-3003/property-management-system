@@ -13,4 +13,8 @@
     <Folder Include="ViewModels\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PropertyManagementSystem.DAL\PropertyManagementSystem.DAL.csproj" />
+  </ItemGroup>
+
 </Project>

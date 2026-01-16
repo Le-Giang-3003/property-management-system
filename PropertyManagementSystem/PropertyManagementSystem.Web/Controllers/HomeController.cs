@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using PropertyManagementSystem.Web.Models;
 using System.Diagnostics;
 
 namespace PropertyManagementSystem.Web.Controllers

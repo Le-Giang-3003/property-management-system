@@ -1,5 +1,5 @@
 <Solution>
-  <Project Path="PropertyManagementSystem.Repositories/PropertyManagementSystem.DAL.csproj" />
-  <Project Path="PropertyManagementSystem.Services/PropertyManagementSystem.BLL.csproj" />
+  <Project Path="PropertyManagementSystem.BLL/PropertyManagementSystem.BLL.csproj" />
+  <Project Path="PropertyManagementSystem.DAL/PropertyManagementSystem.DAL.csproj" />
   <Project Path="PropertyManagementSystem.Web/PropertyManagementSystem.Web.csproj" />
 </Solution>
