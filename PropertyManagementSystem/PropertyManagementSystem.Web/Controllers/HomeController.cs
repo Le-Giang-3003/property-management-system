@@ -20,6 +20,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
         public IActionResult Privacy()
         {
+            Console.WriteLine("Privacy page accessed.");    
             return View();
         }
 
