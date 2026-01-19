@@ -1,4 +1,5 @@
-﻿using PropertyManagementSystem.DAL.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using PropertyManagementSystem.DAL.Data;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
@@ -32,29 +33,68 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
 
         }
 
-        public Task<IEnumerable<Property>> GetAllPropertiesAsync()
+        public async Task<IEnumerable<Property>> GetAllPropertiesAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Properties
+                .Where(p => p.Status != "Deleted")
+                .Include(p => p.Landlord)
+                .Include(p => p.PropertyImages)
+                .ToListAsync();
         }
 
-        public Task<IEnumerable<Property>> GetPropertiesByLandlordIdAsync(int landlordId)
+        public async Task<IEnumerable<Property>> GetPropertiesByLandlordIdAsync(int landlordId)
         {
-            throw new NotImplementedException();
+            return await _context.Properties
+                .Where(p => p.LandlordId == landlordId && p.Status != "Deleted")
+                .Include(p => p.PropertyImages)
+                .ToListAsync();
         }
 
-        public Task<Property?> GetPropertyByIdAsync(int id)
+        public async Task<Property?> GetPropertyByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Properties
+                .Include(p => p.Landlord)
+                .Include(p => p.PropertyImages)
+                .FirstOrDefaultAsync(p => p.Id == id && p.Status != "Deleted");
         }
 
-        public Task<IEnumerable<Property>> SearchPropertiesAsync(string city, string? propertyType, decimal? minRent, decimal? maxRent)
+        public async Task<IEnumerable<Property>> SearchPropertiesAsync(string city, string? propertyType, decimal? minRent, decimal? maxRent)
         {
-            throw new NotImplementedException();
+            var query = _context.Properties
+                .Where(p => p.Status == "Available" && p.City == city);
+
+            if (!string.IsNullOrEmpty(propertyType))
+            {
+                query = query.Where(p => p.PropertyType == propertyType);
+            }
+
+            if (minRent.HasValue)
+            {
+                query = query.Where(p => p.BaseRentPrice >= minRent.Value);
+            }
+
+            if (maxRent.HasValue)
+            {
+                query = query.Where(p => p.BaseRentPrice <= maxRent.Value);
+            }
+
+            return await query
+                .Include(p => p.Landlord)
+                .Include(p => p.PropertyImages)
+                .ToListAsync();
         }
 
-        public Task<bool> UpdatePropertyAsync(Property property)
+        public async Task<bool> UpdatePropertyAsync(Property property)
         {
-            throw new NotImplementedException();
+            var existingProperty = await _context.Properties.FindAsync(property.Id);
+            if (existingProperty == null)
+            {
+                return false;
+            }
+
+            _context.Entry(existingProperty).CurrentValues.SetValues(property);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
         }
     }
 }
