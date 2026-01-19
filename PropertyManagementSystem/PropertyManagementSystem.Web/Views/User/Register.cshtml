@@ -1,0 +1,220 @@
+﻿@model PropertyManagementSystem.Web.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 mt-5 rounded-4">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="h1 mb-3 text-primary">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-1">Tạo tài khoản mới</h2>
+                    <p class="text-muted">Đăng ký để quản lý bất động sản</p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Vui lòng kiểm tra lại:</strong>
+                        <ul class="mb-0 mt-2 small">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                        <i class="bi bi-check-circle-fill me-2 text-success"></i>
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form asp-action="Register" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label asp-for="Email" class="form-label fw-semibold text-dark mb-2">
+                            <i class="bi bi-envelope-fill text-primary me-2"></i>Email
+                        </label>
+                        <input asp-for="Email"
+                               class="form-control form-control-lg shadow-sm"
+                               placeholder="example@email.com"
+                               autocomplete="email" />
+                        <span asp-validation-for="Email" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="mb-4">
+                        <label asp-for="UserName" class="form-label fw-semibold text-dark mb-2">
+                            <i class="bi bi-person-fill text-primary me-2"></i>Tên hiển thị
+                        </label>
+                        <input asp-for="UserName"
+                               class="form-control form-control-lg shadow-sm"
+                               placeholder="Nguyễn Văn A"
+                               autocomplete="name" />
+                        <span asp-validation-for="UserName" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <label asp-for="Password" class="form-label fw-semibold text-dark mb-2">
+                            <i class="bi bi-lock-fill text-primary me-2"></i>Mật khẩu
+                        </label>
+                        <div class="position-relative">
+                            <input asp-for="Password"
+                                   id="passwordInput"
+                                   type="password"
+                                   class="form-control form-control-lg shadow-sm password-input"
+                                   placeholder="Nhập mật khẩu mạnh"
+                                   autocomplete="new-password" />
+                            <button class="btn password-toggle-btn"
+                                    type="button"
+                                    id="togglePassword"
+                                    aria-label="Hiện/ẩn mật khẩu">
+                                <i class="bi bi-eye-fill" id="passwordIcon"></i>
+                            </button>
+                        </div>
+
+                        <!-- Password strength indicator -->
+                        <div id="passwordStrength" class="mt-2">
+                            <div class="progress" style="height: 5px; border-radius: 3px;">
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     style="width: 0%; transition: all 0.3s ease;"
+                                     id="strengthBar"></div>
+                            </div>
+                            <small class="text-muted mt-1 d-block fw-medium" id="strengthText">
+                                Nhập mật khẩu để kiểm tra độ mạnh
+                            </small>
+                        </div>
+
+                        <span asp-validation-for="Password" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-4">
+                        <label asp-for="ConfirmPassword" class="form-label fw-semibold text-dark mb-2">
+                            <i class="bi bi-shield-lock-fill text-primary me-2"></i>Xác nhận mật khẩu
+                        </label>
+                        <div class="position-relative">
+                            <input asp-for="ConfirmPassword"
+                                   id="confirmPasswordInput"
+                                   type="password"
+                                   class="form-control form-control-lg shadow-sm password-input"
+                                   placeholder="Nhập lại mật khẩu"
+                                   autocomplete="new-password" />
+                            <button class="btn password-toggle-btn"
+                                    type="button"
+                                    id="toggleConfirmPassword"
+                                    aria-label="Hiện/ẩn mật khẩu">
+                                <i class="bi bi-eye-fill" id="confirmPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow-lg rounded-pill mb-3 mt-2">
+                        <i class="bi bi-check-circle-fill me-2"></i>Đăng ký tài khoản
+                    </button>
+                </form>
+            </div>
+
+            <div class="card-footer bg-light border-0 py-4 text-center">
+                <small class="text-muted">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Đã có tài khoản?
+                    <a asp-controller="User" asp-action="Login" class="text-primary fw-semibold text-decoration-none">
+                        Đăng nhập ngay
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Toggle show/hide password
+        function setupPasswordToggle(btnId, inputId, iconId) {
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            btn.addEventListener('click', function() {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('bi-eye-fill');
+                    icon.classList.add('bi-eye-slash-fill');
+                    btn.setAttribute('aria-label', 'Ẩn mật khẩu');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('bi-eye-slash-fill');
+                    icon.classList.add('bi-eye-fill');
+                    btn.setAttribute('aria-label', 'Hiện mật khẩu');
+                }
+            });
+        }
+
+        setupPasswordToggle('togglePassword', 'passwordInput', 'passwordIcon');
+        setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput', 'confirmPasswordIcon');
+
+        // Password strength checker
+        const passwordInput = document.getElementById('passwordInput');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+
+            if (password.length === 0) {
+                strengthBar.style.width = '0%';
+                strengthBar.className = 'progress-bar';
+                strengthText.textContent = 'Nhập mật khẩu để kiểm tra độ mạnh';
+                strengthText.className = 'text-muted mt-1 d-block fw-medium';
+                return;
+            }
+
+            let strength = 0;
+
+            // Length
+            if (password.length >= 8) strength += 25;
+            if (password.length >= 12) strength += 10;
+
+            // Character types
+            if (/[a-z]/.test(password)) strength += 20;
+            if (/[A-Z]/.test(password)) strength += 20;
+            if (/[0-9]/.test(password)) strength += 15;
+            if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
+
+            strengthBar.style.width = Math.min(strength, 100) + '%';
+            strengthBar.className = 'progress-bar';
+
+            if (strength < 50) {
+                strengthBar.classList.add('bg-danger');
+                strengthText.textContent = '❌ Yếu - Cần cải thiện mật khẩu';
+                strengthText.className = 'text-danger mt-1 d-block fw-semibold';
+            } else if (strength < 80) {
+                strengthBar.classList.add('bg-warning');
+                strengthText.textContent = '⚠️ Trung bình - Mật khẩu khá tốt';
+                strengthText.className = 'text-warning mt-1 d-block fw-semibold';
+            } else {
+                strengthBar.classList.add('bg-success');
+                strengthText.textContent = '✅ Mạnh - Mật khẩu rất tốt!';
+                strengthText.className = 'text-success mt-1 d-block fw-semibold';
+            }
+        });
+    </script>
+}

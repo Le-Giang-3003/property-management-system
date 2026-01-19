@@ -60,7 +60,7 @@ namespace PropertyManagementSystem.Web.ViewModels
         /// The type of the property.
         /// </value>
         [Required]
-        public string? PropertyType { get; set; } // e.g., Apartment, House, Condo
+        public string PropertyType { get; set; } = string.Empty; // e.g., Apartment, House, Condo
 
         /// <summary>
         /// Gets or sets the base rent price.

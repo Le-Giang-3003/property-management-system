@@ -15,6 +15,7 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.0" />
+	<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
 
     <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.1" />
@@ -24,5 +25,8 @@
     <!-- ================= Mapping ================= -->
     <PackageVersion Include="AutoMapper" Version="13.0.1" />
     <PackageVersion Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="13.0.1" />
+	<!-- ================= Mail and Varification ================= -->
+	<PackageVersion Include="MailKit" Version="4.7.0" />
+	<PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 </Project>

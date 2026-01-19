@@ -68,7 +68,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             ViewBag.PropertyTypes = GetPropertyTypesSelectList();
 
-            // ✓ Sửa: Chỉ định view "PropertyManagement"
+            // Chỉ định view "PropertyManagement"
             return View("PropertyManagement", properties ?? new List<Property>());
         }
 
