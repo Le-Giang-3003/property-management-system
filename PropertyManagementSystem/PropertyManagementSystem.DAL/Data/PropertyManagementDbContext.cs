@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using PropertyManagementSystem.DAL.Entities;
+using File = PropertyManagementSystem.DAL.Entities.File;
 
-namespace PropertyManagementSystem.DAL.Entities;
+namespace PropertyManagementSystem.DAL.Data;
 
 public partial class PropertyManagementDbContext : DbContext
 {
@@ -21,7 +22,7 @@ public partial class PropertyManagementDbContext : DbContext
 
     public virtual DbSet<ContractFile> ContractFiles { get; set; }
 
-    public virtual DbSet<File> Files { get; set; }
+    public virtual DbSet<PropertyManagementSystem.DAL.Entities.File> Files { get; set; }
 
     public virtual DbSet<Invoice> Invoices { get; set; }
 
@@ -47,9 +48,20 @@ public partial class PropertyManagementDbContext : DbContext
 
     public virtual DbSet<ViewingSchedule> ViewingSchedules { get; set; }
 
+    private string GetConnectionString()
+    {
+        IConfiguration config = new ConfigurationBuilder()
+             .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", true, true)
+                    .Build();
+        var strConn = config["ConnectionStrings:DefaultConnection"];
+
+        return strConn;
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=.\\SQLEXPRESS;uid=sa;pwd=12345;database=PropertyManagementDB;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer(GetConnectionString());
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

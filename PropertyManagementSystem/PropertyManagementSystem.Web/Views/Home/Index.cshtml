@@ -1,8 +1,393 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿<!-- PropertyManagementSystem.Web/Views/Home/Index.cshtml -->
+@{
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Hero Section with Search -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content text-center">
+            <h1 class="hero-title mb-4">Tìm kiếm bất động sản</h1>
+
+            <!-- Search Tabs -->
+            <div class="search-card">
+                <ul class="nav nav-pills search-tabs mb-4" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#buy" type="button">
+                            Mua bán
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#rent" type="button">
+                            Cho thuê
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#project" type="button">
+                            Dự án
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Search Form -->
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="buy">
+                        <form asp-controller="Property" asp-action="Search" method="get">
+                            <div class="search-box">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" name="keyword" class="form-control search-input"
+                                       placeholder="Tìm kiếm theo địa điểm, dự án..." />
+                                <button type="submit" class="btn btn-search">Tìm kiếm</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="rent">
+                        <form asp-controller="Property" asp-action="Search" method="get">
+                            <input type="hidden" name="type" value="rent" />
+                            <div class="search-box">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" name="keyword" class="form-control search-input"
+                                       placeholder="Tìm nhà cho thuê..." />
+                                <button type="submit" class="btn btn-search">Tìm kiếm</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="project">
+                        <form asp-controller="Property" asp-action="Search" method="get">
+                            <input type="hidden" name="type" value="project" />
+                            <div class="search-box">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" name="keyword" class="form-control search-input"
+                                       placeholder="Tìm dự án..." />
+                                <button type="submit" class="btn btn-search">Tìm kiếm</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Featured Section -->
+<div class="container mt-5">
+    <div class="section-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="section-title mb-1">Tin nổi bật</h2>
+                <div class="section-tabs">
+                    <a href="#" class="tab-link active">Tin nổi bật</a>
+                    <a href="#" class="tab-link">Tin tức</a>
+                    <a href="#" class="tab-link">BĐS TP.HCM</a>
+                    <a href="#" class="tab-link">BĐS Hà Nội</a>
+                </div>
+            </div>
+            <a href="#" class="view-more">
+                Xem thêm <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Featured Property Card -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="property-card">
+                <div class="property-image">
+                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400" alt="Property">
+                    <span class="badge-featured">Nổi bật</span>
+                </div>
+                <div class="property-body">
+                    <h5 class="property-title">Trọn Bộ Lãi Suất Vay Mua Nhà Mới Nhất Tháng 1/2026</h5>
+                    <p class="property-desc">
+                        Cập nhật thông tin lãi suất vay mua nhà mới nhất từ các ngân hàng uy tín...
+                    </p>
+                    <div class="property-footer">
+                        <span class="property-date">
+                            <i class="bi bi-calendar3"></i> 15/01/2026
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="property-card">
+                <div class="property-image">
+                    <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400" alt="Property">
+                </div>
+                <div class="property-body">
+                    <h5 class="property-title">Nhà Đầu Tư "Dụ Dính" Đất Nền 2021-2022 Khi Nào "Về Bờ"?</h5>
+                    <p class="property-desc">
+                        Phân tích thị trường đất nền giai đoạn 2021-2022 và triển vọng phục hồi...
+                    </p>
+                    <div class="property-footer">
+                        <span class="property-date">
+                            <i class="bi bi-calendar3"></i> 12/01/2026
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="property-card">
+                <div class="property-image">
+                    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400" alt="Property">
+                </div>
+                <div class="property-body">
+                    <h5 class="property-title">Năm 2026 Tuổi Nào Làm Nhà Đẹp Nhất? Tất Tần Tật Mọi Điều</h5>
+                    <p class="property-desc">
+                        Tham khảo phong thủy xây dựng nhà ở theo tuổi để mang lại may mắn...
+                    </p>
+                    <div class="property-footer">
+                        <span class="property-date">
+                            <i class="bi bi-calendar3"></i> 10/01/2026
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 80px 0 120px;
+            margin-top: -24px;
+        }
+
+        .hero-title {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 600;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .search-tabs {
+            border: none;
+            justify-content: center;
+            gap: 10px;
+        }
+
+            .search-tabs .nav-link {
+                border: none;
+                border-radius: 8px;
+                padding: 12px 30px;
+                color: #666;
+                font-weight: 500;
+                background: #f5f5f5;
+                transition: all 0.3s;
+            }
+
+                .search-tabs .nav-link.active {
+                    background: #1e3c72;
+                    color: white;
+                }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            color: #999;
+            font-size: 20px;
+            z-index: 10;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 16px 20px 16px 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+            .search-input:focus {
+                border-color: #1e3c72;
+                box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+            }
+
+        .btn-search {
+            background: #e74c3c;
+            color: white;
+            padding: 16px 40px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+            .btn-search:hover {
+                background: #c0392b;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+            }
+
+        /* Section Header */
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .section-tabs {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .tab-link {
+            color: #666;
+            text-decoration: none;
+            padding: 5px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+            .tab-link.active,
+            .tab-link:hover {
+                color: #1e3c72;
+                border-bottom-color: #1e3c72;
+            }
+
+        .view-more {
+            color: #e74c3c;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+            .view-more:hover {
+                color: #c0392b;
+                transform: translateX(5px);
+            }
+
+        /* Property Card */
+        .property-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+            .property-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            }
+
+        .property-image {
+            position: relative;
+            padding-top: 60%;
+            overflow: hidden;
+        }
+
+            .property-image img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s;
+            }
+
+        .property-card:hover .property-image img {
+            transform: scale(1.1);
+        }
+
+        .badge-featured {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #e74c3c;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .property-body {
+            padding: 20px;
+        }
+
+        .property-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .property-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .property-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .property-date {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        @@media (max-width: 768px) {
+            .hero-title {
+                font-size: 1.75rem;
+            }
+
+            .search-card {
+                padding: 20px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .btn-search {
+                width: 100%;
+            }
+
+            .section-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+    </style>
+}
