@@ -1,0 +1,141 @@
+﻿@model PropertyManagementSystem.DAL.Entities.Property
+
+@{
+    ViewData["Title"] = "Property Details";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Property Details</h2>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a asp-action="PropertyManagement" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Main Info -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">@Model.Title</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Status Badge -->
+                    <div class="mb-3">
+                        @if (Model.Status == "Available")
+                        {
+                            <span class="badge bg-success fs-6">Available</span>
+                        }
+                        else if (Model.Status == "Rented")
+                        {
+                            <span class="badge bg-warning text-dark fs-6">Rented</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary fs-6">@Model.Status</span>
+                        }
+                    </div>
+
+                    <!-- Description -->
+                    <h5>Description</h5>
+                    <p class="text-muted">@(Model.Description ?? "No description available.")</p>
+
+                    <hr />
+
+                    <!-- Property Details -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="bi bi-house-door"></i> Property Type:</strong>
+                            <p>@Model.PropertyType</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="bi bi-rulers"></i> Area:</strong>
+                            <p>@(Model.Area.HasValue ? $"{Model.Area.Value:N2} m²" : "N/A")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Location</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Address:</strong> @Model.Address</p>
+                    <p><strong>District:</strong> @(Model.District ?? "N/A")</p>
+                    <p><strong>City:</strong> @Model.City</p>
+
+                    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                    {
+                        <p>
+                            <strong>Coordinates:</strong>
+                            @Model.Latitude.Value.ToString("F6"), @Model.Longitude.Value.ToString("F6")
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Pricing & Landlord Info -->
+        <div class="col-md-4">
+            <!-- Price Card -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Pricing</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-success">@string.Format("{0:N0}", Model.BaseRentPrice) VND</h2>
+                    <p class="text-muted">per month</p>
+                </div>
+            </div>
+
+            <!-- Landlord Info Card -->
+            @if (Model.Landlord != null)
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="bi bi-person"></i> Landlord</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Name:</strong> @Model.Landlord.FullName</p>
+                        <p><strong>Email:</strong> @Model.Landlord.Email</p>
+                        @if (!string.IsNullOrEmpty(Model.Landlord.PhoneNumber))
+                        {
+                            <p><strong>Phone:</strong> @Model.Landlord.PhoneNumber</p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- System Info Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">System Information</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small">
+                        <strong>Created:</strong><br />
+                        @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                    </p>
+                    <p class="small">
+                        <strong>Last Updated:</strong><br />
+                        @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
+                    </p>
+                    <p class="small">
+                        <strong>Property ID:</strong> @Model.Id
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+}
