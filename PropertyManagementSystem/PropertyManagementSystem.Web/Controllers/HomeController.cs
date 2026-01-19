@@ -18,6 +18,12 @@ namespace PropertyManagementSystem.Web.Controllers
             return View();
         }
 
+        public IActionResult Privacy()
+        {
+            Console.WriteLine("Privacy page accessed.");    
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
