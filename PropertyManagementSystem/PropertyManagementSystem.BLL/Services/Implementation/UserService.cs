@@ -19,14 +19,20 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         /// </summary>
         private readonly IPasswordService _passwordService;
         /// <summary>
-        /// Initializes a new instance of the <see cref="UserService"/> class.
+        /// The otp service
+        /// </summary>
+        private readonly IStatelessOtpService _otpService;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserService" /> class.
         /// </summary>
         /// <param name="userRepository">The user repository.</param>
         /// <param name="passwordService">The password service.</param>
-        public UserService(IUserRepository userRepository, IPasswordService passwordService)
+        /// <param name="otpService">The otp service.</param>
+        public UserService(IUserRepository userRepository, IPasswordService passwordService, IStatelessOtpService otpService)
         {
             _repo = userRepository;
             _passwordService = passwordService;
+            _otpService = otpService;
         }
         /// <summary>
         /// Gets all users asynchronous.
@@ -58,22 +64,15 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         }
 
         /// <summary>
-        /// Registers the specified email.
+        /// Registers the with verified email.
         /// </summary>
         /// <param name="email">The email.</param>
         /// <param name="username">The username.</param>
         /// <param name="password">The password.</param>
         /// <returns></returns>
-        public async Task<bool> Register(string email, string username,string password)
+        public async Task<bool> RegisterWithVerifiedEmail(string email, string username, string password)
         {
-            var existingUser = await _repo.GetUserByEmailAsync(email);
-            if (existingUser != null)
-            {
-                return false; // User with the same email already exists
-            }
-
             var passwordHash = _passwordService.HashPassword(password);
-
             var newUser = new User
             {
                 Email = email,
@@ -83,12 +82,39 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
-            var created = await _repo.AddNewUser(newUser);
-            if(created)
+            return await _repo.AddNewUser(newUser);
+        }
+
+        /// <summary>
+        /// Sends the registration otp asynchronous.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Email already exists.</exception>
+        public async Task<string> SendRegistrationOtpAsync(string email)
+        {
+            // Check if email already exists
+            var existingUser = await _repo.GetUserByEmailAsync(email);
+            if (existingUser != null)
             {
-                return true;
-            }   
-            return false;
+                throw new InvalidOperationException("Email already exists.");
+            }
+
+            // Generate and send OTP
+            var otpHash = await _otpService.GenerateOtpHashAsync(email);
+            return otpHash;
+        }
+
+        /// <summary>
+        /// Verifies the registration otp.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <param name="otp">The otp.</param>
+        /// <param name="otpHash">The otp hash.</param>
+        /// <returns></returns>
+        public bool VerifyRegistrationOtp(string email, string otp, string otpHash)
+        {
+            return _otpService.VerifyOtpAsync(email, otp, otpHash);
         }
     }
 }

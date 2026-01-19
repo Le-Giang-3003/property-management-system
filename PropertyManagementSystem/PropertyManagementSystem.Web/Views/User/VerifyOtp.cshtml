@@ -1,0 +1,69 @@
+﻿@model PropertyManagementSystem.Web.ViewModels.VerifyOtpViewModel
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 mt-5 rounded-4">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="h1 mb-3 text-primary">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-1">Xác thực OTP</h2>
+                    <p class="text-muted">Đã gửi mã tới <strong>@Model.Email</strong></p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger rounded-3 mb-4">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        @Html.ValidationSummary(false)
+                    </div>
+                }
+
+                <form asp-action="VerifyOtp" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Hidden fields -->
+                    <input type="hidden" asp-for="Email" />
+                    <input type="hidden" asp-for="OtpHash" />
+
+                    <div class="mb-4">
+                        <label asp-for="Otp" class="form-label fw-semibold mb-2">
+                            <i class="bi bi-key text-primary me-2"></i>Mã OTP (6 số)
+                        </label>
+                        <input asp-for="Otp"
+                               class="form-control form-control-lg text-center fw-bold fs-4"
+                               style="letter-spacing: 0.6rem;"
+                               maxlength="6"
+                               autocomplete="one-time-code" />
+                        <span asp-validation-for="Otp" class="text-danger small d-block mt-2"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-pill shadow-lg">
+                        <i class="bi bi-check-circle me-2"></i>Xác nhận
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 pt-3 border-top">
+                    <small class="text-muted">
+                        Không nhận được?
+                        <a asp-action="ResendOtp" class="text-primary fw-semibold">Gửi lại</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+
+        document.querySelector('input[name="Otp"]').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            this.value = this.value.slice(0, 6);
+        });
+
+        this.focus();
+    </script>
+}

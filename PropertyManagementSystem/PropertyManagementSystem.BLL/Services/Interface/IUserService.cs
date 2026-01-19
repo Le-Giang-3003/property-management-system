@@ -24,13 +24,28 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         /// <param name="roleName">Name of the role.</param>
         /// <returns></returns>
         Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName);
+
         /// <summary>
-        /// Registers the specified email.
+        /// Sends the registration otp asynchronous.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <returns></returns>
+        Task<string> SendRegistrationOtpAsync(string email);
+        /// <summary>
+        /// Verifies the registration otp.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <param name="otp">The otp.</param>
+        /// <param name="otpHash">The otp hash.</param>
+        /// <returns></returns>
+        bool VerifyRegistrationOtp(string email, string otp, string otpHash);
+        /// <summary>
+        /// Registers the with verified email.
         /// </summary>
         /// <param name="email">The email.</param>
         /// <param name="username">The username.</param>
         /// <param name="password">The password.</param>
         /// <returns></returns>
-        Task<bool> Register (string email, string username, string password);
+        Task<bool> RegisterWithVerifiedEmail(string email, string username, string password);
     }
 }
