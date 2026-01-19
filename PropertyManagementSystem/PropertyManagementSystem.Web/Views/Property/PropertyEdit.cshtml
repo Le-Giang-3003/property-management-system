@@ -13,7 +13,7 @@
                 </div>
                 <div class="card-body">
                     <form asp-action="Edit" method="post">
-                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="PropertyId" />
                         <input type="hidden" asp-for="LandlordId" />
                         <input type="hidden" asp-for="CreatedAt" />
 
@@ -24,9 +24,9 @@
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label asp-for="Title" class="form-label">Property Title <span class="text-danger">*</span></label>
-                                <input asp-for="Title" class="form-control" />
-                                <span asp-validation-for="Title" class="text-danger"></span>
+                                <label asp-for="Name" class="form-label">Property Title <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
                             </div>
                         </div>
 
@@ -90,14 +90,14 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="BaseRentPrice" class="form-label">Monthly Rent (VND) <span class="text-danger">*</span></label>
-                                <input asp-for="BaseRentPrice" class="form-control" type="number" step="100000" />
-                                <span asp-validation-for="BaseRentPrice" class="text-danger"></span>
+                                <label asp-for="RentAmount" class="form-label">Monthly Rent (VND) <span class="text-danger">*</span></label>
+                                <input asp-for="RentAmount" class="form-control" type="number" step="100000" />
+                                <span asp-validation-for="RentAmount" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Area" class="form-label">Area (m²)</label>
-                                <input asp-for="Area" class="form-control" type="number" step="0.01" />
-                                <span asp-validation-for="Area" class="text-danger"></span>
+                                <label asp-for="SquareFeet" class="form-label">SquareFeet (m²)</label>
+                                <input asp-for="SquareFeet" class="form-control" type="number" step="0.01" />
+                                <span asp-validation-for="SquareFeet" class="text-danger"></span>
                             </div>
                         </div>
 
@@ -106,7 +106,7 @@
                             <button type="submit" class="btn btn-warning">
                                 <i class="bi bi-check-circle"></i> Update Property
                             </button>
-                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                            <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-info">
                                 <i class="bi bi-eye"></i> View Details
                             </a>
                             <a asp-action="Index" class="btn btn-secondary">

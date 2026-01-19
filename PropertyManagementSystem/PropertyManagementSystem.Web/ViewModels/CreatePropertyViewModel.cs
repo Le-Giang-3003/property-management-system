@@ -51,7 +51,7 @@ namespace PropertyManagementSystem.Web.ViewModels
         /// <value>
         /// The district.
         /// </value>
-        public string? District { get; set; }
+        public string District { get; set; }
 
         /// <summary>
         /// Gets or sets the type of the property.
@@ -79,7 +79,7 @@ namespace PropertyManagementSystem.Web.ViewModels
         /// The area.
         /// </value>
         [Range(0.01, double.MaxValue)]
-        public decimal? Area { get; set; }
+        public decimal Area { get; set; }
         /// <summary>
         /// Gets or sets the landlord identifier.
         /// </summary>

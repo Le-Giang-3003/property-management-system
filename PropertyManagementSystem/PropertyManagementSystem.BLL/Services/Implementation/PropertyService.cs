@@ -14,14 +14,9 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         public async Task<bool> AddPropertyAsync(Property property)
         {
             // Business logic validation
-            if (string.IsNullOrWhiteSpace(property.Title))
+            if (string.IsNullOrWhiteSpace(property.Name))
             {
                 throw new ArgumentException("Property title is required");
-            }
-
-            if (property.BaseRentPrice <= 0)
-            {
-                throw new ArgumentException("Rent price must be greater than 0");
             }
 
             // Set default values
@@ -95,26 +90,21 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 
         public async Task<bool> UpdatePropertyAsync(Property property)
         {
-            if (property.Id <= 0)
+            if (property.PropertyId <= 0)
             {
                 throw new ArgumentException("Invalid property ID");
             }
 
-            var existingProperty = await _repo.GetPropertyByIdAsync(property.Id);
+            var existingProperty = await _repo.GetPropertyByIdAsync(property.PropertyId);
             if (existingProperty == null)
             {
-                throw new KeyNotFoundException($"Property with ID {property.Id} not found");
+                throw new KeyNotFoundException($"Property with ID {property.PropertyId} not found");
             }
 
             // Business validation
-            if (string.IsNullOrWhiteSpace(property.Title))
+            if (string.IsNullOrWhiteSpace(property.Name))
             {
                 throw new ArgumentException("Property title is required");
-            }
-
-            if (property.BaseRentPrice <= 0)
-            {
-                throw new ArgumentException("Rent price must be greater than 0");
             }
 
             property.UpdatedAt = DateTime.UtcNow;

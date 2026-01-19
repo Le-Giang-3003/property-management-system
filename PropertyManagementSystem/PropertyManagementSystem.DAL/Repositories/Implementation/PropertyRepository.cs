@@ -7,8 +7,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
 {
     public class PropertyRepository : IPropertyRepository
     {
-        private readonly PropertyManagementDbContext _context;
-        public PropertyRepository(PropertyManagementDbContext context)
+        private readonly AppDbContext _context;
+        public PropertyRepository(AppDbContext context)
         {
             _context = context;
         }
@@ -38,7 +38,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             return await _context.Properties
                 .Where(p => p.Status != "Deleted")
                 .Include(p => p.Landlord)
-                .Include(p => p.PropertyImages)
+                .Include(p => p.Images)
                 .ToListAsync();
         }
 
@@ -46,7 +46,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         {
             return await _context.Properties
                 .Where(p => p.LandlordId == landlordId && p.Status != "Deleted")
-                .Include(p => p.PropertyImages)
+                .Include(p => p.Images)
                 .ToListAsync();
         }
 
@@ -54,8 +54,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         {
             return await _context.Properties
                 .Include(p => p.Landlord)
-                .Include(p => p.PropertyImages)
-                .FirstOrDefaultAsync(p => p.Id == id && p.Status != "Deleted");
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.PropertyId == id && p.Status != "Deleted");
         }
 
         public async Task<IEnumerable<Property>> SearchPropertiesAsync(string city, string? propertyType, decimal? minRent, decimal? maxRent)
@@ -68,25 +68,16 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 query = query.Where(p => p.PropertyType == propertyType);
             }
 
-            if (minRent.HasValue)
-            {
-                query = query.Where(p => p.BaseRentPrice >= minRent.Value);
-            }
-
-            if (maxRent.HasValue)
-            {
-                query = query.Where(p => p.BaseRentPrice <= maxRent.Value);
-            }
 
             return await query
                 .Include(p => p.Landlord)
-                .Include(p => p.PropertyImages)
+                .Include(p => p.Images)
                 .ToListAsync();
         }
 
         public async Task<bool> UpdatePropertyAsync(Property property)
         {
-            var existingProperty = await _context.Properties.FindAsync(property.Id);
+            var existingProperty = await _context.Properties.FindAsync(property.PropertyId);
             if (existingProperty == null)
             {
                 return false;

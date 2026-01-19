@@ -1,32 +1,38 @@
 <Project>
-  <!-- Enable Central Package Management -->
-  <PropertyGroup>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-  </PropertyGroup>
-  <ItemGroup>
-    <!-- ================= EF Core (.NET 8) ================= -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.1" />
-	  
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.23" />
-    <!-- PostgreSQL -->
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.0" />
-	<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
+	<!-- Enable Central Package Management -->
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- ================= EF Core - TẤT CẢ DÙNG VERSION 8.0.11 ================= -->
+		<PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.11" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
 
-    <PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.1" />
-    <!-- ================= Validation ================= -->
-    <PackageVersion Include="FluentValidation" Version="11.9.0" />
-    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
-    <!-- ================= Mapping ================= -->
-    <PackageVersion Include="AutoMapper" Version="13.0.1" />
-    <PackageVersion Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="13.0.1" />
-	<!-- ================= Mail and Varification ================= -->
-	<PackageVersion Include="MailKit" Version="4.7.0" />
-	<PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
-  </ItemGroup>
+		<!-- PostgreSQL -->
+		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+
+		<!-- Configuration -->
+		<PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+
+		<!-- Code Generation -->
+		<PackageVersion Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+
+		<!-- ================= Validation ================= -->
+		<PackageVersion Include="FluentValidation" Version="11.9.0" />
+		<PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
+
+		<!-- ================= Mapping ================= -->
+		<PackageVersion Include="AutoMapper" Version="13.0.1" />
+		<PackageVersion Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="13.0.1" />
+
+		<!-- ================= Mail and Verification ================= -->
+		<PackageVersion Include="MailKit" Version="4.7.0" />
+		<PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
+	</ItemGroup>
 </Project>

@@ -78,7 +78,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Email = email,
                 PasswordHash = passwordHash,
                 FullName = username, // Temporary assignment, can be modified later
-                Status = "Active",
+                IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

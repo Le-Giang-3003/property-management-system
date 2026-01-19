@@ -22,7 +22,7 @@ namespace PropertyManagementSystem.DAL
         {
             // Register your data access layer services here
             // e.g., services.AddScoped<IYourRepository, YourRepositoryImplementation>();
-            services.AddDbContext<PropertyManagementDbContext>(options =>
+            services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IPropertyRepository, PropertyRepository>();
             services.AddScoped<IUserRepository, UserRepository>();

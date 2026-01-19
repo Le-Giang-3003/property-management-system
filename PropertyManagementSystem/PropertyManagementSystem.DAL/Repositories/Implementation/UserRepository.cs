@@ -14,12 +14,12 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <summary>
         /// The context
         /// </summary>
-        private readonly PropertyManagementDbContext _context;
+        private readonly AppDbContext _context;
         /// <summary>
         /// Initializes a new instance of the <see cref="UserRepository"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public UserRepository(PropertyManagementDbContext context)
+        public UserRepository(AppDbContext context)
         {
             _context = context;
         }
@@ -62,7 +62,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <returns></returns>
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
         }
 
         /// <summary>
@@ -75,8 +75,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             return await _context.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
-            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == roleName)
-                     && u.Status == "Active")
+            .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == roleName)
+                     && u.IsActive)
             .ToListAsync();
         }
     }
