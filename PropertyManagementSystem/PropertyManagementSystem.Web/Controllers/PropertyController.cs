@@ -6,11 +6,26 @@ using PropertyManagementSystem.Web.ViewModels;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
+    /// <summary>
+    /// Controller for managing properties.
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.Mvc.Controller" />
     public class PropertyController : Controller
     {
+        /// <summary>
+        /// The property service
+        /// </summary>
         private readonly IPropertyService _propertyService;
+        /// <summary>
+        /// The user service
+        /// </summary>
         private readonly IUserService _userService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PropertyController"/> class.
+        /// </summary>
+        /// <param name="propertyService">The property service.</param>
+        /// <param name="userService">The user service.</param>
         public PropertyController(IPropertyService propertyService, IUserService userService)
         {
             _propertyService = propertyService;
@@ -18,6 +33,14 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: Property/Index
+        /// <summary>
+        /// Indexes the specified city.
+        /// </summary>
+        /// <param name="city">The city.</param>
+        /// <param name="propertyType">Type of the property.</param>
+        /// <param name="minRent">The minimum rent.</param>
+        /// <param name="maxRent">The maximum rent.</param>
+        /// <returns></returns>
         public async Task<IActionResult> Index(string? city, string? propertyType, decimal? minRent, decimal? maxRent)
         {
             IEnumerable<Property> properties = new List<Property>();
@@ -50,6 +73,11 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: Property/Details/{id}
+        /// <summary>
+        /// Detailses the specified identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public async Task<IActionResult> Details(int id)
         {
             var property = await _propertyService.GetPropertyByIdAsync(id);
@@ -57,11 +85,13 @@ namespace PropertyManagementSystem.Web.Controllers
             {
                 return NotFound();
             }
-            // ❌ SAI: Details không nên dùng view PropertyManagement
-            // ✓ ĐÚNG: Tạo view Details.cshtml riêng
             return View("PropertyDetail", property);
         }
 
+        /// <summary>
+        /// Gets the landlords select list.
+        /// </summary>
+        /// <returns></returns>
         private async Task<List<SelectListItem>> GetLandlordsSelectList()
         {
             var landlords = await _userService.GetUsersByRoleAsync("Landlord");
@@ -72,6 +102,10 @@ namespace PropertyManagementSystem.Web.Controllers
             }).ToList();
         }
 
+        /// <summary>
+        /// Gets the property types select list.
+        /// </summary>
+        /// <returns></returns>
         private List<SelectListItem> GetPropertyTypesSelectList()
         {
             return new List<SelectListItem>
@@ -85,6 +119,10 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: Property/Create
+        /// <summary>
+        /// Creates this instance.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Create()
         {
             var vm = new CreatePropertyViewModel
@@ -92,10 +130,15 @@ namespace PropertyManagementSystem.Web.Controllers
                 AvailableLandlords = await GetLandlordsSelectList(),
                 PropertyTypes = GetPropertyTypesSelectList()
             };
-            return View("PropertyCreate",vm);
+            return View("PropertyCreate", vm);
         }
 
         // POST: Property/Create
+        /// <summary>
+        /// Creates the specified vm.
+        /// </summary>
+        /// <param name="vm">The vm.</param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreatePropertyViewModel vm)
@@ -136,6 +179,11 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: Property/Edit/{id}
+        /// <summary>
+        /// Edits the specified identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public async Task<IActionResult> Edit(int id)
         {
             var property = await _propertyService.GetPropertyByIdAsync(id);
@@ -147,6 +195,12 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // POST: Property/Edit/{id}
+        /// <summary>
+        /// Edits the specified identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="property">The property.</param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Property property)
@@ -170,11 +224,16 @@ namespace PropertyManagementSystem.Web.Controllers
                     ModelState.AddModelError("", ex.Message);
                 }
             }
-            return View("PropertyEdit",property);
+            return View("PropertyEdit", property);
         }
 
 
         // GET: Property/Delete/{id}
+        /// <summary>
+        /// Deletes the specified identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public async Task<IActionResult> Delete(int id)
         {
             var property = await _propertyService.GetPropertyByIdAsync(id);
@@ -182,10 +241,15 @@ namespace PropertyManagementSystem.Web.Controllers
             {
                 return NotFound();
             }
-            return View("PropertyDelete",property);
+            return View("PropertyDelete", property);
         }
 
         // POST: Property/Delete/{id}
+        /// <summary>
+        /// Deletes the confirmed.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

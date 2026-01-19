@@ -1,10 +1,5 @@
 <Solution>
-<<<<<<< HEAD
   <Project Path="PropertyManagementSystem.BLL/PropertyManagementSystem.BLL.csproj" />
   <Project Path="PropertyManagementSystem.DAL/PropertyManagementSystem.DAL.csproj" />
-=======
-  <Project Path="PropertyManagementSystem.BLL/PropertyManagementSystem.BLL.csproj" Id="3439a6c4-ed1a-423a-889e-c7859b31d705" />
-  <Project Path="PropertyManagementSystem.DAL/PropertyManagementSystem.DAL.csproj" Id="6acd29bd-45d7-4bec-bdea-735b29c69710" />
->>>>>>> 0de9be02105b0de8baccf77b5069520c3f76ebe0
   <Project Path="PropertyManagementSystem.Web/PropertyManagementSystem.Web.csproj" />
 </Solution>
