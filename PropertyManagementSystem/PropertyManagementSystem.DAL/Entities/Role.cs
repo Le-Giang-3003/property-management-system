@@ -1,15 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.DAL.Entities;
 
-public partial class Role
+public class Role
 {
-    public int Id { get; set; }
+    [Key]
+    public int RoleId { get; set; }
 
-    public string Name { get; set; } = null!;
+    [Required, MaxLength(50)]
+    public string RoleName { get; set; } // Admin, Landlord, Tenant, Technician
 
-    public string? Description { get; set; }
+    [MaxLength(200)]
+    public string Description { get; set; }
 
-    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation
+    public ICollection<UserRole> UserRoles { get; set; }
 }
+

@@ -5,31 +5,78 @@ using PropertyManagementSystem.DAL.Repositories.Interface;
 
 namespace PropertyManagementSystem.DAL.Repositories.Implementation
 {
+    /// <summary>
+    /// Repository for user-related operations.
+    /// </summary>
+    /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Interface.IUserRepository" />
     public class UserRepository : IUserRepository
     {
-        private readonly PropertyManagementDbContext _context;
-        public UserRepository(PropertyManagementDbContext context)
+        /// <summary>
+        /// The context
+        /// </summary>
+        private readonly AppDbContext _context;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserRepository"/> class.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        public UserRepository(AppDbContext context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Adds the new user.
+        /// </summary>
+        /// <param name="newUser">The new user.</param>
+        /// <returns></returns>
+        public async Task<bool> AddNewUser(User newUser)
+        {
+            await _context.Users.AddAsync(newUser);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
+
+        /// <summary>
+        /// Gets all users asynchronous.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await _context.Users.ToListAsync();
         }
 
-        public async Task<User?> GetUserByIdAsync(int id)
+        /// <summary>
+        /// Gets the user by email asynchronous.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <returns></returns>
+        public Task<User?> GetUserByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        /// <summary>
+        /// Gets the user by identifier asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
+        }
+
+        /// <summary>
+        /// Gets the users by role asynchronous.
+        /// </summary>
+        /// <param name="roleName">Name of the role.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName)
         {
             return await _context.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
-            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == roleName)
-                     && u.Status == "Active")
+            .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == roleName)
+                     && u.IsActive)
             .ToListAsync();
         }
     }

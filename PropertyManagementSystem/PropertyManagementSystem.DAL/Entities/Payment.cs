@@ -1,51 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementSystem.DAL.Entities;
 
-public partial class Payment
+public class Payment
 {
-    public int Id { get; set; }
+    [Key]
+    public int PaymentId { get; set; }
 
-    public int ContractId { get; set; }
+    [ForeignKey("Invoice")]
+    public int InvoiceId { get; set; }
 
-    public int TenantId { get; set; }
+    [Required, MaxLength(50)]
+    public string PaymentNumber { get; set; }
 
-    public int LandlordId { get; set; }
-
-    public DateOnly DueDate { get; set; }
-
-    public DateOnly? PaidDate { get; set; }
-
+    [Column(TypeName = "decimal(18,2)")]
     public decimal Amount { get; set; }
 
-    public string Currency { get; set; } = null!;
+    public DateTime PaymentDate { get; set; }
 
-    public string Status { get; set; } = null!;
+    [Required, MaxLength(50)]
+    public string PaymentMethod { get; set; } // Cash, BankTransfer, CreditCard, Momo, ZaloPay
 
-    public string? PaymentMethod { get; set; }
+    [MaxLength(100)]
+    public string TransactionReference { get; set; }
 
-    public string? ReferenceCode { get; set; }
+    [MaxLength(200)]
+    public string BankName { get; set; }
 
-    public string? Notes { get; set; }
+    [MaxLength(50)]
+    public string AccountNumber { get; set; }
 
-    public bool IsDisputed { get; set; }
+    [MaxLength(1000)]
+    public string Notes { get; set; }
 
-    public string? DisputeReason { get; set; }
+    [MaxLength(500)]
+    public string ReceiptFileUrl { get; set; }
 
-    public decimal? RefundedAmount { get; set; }
+    [MaxLength(500)]
+    public string ReceiptFilePath { get; set; }
 
-    public DateTime? LastReminderSentAt { get; set; }
+    [Required, MaxLength(20)]
+    public string Status { get; set; } = "Pending"; // Pending, Confirmed, Failed, Refunded, PartialRefund
 
-    public DateTime CreatedAt { get; set; }
+    [ForeignKey("ProcessedByUser")]
+    public int? ProcessedBy { get; set; }
 
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? ConfirmedAt { get; set; }
 
-    public virtual RentalContract Contract { get; set; } = null!;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
-
-    public virtual User Landlord { get; set; } = null!;
-
-    public virtual User Tenant { get; set; } = null!;
+    // Navigation
+    public Invoice Invoice { get; set; }
+    public User ProcessedByUser { get; set; }
+    public Refund Refund { get; set; }
 }

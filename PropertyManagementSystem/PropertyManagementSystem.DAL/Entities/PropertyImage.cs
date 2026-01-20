@@ -1,25 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementSystem.DAL.Entities;
 
-public partial class PropertyImage
+public class PropertyImage
 {
-    public int Id { get; set; }
+    [Key]
+    public int ImageId { get; set; }
 
+    [ForeignKey("Property")]
     public int PropertyId { get; set; }
 
-    public int? FileId { get; set; }
+    [Required, MaxLength(500)]
+    public string ImageUrl { get; set; }
 
-    public string? ImageUrl { get; set; }
+    [MaxLength(500)]
+    public string ImagePath { get; set; }
 
-    public bool IsPrimary { get; set; }
+    public bool IsThumbnail { get; set; } = false;
+    public int DisplayOrder { get; set; } = 0;
 
-    public int? SortOrder { get; set; }
+    [MaxLength(200)]
+    public string Caption { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
-    public virtual File? File { get; set; }
-
-    public virtual Property Property { get; set; } = null!;
+    // Navigation
+    public Property Property { get; set; }
 }

@@ -68,7 +68,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             ViewBag.PropertyTypes = GetPropertyTypesSelectList();
 
-            // ✓ Sửa: Chỉ định view "PropertyManagement"
+            // Chỉ định view "PropertyManagement"
             return View("PropertyManagement", properties ?? new List<Property>());
         }
 
@@ -97,7 +97,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var landlords = await _userService.GetUsersByRoleAsync("Landlord");
             return landlords.Select(l => new SelectListItem
             {
-                Value = l.Id.ToString(),
+                Value = l.UserId.ToString(),
                 Text = l.FullName
             }).ToList();
         }
@@ -149,14 +149,14 @@ namespace PropertyManagementSystem.Web.Controllers
                 {
                     var property = new Property
                     {
-                        Title = vm.Title,
+                        Name = vm.Title,
                         Description = vm.Description,
                         Address = vm.Address,
                         City = vm.City,
                         District = vm.District,
                         PropertyType = vm.PropertyType,
-                        BaseRentPrice = vm.BaseRentPrice,
-                        Area = vm.Area,
+                        RentAmount = vm.BaseRentPrice,
+                        SquareFeet = vm.Area,
                         LandlordId = vm.LandlordId,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
@@ -205,7 +205,7 @@ namespace PropertyManagementSystem.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Property property)
         {
-            if (id != property.Id)
+            if (id != property.PropertyId)
             {
                 return BadRequest();
             }

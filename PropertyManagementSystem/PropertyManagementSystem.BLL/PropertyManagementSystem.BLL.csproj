@@ -9,5 +9,9 @@
   <ItemGroup>
     <ProjectReference Include="..\PropertyManagementSystem.DAL\PropertyManagementSystem.DAL.csproj" />
   </ItemGroup>
-
+	<ItemGroup>
+		<PackageReference Include="MailKit" />
+		<PackageReference Include="BCrypt.Net-Next" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+	</ItemGroup>
 </Project>

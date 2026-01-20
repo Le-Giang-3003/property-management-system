@@ -110,7 +110,7 @@
                             {
                                 <tr>
                                     <td>
-                                        <strong>@item.Title</strong>
+                                        <strong>@item.Name</strong>
                                     </td>
                                     <td>@item.Address</td>
                                     <td>@item.City</td>
@@ -119,9 +119,9 @@
                                         <span class="badge bg-info">@item.PropertyType</span>
                                     </td>
                                     <td>
-                                        <strong>@string.Format("{0:N0}", item.BaseRentPrice) VND</strong>
+                                        <strong>@string.Format("{0:N0}", item.RentAmount) VND</strong>
                                     </td>
-                                    <td>@(item.Area?.ToString("N2") ?? "-")</td>
+                                    <td>@(item.SquareFeet.ToString("N2") ?? "-")</td>
                                     <td>
                                         @if (item.Status == "Available")
                                         {
@@ -139,19 +139,19 @@
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
                                             <a asp-action="Details"
-                                               asp-route-id="@item.Id"
+                                               asp-route-id="@item.PropertyId"
                                                class="btn btn-sm btn-info"
                                                title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                             <a asp-action="Edit"
-                                               asp-route-id="@item.Id"
+                                               asp-route-id="@item.PropertyId"
                                                class="btn btn-sm btn-warning"
                                                title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <a asp-action="Delete"
-                                               asp-route-id="@item.Id"
+                                               asp-route-id="@item.PropertyId"
                                                class="btn btn-sm btn-danger"
                                                title="Delete">
                                                 <i class="bi bi-trash"></i>
