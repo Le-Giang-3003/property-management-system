@@ -1,22 +1,362 @@
+/* Base Styles */
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    html {
+        font-size: 16px;
+    }
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
 }
+
+/* Focus Styles */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* Password Input Improvements */
+.password-input {
+    padding-right: 3.5rem !important;
+    border-radius: 0.75rem;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+    .password-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+/* Password Toggle Button */
+.password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .password-toggle-btn i {
+        font-size: 1.25rem;
+        color: #6c757d;
+        transition: all 0.2s ease;
+    }
+
+    .password-toggle-btn:hover {
+        background: #e9ecef;
+    }
+
+        .password-toggle-btn:hover i {
+            color: #0d6efd;
+        }
+
+    .password-toggle-btn:active {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+/* Legacy Password Toggle Styles (for backwards compatibility) */
+.toggle-password:hover {
+    color: #0d6efd !important;
+    opacity: 0.8;
+}
+
+.position-absolute:hover {
+    color: #0d6efd !important;
+    opacity: 0.8;
+}
+
+.form-control.pe-5 {
+    padding-right: 3.5rem !important;
+}
+
+.password-toggle {
+    right: 12px;
+    cursor: pointer;
+    color: #adb5bd;
+    font-size: 1.25rem;
+    z-index: 5;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+    .password-toggle:hover {
+        color: #0d6efd;
+        background: rgba(13, 110, 253, 0.1);
+    }
+
+/* Form Control Improvements */
+.form-control-lg {
+    height: 3.2rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+    .form-control-lg:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+.input-group .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Form Labels */
+.form-label {
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+    position: relative;
+}
+
+.strength-bar {
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #dc3545, #ffc107, #28a745);
+    background-size: 33.33% 100%;
+    transition: all 0.4s ease;
+    border-radius: 4px;
+}
+
+.strength-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+/* Progress Bar */
+.progress {
+    background-color: #e9ecef;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* Card Improvements */
+.card {
+    border: none;
+    overflow: hidden;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+    padding: 2.5rem;
+}
+
+.card-footer {
+    background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+}
+
+/* Button Improvements */
+.btn-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(13, 110, 253, 0.4);
+        background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+/* Utility Classes */
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .card-body {
+        padding: 2rem 1.5rem;
+    }
+
+    .password-toggle-btn i {
+        font-size: 1.1rem;
+    }
+
+    .form-control-lg {
+        height: 3rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* Additional Shadows and Effects */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
+
+/* Alert Improvements */
+.alert {
+    border-radius: 0.75rem;
+    border: none;
+}
+
+.alert-dismissible .btn-close {
+    padding: 0.75rem 1rem;
+}
+
+/* Link Improvements */
+a {
+    transition: all 0.2s ease;
+}
+
+    a:hover {
+        text-decoration: none;
+    }
+
+/* Text Colors */
+.text-primary {
+    color: #0d6efd !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-success {
+    color: #198754 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Rounded Utilities */
+.rounded-3 {
+    border-radius: 0.75rem !important;
+}
+
+.rounded-4 {
+    border-radius: 1rem !important;
+}
+
+.rounded-pill {
+    border-radius: 50rem !important;
+}
+
+/* Background Gradients */
+.bg-gradient {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0)) !important;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Hover Effects */
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+/* Input Group Adjustments */
+.input-group-text {
+    border: 2px solid #e9ecef;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #0d6efd;
+    background-color: #fff;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+    .input-group .form-control:focus {
+        border-left: none;
+    }
+
+/* Bootstrap Icon Adjustments */
+.bi {
+    vertical-align: middle;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }

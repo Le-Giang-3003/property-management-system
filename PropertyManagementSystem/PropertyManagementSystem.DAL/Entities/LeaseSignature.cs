@@ -29,4 +29,8 @@ namespace PropertyManagementSystem.DAL.Entities
         public Lease Lease { get; set; }
         public User User { get; set; }
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7864dd8da4821481c77672150503091864b776b9
 }

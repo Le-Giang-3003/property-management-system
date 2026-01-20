@@ -37,4 +37,8 @@ namespace PropertyManagementSystem.DAL.Entities
         public Payment Payment { get; set; }
         public User ProcessedByUser { get; set; }
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7864dd8da4821481c77672150503091864b776b9
 }

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+<<<<<<< HEAD
 namespace PropertyManagementSystem.DAL.Entities
 {
     public class UserRole
@@ -24,4 +25,29 @@ namespace PropertyManagementSystem.DAL.Entities
         public Role Role { get; set; }
         public User AssignedByUser { get; set; }
     }
+=======
+namespace PropertyManagementSystem.DAL.Entities;
+
+public class UserRole
+{
+    [Key]
+    public int UserRoleId { get; set; }
+
+    [ForeignKey("User")]
+    public int UserId { get; set; }
+
+    [ForeignKey("Role")]
+    public int RoleId { get; set; }
+
+    public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+
+    [ForeignKey("AssignedByUser")]
+    public int? AssignedBy { get; set; }
+
+    // Navigation
+    public User User { get; set; }
+    public Role Role { get; set; }
+    public User AssignedByUser { get; set; }
+>>>>>>> 7864dd8da4821481c77672150503091864b776b9
 }
+

@@ -11,6 +11,8 @@ namespace PropertyManagementSystem.DAL
     {
         public static IServiceCollection AddDataAccessLayer(this IServiceCollection services, IConfiguration configuration)
         {
+            // Register your data access layer services here
+            // e.g., services.AddScoped<IYourRepository, YourRepositoryImplementation>();
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
