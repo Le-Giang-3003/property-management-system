@@ -1,0 +1,38 @@
+﻿using PropertyManagementSystem.DAL.Data;
+using PropertyManagementSystem.DAL.Repositories.Interface;
+
+namespace PropertyManagementSystem.DAL.Repositories.Implementation
+{
+    public class UnitOfWork : IUnitOfWork
+    {
+        private readonly AppDbContext _context;
+        private IUserRepository? _users;
+        private IRoleRepository? _roles;
+        private IUserRoleRepository? _userRoles;
+
+        public UnitOfWork(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public IUserRepository Users => _users ??= new UserRepository(_context);
+        public IRoleRepository Roles => _roles ??= new RoleRepository(_context);
+        public IUserRoleRepository UserRoles => _userRoles ??= new UserRoleRepository(_context);
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public int SaveChanges()
+        {
+            return _context.SaveChanges();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            GC.SuppressFinalize(this);
+        }
+    }
+}

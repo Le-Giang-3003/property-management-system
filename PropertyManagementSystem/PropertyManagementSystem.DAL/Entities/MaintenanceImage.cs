@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementSystem.DAL.Entities
 {
-    public class PropertyImage
+    public class MaintenanceImage
     {
         [Key]
         public int ImageId { get; set; }
 
-        [ForeignKey("Property")]
-        public int PropertyId { get; set; }
+        [ForeignKey("MaintenanceRequest")]
+        public int RequestId { get; set; }
 
         [Required, MaxLength(500)]
         public string ImageUrl { get; set; }
@@ -17,15 +17,19 @@ namespace PropertyManagementSystem.DAL.Entities
         [MaxLength(500)]
         public string ImagePath { get; set; }
 
-        public bool IsThumbnail { get; set; } = false;
-        public int DisplayOrder { get; set; } = 0;
-
         [MaxLength(200)]
         public string Caption { get; set; }
+
+        [MaxLength(20)]
+        public string ImageType { get; set; } = "Before"; // Before, During, After
+
+        [ForeignKey("UploadedByUser")]
+        public int UploadedBy { get; set; }
 
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation
-        public Property Property { get; set; }
+        public MaintenanceRequest MaintenanceRequest { get; set; }
+        public User UploadedByUser { get; set; }
     }
 }

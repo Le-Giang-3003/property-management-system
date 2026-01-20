@@ -5,32 +5,31 @@ using PropertyManagementSystem.DAL.Repositories.Interface;
 
 namespace PropertyManagementSystem.DAL.Repositories.Implementation
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : GenericRepository<User>, IUserRepository
     {
-        private readonly PropertyManagementDbContext _context;
-        public UserRepository(PropertyManagementDbContext context)
+        public UserRepository(AppDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _context.Users.ToListAsync();
+            return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<User?> GetUserByIdAsync(int id)
+        public async Task<User?> GetUserWithRolesAsync(int userId)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await _dbSet
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
         }
 
-        public async Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName)
+        public async Task<User?> GetUserWithRolesByEmailAsync(string email)
         {
-            return await _context.Users
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == roleName)
-                     && u.Status == "Active")
-            .ToListAsync();
+            return await _dbSet
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

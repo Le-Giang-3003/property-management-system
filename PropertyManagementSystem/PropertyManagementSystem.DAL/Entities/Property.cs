@@ -1,55 +1,81 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementSystem.DAL.Entities;
-
-public partial class Property
+namespace PropertyManagementSystem.DAL.Entities
 {
-    public int Id { get; set; }
+    public class Property
+    {
+        [Key]
+        public int PropertyId { get; set; }
 
-    public int LandlordId { get; set; }
+        [ForeignKey("Landlord")]
+        public int LandlordId { get; set; }
 
-    public string Title { get; set; } = null!;
+        [Required, MaxLength(200)]
+        public string Name { get; set; }
 
-    public string? Description { get; set; }
+        [Required, MaxLength(500)]
+        public string Address { get; set; }
 
-    public string Address { get; set; } = null!;
+        [MaxLength(100)]
+        public string City { get; set; }
 
-    public string City { get; set; } = null!;
+        [MaxLength(100)]
+        public string District { get; set; }
 
-    public string? District { get; set; }
+        [MaxLength(20)]
+        public string ZipCode { get; set; }
 
-    public decimal? Latitude { get; set; }
+        [Column(TypeName = "decimal(10,6)")]
+        public decimal? Latitude { get; set; }
 
-    public decimal? Longitude { get; set; }
+        [Column(TypeName = "decimal(10,6)")]
+        public decimal? Longitude { get; set; }
 
-    public string PropertyType { get; set; } = null!;
+        [Required, MaxLength(50)]
+        public string PropertyType { get; set; } // Apartment, House, Condo, Studio, Villa
 
-    public int? Bedrooms { get; set; }
+        public int Bedrooms { get; set; }
+        public int Bathrooms { get; set; }
 
-    public int? Bathrooms { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal SquareFeet { get; set; }
 
-    public decimal? Area { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal RentAmount { get; set; }
 
-    public decimal? BaseRentPrice { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? DepositAmount { get; set; }
 
-    public string Status { get; set; } = null!;
+        [MaxLength(3000)]
+        public string Description { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+        [MaxLength(1000)]
+        public string Amenities { get; set; } // JSON
 
-    public DateTime UpdatedAt { get; set; }
+        [MaxLength(500)]
+        public string UtilitiesIncluded { get; set; } // JSON
 
-    public virtual ICollection<ChatRoom> ChatRooms { get; set; } = new List<ChatRoom>();
+        public bool IsFurnished { get; set; } = false;
+        public bool PetsAllowed { get; set; } = false;
 
-    public virtual User Landlord { get; set; } = null!;
+        [Required, MaxLength(20)]
+        public string Status { get; set; } = "Available"; // Available, Rented, Maintenance, Unavailable
 
-    public virtual ICollection<MaintenanceRequest> MaintenanceRequests { get; set; } = new List<MaintenanceRequest>();
+        public DateTime? AvailableFrom { get; set; }
 
-    public virtual ICollection<PropertyImage> PropertyImages { get; set; } = new List<PropertyImage>();
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<RentalApplication> RentalApplications { get; set; } = new List<RentalApplication>();
-
-    public virtual ICollection<RentalContract> RentalContracts { get; set; } = new List<RentalContract>();
-
-    public virtual ICollection<ViewingSchedule> ViewingSchedules { get; set; } = new List<ViewingSchedule>();
+        // Navigation
+        public User Landlord { get; set; }
+        public ICollection<PropertyImage> Images { get; set; }
+        public ICollection<Lease> Leases { get; set; }
+        public ICollection<MaintenanceRequest> MaintenanceRequests { get; set; }
+        public ICollection<PropertyViewing> Viewings { get; set; }
+        public ICollection<RentalApplication> RentalApplications { get; set; }
+        public ICollection<FavoriteProperty> FavoritedBy { get; set; }
+        public PropertyAnalytics Analytics { get; set; }
+        public ICollection<AIPricePrediction> PricePredictions { get; set; }
+    }
 }

@@ -2,10 +2,10 @@
 
 namespace PropertyManagementSystem.DAL.Repositories.Interface
 {
-    public interface IUserRepository
+    public interface IUserRepository : IGenericRepository<User>
     {
-        Task<IEnumerable<User>> GetAllUsersAsync();
-        Task<User?> GetUserByIdAsync(int id);
-        Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName);
+        Task<User?> GetByEmailAsync(string email);
+        Task<User?> GetUserWithRolesAsync(int userId);
+        Task<User?> GetUserWithRolesByEmailAsync(string email);
     }
 }

@@ -1,45 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementSystem.DAL.Entities;
-
-public partial class MaintenanceRequest
+namespace PropertyManagementSystem.DAL.Entities
 {
-    public int Id { get; set; }
+    public class MaintenanceRequest
+    {
+        [Key]
+        public int RequestId { get; set; }
 
-    public int PropertyId { get; set; }
+        [ForeignKey("Property")]
+        public int PropertyId { get; set; }
 
-    public int? ContractId { get; set; }
+        [ForeignKey("Tenant")]
+        public int RequestedBy { get; set; }
 
-    public int TenantId { get; set; }
+        [ForeignKey("Technician")]
+        public int? AssignedTo { get; set; }
 
-    public int LandlordId { get; set; }
+        [Required, MaxLength(50)]
+        public string RequestNumber { get; set; }
 
-    public string Title { get; set; } = null!;
+        [Required, MaxLength(100)]
+        public string Category { get; set; } // Plumbing, Electrical, HVAC, Appliance, Carpentry, Painting, Other
 
-    public string? Description { get; set; }
+        [Required, MaxLength(20)]
+        public string Priority { get; set; } = "Medium"; // Low, Medium, High, Emergency
 
-    public string Priority { get; set; } = null!;
+        [Required, MaxLength(200)]
+        public string Title { get; set; }
 
-    public string Status { get; set; } = null!;
+        [Required, MaxLength(3000)]
+        public string Description { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+        [MaxLength(500)]
+        public string Location { get; set; }
 
-    public DateTime UpdatedAt { get; set; }
+        [Required, MaxLength(20)]
+        public string Status { get; set; } = "Pending"; // Pending, Assigned, InProgress, Completed, Cancelled, OnHold, Closed
 
-    public DateTime? ClosedAt { get; set; }
+        public DateTime RequestDate { get; set; } = DateTime.UtcNow;
 
-    public int? ClosedById { get; set; }
+        public DateTime? AssignedDate { get; set; }
+        public DateTime? StartedDate { get; set; }
+        public DateTime? CompletedDate { get; set; }
+        public DateTime? ClosedDate { get; set; }
 
-    public virtual User? ClosedBy { get; set; }
+        [ForeignKey("ClosedByUser")]
+        public int? ClosedBy { get; set; }
 
-    public virtual RentalContract? Contract { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? EstimatedCost { get; set; }
 
-    public virtual User Landlord { get; set; } = null!;
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? ActualCost { get; set; }
 
-    public virtual ICollection<MaintenanceAssignment> MaintenanceAssignments { get; set; } = new List<MaintenanceAssignment>();
+        [MaxLength(2000)]
+        public string ResolutionNotes { get; set; }
 
-    public virtual Property Property { get; set; } = null!;
+        public int? Rating { get; set; }
 
-    public virtual User Tenant { get; set; } = null!;
+        [MaxLength(1000)]
+        public string TenantFeedback { get; set; }
+
+        // Navigation
+        public Property Property { get; set; }
+        public User Tenant { get; set; }
+        public User Technician { get; set; }
+        public User ClosedByUser { get; set; }
+        public ICollection<MaintenanceImage> Images { get; set; }
+        public ICollection<MaintenanceComment> Comments { get; set; }
+    }
 }
