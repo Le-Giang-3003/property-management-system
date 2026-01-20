@@ -73,5 +73,8 @@ namespace PropertyManagementSystem.DAL.Entities
         public ICollection<LeaseSignature> Signatures { get; set; }
         public ICollection<ChatRoom> ChatRooms { get; set; }
     }
+<<<<<<< HEAD
+=======
 
+>>>>>>> 7864dd8da4821481c77672150503091864b776b9
 }

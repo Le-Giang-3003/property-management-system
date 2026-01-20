@@ -9,9 +9,19 @@
   <ItemGroup>
     <ProjectReference Include="..\PropertyManagementSystem.DAL\PropertyManagementSystem.DAL.csproj" />
   </ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="MailKit" />
+
+  <ItemGroup>
+    <Folder Include="Services\Implementation\" />
+    <Folder Include="Services\Interface\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" />
+<PackageReference Include="MailKit" />
 		<PackageReference Include="BCrypt.Net-Next" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
-	</ItemGroup>
+
+  </ItemGroup>
+
+
 </Project>

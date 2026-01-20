@@ -21,7 +21,6 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <param name="context">The context.</param>
         public UserRepository(AppDbContext context)
         {
-            _context = context;
         }
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <returns></returns>
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _context.Users.ToListAsync();
+            return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         /// <summary>
@@ -62,7 +61,10 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <returns></returns>
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
+            return await _dbSet
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
         }
 
         /// <summary>

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+=======
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -5,6 +9,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+>>>>>>> 7864dd8da4821481c77672150503091864b776b9
 
 namespace PropertyManagementSystem.DAL.Entities
 {
@@ -53,5 +58,8 @@ namespace PropertyManagementSystem.DAL.Entities
         public User UploadedByUser { get; set; }
         public User DeletedByUser { get; set; }
     }
+<<<<<<< HEAD
+=======
 
+>>>>>>> 7864dd8da4821481c77672150503091864b776b9
 }

@@ -72,7 +72,10 @@ namespace PropertyManagementSystem.DAL.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // ==================== USER & AUTHENTICATION ====================
+            // Unique constraints
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
 
             // User - self-referencing for UserRole.AssignedBy
             modelBuilder.Entity<UserRole>()
@@ -102,6 +105,7 @@ namespace PropertyManagementSystem.DAL.Data
 
             // ==================== PROPERTY ====================
 
+            // User relationships - disable cascade delete
             modelBuilder.Entity<Property>()
                 .HasOne(p => p.Landlord)
                 .WithMany(u => u.Properties)
