@@ -21,8 +21,4 @@ namespace PropertyManagementSystem.DAL.Entities
         // Navigation
         public User User { get; set; }
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> 7864dd8da4821481c77672150503091864b776b9
 }

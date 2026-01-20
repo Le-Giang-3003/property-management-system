@@ -23,6 +23,7 @@ namespace PropertyManagementSystem.DAL
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+            services.AddScoped<IPropertyRepository, PropertyRepository>();
 
             return services;
         }

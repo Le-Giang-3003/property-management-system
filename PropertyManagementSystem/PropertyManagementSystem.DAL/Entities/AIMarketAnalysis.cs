@@ -39,8 +39,4 @@ namespace PropertyManagementSystem.DAL.Entities
         public DateTime AnalysisPeriodEnd { get; set; }
         public DateTime CalculatedAt { get; set; } = DateTime.UtcNow;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> 7864dd8da4821481c77672150503091864b776b9
 }

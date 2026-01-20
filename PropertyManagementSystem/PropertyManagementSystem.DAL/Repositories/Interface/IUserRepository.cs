@@ -36,5 +36,6 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         /// <param name="newUser">The new user.</param>
         /// <returns></returns>
         Task<bool> AddNewUser(User newUser);
+        Task<User?> GetUserWithRolesByEmailAsync(string email);
     }
 }

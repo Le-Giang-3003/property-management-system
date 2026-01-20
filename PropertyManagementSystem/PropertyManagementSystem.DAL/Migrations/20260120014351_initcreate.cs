@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PropertyManagementSystem.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialNewDatabase : Migration
+    public partial class initcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -62,7 +62,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                     PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Avatar = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
@@ -1132,10 +1132,10 @@ namespace PropertyManagementSystem.DAL.Migrations
                 columns: new[] { "RoleId", "CreatedAt", "Description", "RoleName" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 1, 19, 15, 12, 36, 20, DateTimeKind.Utc).AddTicks(3161), "System Administrator", "Admin" },
-                    { 2, new DateTime(2026, 1, 19, 15, 12, 36, 20, DateTimeKind.Utc).AddTicks(3164), "Property Owner", "Landlord" },
-                    { 3, new DateTime(2026, 1, 19, 15, 12, 36, 20, DateTimeKind.Utc).AddTicks(3165), "Property Renter", "Tenant" },
-                    { 4, new DateTime(2026, 1, 19, 15, 12, 36, 20, DateTimeKind.Utc).AddTicks(3166), "Maintenance Technician", "Technician" }
+                    { 1, new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(59), "System Administrator", "Admin" },
+                    { 2, new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(61), "Property Owner", "Landlord" },
+                    { 3, new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(62), "Property Renter", "Tenant" },
+                    { 4, new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(63), "Maintenance Technician", "Technician" }
                 });
 
             migrationBuilder.CreateIndex(

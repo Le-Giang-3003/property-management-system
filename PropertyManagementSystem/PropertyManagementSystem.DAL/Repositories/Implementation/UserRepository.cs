@@ -21,6 +21,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <param name="context">The context.</param>
         public UserRepository(AppDbContext context)
         {
+            _context = context;
         }
 
         /// <summary>
@@ -41,7 +42,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <returns></returns>
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Users.ToListAsync();
         }
 
         /// <summary>
@@ -61,10 +62,10 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <returns></returns>
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            return await _dbSet
+            return await _context.Users
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.UserId == userId);
+                .FirstOrDefaultAsync(u => u.UserId == id);
         }
 
         /// <summary>
@@ -80,6 +81,14 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == roleName)
                      && u.IsActive)
             .ToListAsync();
+        }
+
+        public async Task<User?> GetUserWithRolesByEmailAsync(string email)
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

@@ -32,8 +32,4 @@ namespace PropertyManagementSystem.DAL.Entities
         public MaintenanceRequest MaintenanceRequest { get; set; }
         public User UploadedByUser { get; set; }
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> 7864dd8da4821481c77672150503091864b776b9
 }

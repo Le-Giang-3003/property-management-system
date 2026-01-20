@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PropertyManagementSystem.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class MaskNullable : Migration
+    public partial class initcreateGiang : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,43 +31,33 @@ namespace PropertyManagementSystem.DAL.Migrations
                 oldType: "nvarchar(500)",
                 oldMaxLength: 500);
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Address",
-                table: "Users",
-                type: "nvarchar(500)",
-                maxLength: 500,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(500)",
-                oldMaxLength: 500);
-
             migrationBuilder.UpdateData(
                 table: "Roles",
                 keyColumn: "RoleId",
                 keyValue: 1,
                 column: "CreatedAt",
-                value: new DateTime(2026, 1, 19, 15, 25, 2, 14, DateTimeKind.Utc).AddTicks(3107));
+                value: new DateTime(2026, 1, 20, 1, 45, 42, 156, DateTimeKind.Utc).AddTicks(6740));
 
             migrationBuilder.UpdateData(
                 table: "Roles",
                 keyColumn: "RoleId",
                 keyValue: 2,
                 column: "CreatedAt",
-                value: new DateTime(2026, 1, 19, 15, 25, 2, 14, DateTimeKind.Utc).AddTicks(3111));
+                value: new DateTime(2026, 1, 20, 1, 45, 42, 156, DateTimeKind.Utc).AddTicks(6743));
 
             migrationBuilder.UpdateData(
                 table: "Roles",
                 keyColumn: "RoleId",
                 keyValue: 3,
                 column: "CreatedAt",
-                value: new DateTime(2026, 1, 19, 15, 25, 2, 14, DateTimeKind.Utc).AddTicks(3112));
+                value: new DateTime(2026, 1, 20, 1, 45, 42, 156, DateTimeKind.Utc).AddTicks(6743));
 
             migrationBuilder.UpdateData(
                 table: "Roles",
                 keyColumn: "RoleId",
                 keyValue: 4,
                 column: "CreatedAt",
-                value: new DateTime(2026, 1, 19, 15, 25, 2, 14, DateTimeKind.Utc).AddTicks(3114));
+                value: new DateTime(2026, 1, 20, 1, 45, 42, 156, DateTimeKind.Utc).AddTicks(6744));
         }
 
         /// <inheritdoc />
@@ -97,45 +87,33 @@ namespace PropertyManagementSystem.DAL.Migrations
                 oldMaxLength: 500,
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Address",
-                table: "Users",
-                type: "nvarchar(500)",
-                maxLength: 500,
-                nullable: false,
-                defaultValue: "",
-                oldClrType: typeof(string),
-                oldType: "nvarchar(500)",
-                oldMaxLength: 500,
-                oldNullable: true);
-
             migrationBuilder.UpdateData(
                 table: "Roles",
                 keyColumn: "RoleId",
                 keyValue: 1,
                 column: "CreatedAt",
-                value: new DateTime(2026, 1, 19, 15, 12, 36, 20, DateTimeKind.Utc).AddTicks(3161));
+                value: new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(59));
 
             migrationBuilder.UpdateData(
                 table: "Roles",
                 keyColumn: "RoleId",
                 keyValue: 2,
                 column: "CreatedAt",
-                value: new DateTime(2026, 1, 19, 15, 12, 36, 20, DateTimeKind.Utc).AddTicks(3164));
+                value: new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(61));
 
             migrationBuilder.UpdateData(
                 table: "Roles",
                 keyColumn: "RoleId",
                 keyValue: 3,
                 column: "CreatedAt",
-                value: new DateTime(2026, 1, 19, 15, 12, 36, 20, DateTimeKind.Utc).AddTicks(3165));
+                value: new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(62));
 
             migrationBuilder.UpdateData(
                 table: "Roles",
                 keyColumn: "RoleId",
                 keyValue: 4,
                 column: "CreatedAt",
-                value: new DateTime(2026, 1, 19, 15, 12, 36, 20, DateTimeKind.Utc).AddTicks(3166));
+                value: new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(63));
         }
     }
 }

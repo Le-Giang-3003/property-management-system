@@ -12,8 +12,8 @@ using PropertyManagementSystem.DAL.Data;
 namespace PropertyManagementSystem.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260119152505_MaskNullable")]
-    partial class MaskNullable
+    [Migration("20260120014351_initcreate")]
+    partial class initcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1822,28 +1822,28 @@ namespace PropertyManagementSystem.DAL.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedAt = new DateTime(2026, 1, 19, 15, 25, 2, 14, DateTimeKind.Utc).AddTicks(3107),
+                            CreatedAt = new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(59),
                             Description = "System Administrator",
                             RoleName = "Admin"
                         },
                         new
                         {
                             RoleId = 2,
-                            CreatedAt = new DateTime(2026, 1, 19, 15, 25, 2, 14, DateTimeKind.Utc).AddTicks(3111),
+                            CreatedAt = new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(61),
                             Description = "Property Owner",
                             RoleName = "Landlord"
                         },
                         new
                         {
                             RoleId = 3,
-                            CreatedAt = new DateTime(2026, 1, 19, 15, 25, 2, 14, DateTimeKind.Utc).AddTicks(3112),
+                            CreatedAt = new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(62),
                             Description = "Property Renter",
                             RoleName = "Tenant"
                         },
                         new
                         {
                             RoleId = 4,
-                            CreatedAt = new DateTime(2026, 1, 19, 15, 25, 2, 14, DateTimeKind.Utc).AddTicks(3114),
+                            CreatedAt = new DateTime(2026, 1, 20, 1, 43, 50, 623, DateTimeKind.Utc).AddTicks(63),
                             Description = "Maintenance Technician",
                             RoleName = "Technician"
                         });
@@ -1969,38 +1969,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                     b.ToTable("TenantPreferences");
                 });
 
-            modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.UserRole", b =>
-                {
-                    b.Property<int>("UserRoleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserRoleId"));
-
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("AssignedBy")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserRoleId");
-
-                    b.HasIndex("AssignedBy");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserRoles");
-                });
-
-            modelBuilder.Entity("User", b =>
+            modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.User", b =>
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
@@ -2013,6 +1982,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Avatar")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -2047,6 +2017,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -2059,6 +2030,37 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.UserRole", b =>
+                {
+                    b.Property<int>("UserRoleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserRoleId"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("AssignedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserRoleId");
+
+                    b.HasIndex("AssignedBy");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.AIPricePrediction", b =>
@@ -2080,7 +2082,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2115,7 +2117,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.AuditLog", b =>
                 {
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2125,7 +2127,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.BackupHistory", b =>
                 {
-                    b.HasOne("User", "CreatedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2142,7 +2144,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", "Sender")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "Sender")
                         .WithMany("SentMessages")
                         .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2161,7 +2163,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany("ChatParticipants")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2191,12 +2193,12 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.Document", b =>
                 {
-                    b.HasOne("User", "DeletedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "DeletedByUser")
                         .WithMany()
                         .HasForeignKey("DeletedBy")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("User", "UploadedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "UploadedByUser")
                         .WithMany()
                         .HasForeignKey("UploadedBy")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2215,7 +2217,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany("FavoriteProperties")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2255,7 +2257,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "Tenant")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "Tenant")
                         .WithMany("TenantLeases")
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2278,7 +2280,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2297,7 +2299,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany("Comments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2316,7 +2318,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", "UploadedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "UploadedByUser")
                         .WithMany()
                         .HasForeignKey("UploadedBy")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2329,12 +2331,12 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.MaintenanceRequest", b =>
                 {
-                    b.HasOne("User", "Technician")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "Technician")
                         .WithMany("TechnicianRequests")
                         .HasForeignKey("AssignedTo")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("User", "ClosedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "ClosedByUser")
                         .WithMany()
                         .HasForeignKey("ClosedBy")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2345,7 +2347,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "Tenant")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "Tenant")
                         .WithMany("TenantRequests")
                         .HasForeignKey("RequestedBy")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2362,7 +2364,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.Notification", b =>
                 {
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2373,7 +2375,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.NotificationPreference", b =>
                 {
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithOne("NotificationPreference")
                         .HasForeignKey("PropertyManagementSystem.DAL.Entities.NotificationPreference", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2384,7 +2386,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.PasswordResetToken", b =>
                 {
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2401,7 +2403,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "ProcessedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "ProcessedByUser")
                         .WithMany()
                         .HasForeignKey("ProcessedBy")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2419,13 +2421,13 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "RaisedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "RaisedByUser")
                         .WithMany()
                         .HasForeignKey("RaisedBy")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "ResolvedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "ResolvedByUser")
                         .WithMany()
                         .HasForeignKey("ResolvedBy")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2439,7 +2441,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.Property", b =>
                 {
-                    b.HasOne("User", "Landlord")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "Landlord")
                         .WithMany("Properties")
                         .HasForeignKey("LandlordId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2478,7 +2480,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "Tenant")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "Tenant")
                         .WithMany("ViewingRequests")
                         .HasForeignKey("RequestedBy")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2496,7 +2498,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "ProcessedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "ProcessedByUser")
                         .WithMany()
                         .HasForeignKey("ProcessedBy")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2508,7 +2510,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.RentalApplication", b =>
                 {
-                    b.HasOne("User", "Applicant")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "Applicant")
                         .WithMany("RentalApplications")
                         .HasForeignKey("ApplicantId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -2520,7 +2522,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "ReviewedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "ReviewedByUser")
                         .WithMany()
                         .HasForeignKey("ReviewedBy")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2534,7 +2536,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.SystemSetting", b =>
                 {
-                    b.HasOne("User", "UpdatedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "UpdatedByUser")
                         .WithMany()
                         .HasForeignKey("UpdatedBy")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2544,7 +2546,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.TenantPreference", b =>
                 {
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithOne("TenantPreference")
                         .HasForeignKey("PropertyManagementSystem.DAL.Entities.TenantPreference", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2555,7 +2557,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
             modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.UserRole", b =>
                 {
-                    b.HasOne("User", "AssignedByUser")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "AssignedByUser")
                         .WithMany()
                         .HasForeignKey("AssignedBy")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2566,7 +2568,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", "User")
+                    b.HasOne("PropertyManagementSystem.DAL.Entities.User", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2649,7 +2651,7 @@ namespace PropertyManagementSystem.DAL.Migrations
                     b.Navigation("UserRoles");
                 });
 
-            modelBuilder.Entity("User", b =>
+            modelBuilder.Entity("PropertyManagementSystem.DAL.Entities.User", b =>
                 {
                     b.Navigation("ChatParticipants");
 
