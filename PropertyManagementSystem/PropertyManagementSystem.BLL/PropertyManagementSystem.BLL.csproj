@@ -9,7 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\PropertyManagementSystem.DAL\PropertyManagementSystem.DAL.csproj" />
   </ItemGroup>
-<<<<<<< HEAD
 
   <ItemGroup>
     <Folder Include="Services\Implementation\" />
@@ -18,13 +17,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" />
-  </ItemGroup>
-
-=======
-	<ItemGroup>
-		<PackageReference Include="MailKit" />
+<PackageReference Include="MailKit" />
 		<PackageReference Include="BCrypt.Net-Next" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
-	</ItemGroup>
->>>>>>> 7864dd8da4821481c77672150503091864b776b9
+
+  </ItemGroup>
+
+
 </Project>
