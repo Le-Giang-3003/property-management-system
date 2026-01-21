@@ -94,5 +94,12 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
+        public async Task<User?> UpdateUserAsync(User user)
+        {
+            user.UpdatedAt = DateTime.Now;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
     }
 }

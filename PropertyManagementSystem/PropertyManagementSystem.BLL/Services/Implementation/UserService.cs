@@ -124,5 +124,9 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         {
             return _otpService.VerifyOtpAsync(email, otp, otpHash);
         }
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _repo.GetUserByEmailAsync(email);
+        }
     }
 }

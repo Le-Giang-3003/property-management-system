@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Extensions.Caching.Memory;
 using PropertyManagementSystem.BLL.DTOs.Auth;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Data;
-using PropertyManagementSystem.DAL.Repositories.Implementation;
 using PropertyManagementSystem.DAL.Repositories.Interface;
+using System.Security.Cryptography;
 
 namespace PropertyManagementSystem.BLL.Services.Implementation
 {
@@ -11,16 +11,20 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordService _passwordService;
+        private readonly IMemoryCache _cache;
         private readonly AppDbContext _context;
+        private readonly IEmailService _emailService;
 
         public AuthService(
             IUserRepository userRepository,
             IPasswordService passwordService,
-            AppDbContext context)
+            AppDbContext context, IMemoryCache cache, IEmailService emailService)
         {
             _userRepository = userRepository;
             _passwordService = passwordService;
             _context = context;
+            _cache = cache;
+            _emailService = emailService;
         }
 
         public async Task<LoginResult> LoginAsync(LoginRequestDto model)
@@ -97,6 +101,80 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Avatar = user.Avatar,
                 Roles = roles
             };
+        }
+
+        //phat
+        public async Task<bool> SendOtpEmailAsync(ForgotPasswordRequestDTO request)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(request.Email);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            var otpCode = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+
+            _cache.Set(
+                $"OTP_{request.Email}",
+                (otpCode, user.UserId, attemptCount: 0),
+                TimeSpan.FromMinutes(5)
+            );
+
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email, "Mã OTP đặt lại mật khẩu", $"Mã OTP của bạn là: {otpCode}");
+                Console.WriteLine($"✅ OTP đã gửi đến: {user.Email}");
+                Console.WriteLine($"🔐 Mã OTP (dev): {otpCode}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Lỗi gửi email: {ex.Message}");
+                _cache.Remove($"OTP_{request.Email}");
+                return false;
+            }
+
+            return true;
+        }
+        public async Task<(bool isValid, int userId)> VerifyOtpAsync(VerifyOtpRequestDTO request)
+        {
+            var cacheKey = $"OTP_{request.Email}";
+
+            if (!_cache.TryGetValue(cacheKey, out (string otpCode, int userId, int attemptCount) data))
+            {
+                return (false, 0);
+            }
+
+            if (data.attemptCount >= 5)
+            {
+                _cache.Remove(cacheKey);
+                Console.WriteLine($"⚠️ OTP bị khóa do thử quá 5 lần: {request.Email}");
+                return (false, 0);
+            }
+
+            if (data.otpCode != request.OtpCode)
+            {
+                _cache.Set(cacheKey, (data.otpCode, data.userId, data.attemptCount + 1), TimeSpan.FromMinutes(5));
+                Console.WriteLine($"❌ OTP sai. Lần thử: {data.attemptCount + 1}/5");
+                return (false, 0);
+            }
+
+            _cache.Remove(cacheKey);
+            Console.WriteLine($"✅ OTP xác thực thành công: {request.Email}");
+
+            return (true, data.userId);
+        }
+        public async Task<bool> ResetPasswordAsync(ResetPasswordRequestDTO request)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(request.Email);
+            if (user == null) return false;
+
+            var oldHash = user.PasswordHash;
+
+            user.PasswordHash = request.NewPassword;
+            await _userRepository.UpdateUserAsync(user);
+
+            return true;
         }
     }
 }

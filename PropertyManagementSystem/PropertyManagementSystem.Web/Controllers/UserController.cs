@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PropertyManagementSystem.BLL.DTOs.Auth;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.User;
 
@@ -14,13 +15,15 @@ namespace PropertyManagementSystem.Web.Controllers
         /// The user service
         /// </summary>
         private readonly IUserService _userService;
+        private readonly IAuthService _authService;
         /// <summary>
         /// Initializes a new instance of the <see cref="UserController" /> class.
         /// </summary>
         /// <param name="userService">The user service.</param>
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IAuthService authService)
         {
             _userService = userService;
+            _authService = authService;
         }
         /// <summary>
         /// Registers this instance.
@@ -190,6 +193,6 @@ namespace PropertyManagementSystem.Web.Controllers
                 TempData["Error"] = "Không thể gửi lại mã OTP. Vui lòng thử lại.";
                 return RedirectToAction("VerifyOtp");
             }
-        }
+        }  
     }
 }
