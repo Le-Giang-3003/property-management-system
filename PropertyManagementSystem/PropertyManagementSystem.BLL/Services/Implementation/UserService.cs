@@ -79,6 +79,14 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 PasswordHash = passwordHash,
                 FullName = username, // Temporary assignment, can be modified later
                 IsActive = true,
+                UserRoles = new List<UserRole>
+                {
+                    new UserRole
+                    {
+                        RoleId = 2, // cho mặc định là Landlord
+                        AssignedAt = DateTime.UtcNow
+                    }
+                },
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

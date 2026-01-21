@@ -132,6 +132,17 @@ namespace PropertyManagementSystem.Web.Controllers
             };
         }
 
+        /// <summary>
+        /// Gets the current user identifier.
+        /// </summary>
+        /// <returns></returns>
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst("UserId")?.Value ??
+                         User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            return int.Parse(userIdClaim ?? "0");
+        }
+
 
         // GET: Property/Create
         /// <summary>
@@ -196,7 +207,7 @@ namespace PropertyManagementSystem.Web.Controllers
                         AvailableFrom = vm.AvailableFrom,
 
                         // FK & Timestamps
-                        LandlordId = vm.LandlordId,
+                        LandlordId = GetCurrentUserId(),
                         Status = "Available",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
@@ -218,6 +229,11 @@ namespace PropertyManagementSystem.Web.Controllers
             return View("PropertyCreate", vm);
         }
 
+        /// <summary>
+        /// Edits the specified identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -233,13 +249,12 @@ namespace PropertyManagementSystem.Web.Controllers
             return View("PropertyEdit", property);
         }
 
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst("UserId")?.Value ??
-                         User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            return int.Parse(userIdClaim ?? "0");
-        }
-
+        /// <summary>
+        /// Edits the specified identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="property">The property.</param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Property property)
@@ -380,7 +395,6 @@ namespace PropertyManagementSystem.Web.Controllers
         /// <summary>
         /// Determines whether [is valid status transition] [the specified status].
         /// </summary>
-        /// <param name="status">The status.</param>
         /// <param name="newStatus">The new status.</param>
         /// <returns>
         ///   <c>true</c> if [is valid status transition] [the specified status]; otherwise, <c>false</c>.
