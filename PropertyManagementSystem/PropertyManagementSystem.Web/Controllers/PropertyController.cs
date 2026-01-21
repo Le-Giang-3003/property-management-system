@@ -218,54 +218,58 @@ namespace PropertyManagementSystem.Web.Controllers
             return View("PropertyCreate", vm);
         }
 
-        // GET: Property/Edit/{id}
-        /// <summary>
-        /// Edits the specified identifier.
-        /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var property = await _propertyService.GetPropertyByIdAsync(id);
-            if (property == null)
-            {
-                return NotFound();
-            }
+            if (property == null) return NotFound();
+
+            // Authorization
+            var currentUserId = GetCurrentUserId();
+            if (property.LandlordId != currentUserId)
+                return Forbid("Chỉ chủ BDS mới sửa được.");
+
+            ViewBag.PropertyTypes = GetPropertyTypesSelectList();
             return View("PropertyEdit", property);
         }
 
-        // POST: Property/Edit/{id}
-        /// <summary>
-        /// Edits the specified identifier.
-        /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <param name="property">The property.</param>
-        /// <returns></returns>
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst("UserId")?.Value ??
+                         User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            return int.Parse(userIdClaim ?? "0");
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Property property)
         {
-            if (id != property.PropertyId)
-            {
-                return BadRequest();
-            }
+            if (id != property.PropertyId) return BadRequest();
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    property.UpdatedAt = DateTime.UtcNow;  // Set UpdatedAt
+                    // Authorization
+                    if (property.LandlordId != GetCurrentUserId())
+                        return Forbid();
+
+                    property.UpdatedAt = DateTime.UtcNow;
                     await _propertyService.UpdatePropertyAsync(property);
-                    TempData["Success"] = "Property updated successfully!";
-                    return RedirectToAction(nameof(Index));
+
+                    TempData["Success"] = $"✅ Cập nhật '{property.Name}' thành công!";
+                    return RedirectToAction(nameof(Details), new { id = property.PropertyId });
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", $"Lỗi cập nhật: {ex.Message}");
                 }
             }
+
+            ViewBag.PropertyTypes = GetPropertyTypesSelectList();
             return View("PropertyEdit", property);
         }
+
 
 
         // GET: Property/Delete/{id}
