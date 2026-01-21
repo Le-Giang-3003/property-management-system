@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PropertyManagementSystem.Web.ViewModels
+namespace PropertyManagementSystem.Web.ViewModels.User
 {
     /// <summary>
     /// VM for user registration.

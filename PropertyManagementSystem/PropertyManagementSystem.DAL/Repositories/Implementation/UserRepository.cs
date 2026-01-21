@@ -16,7 +16,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// </summary>
         private readonly AppDbContext _context;
         /// <summary>
-        /// Initializes a new instance of the <see cref="UserRepository"/> class.
+        /// Initializes a new instance of the <see cref="UserRepository" /> class.
         /// </summary>
         /// <param name="context">The context.</param>
         public UserRepository(AppDbContext context)
@@ -76,13 +76,17 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         public async Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName)
         {
             return await _context.Users
-            .Include(u => u.UserRoles)
+                .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
-            .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == roleName)
-                     && u.IsActive)
-            .ToListAsync();
+                .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == roleName) && u.IsActive)
+                .ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the user with roles by email asynchronous.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <returns></returns>
         public async Task<User?> GetUserWithRolesByEmailAsync(string email)
         {
             return await _context.Users

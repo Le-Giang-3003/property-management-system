@@ -5,13 +5,29 @@ using PropertyManagementSystem.DAL.Repositories.Interface;
 
 namespace PropertyManagementSystem.DAL.Repositories.Implementation
 {
+    /// <summary>
+    /// Repository for managing properties.
+    /// </summary>
+    /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Interface.IPropertyRepository" />
     public class PropertyRepository : IPropertyRepository
     {
+        /// <summary>
+        /// The context
+        /// </summary>
         private readonly AppDbContext _context;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PropertyRepository"/> class.
+        /// </summary>
+        /// <param name="context">The context.</param>
         public PropertyRepository(AppDbContext context)
         {
             _context = context;
         }
+        /// <summary>
+        /// Adds the property asynchronous.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns></returns>
         public async Task<bool> AddPropertyAsync(Property property)
         {
             await _context.Properties.AddAsync(property);
@@ -19,6 +35,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             return result > 0;
         }
 
+        /// <summary>
+        /// Deletes the property asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public async Task<bool> DeletePropertyAsync(int id)
         {
             var property = await _context.Properties.FindAsync(id);
@@ -33,6 +54,10 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
 
         }
 
+        /// <summary>
+        /// Gets all properties asynchronous.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IEnumerable<Property>> GetAllPropertiesAsync()
         {
             return await _context.Properties
@@ -42,6 +67,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the properties by landlord identifier asynchronous.
+        /// </summary>
+        /// <param name="landlordId">The landlord identifier.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<Property>> GetPropertiesByLandlordIdAsync(int landlordId)
         {
             return await _context.Properties
@@ -50,6 +80,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the property by identifier asynchronous.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         public async Task<Property?> GetPropertyByIdAsync(int id)
         {
             return await _context.Properties
@@ -58,23 +93,55 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .FirstOrDefaultAsync(p => p.PropertyId == id && p.Status != "Deleted");
         }
 
-        public async Task<IEnumerable<Property>> SearchPropertiesAsync(string city, string? propertyType, decimal? minRent, decimal? maxRent)
+        /// <summary>
+        /// Searches the properties asynchronous.
+        /// </summary>
+        /// <param name="city">The city.</param>
+        /// <param name="propertyType">Type of the property.</param>
+        /// <param name="minRent">The minimum rent.</param>
+        /// <param name="maxRent">The maximum rent.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<Property>> SearchPropertiesAsync(
+            string? city = null,
+            string? propertyType = null,
+            decimal? minRent = null,
+            decimal? maxRent = null)
         {
             var query = _context.Properties
-                .Where(p => p.Status == "Available" && p.City == city);
+                .Include(p => p.Landlord)
+                .Where(p => p.Status == "Available"); // Chỉ show Available
 
-            if (!string.IsNullOrEmpty(propertyType))
+            // City filter (optional)
+            if (!string.IsNullOrWhiteSpace(city))
+            {
+                query = query.Where(p => p.City.Contains(city) ||
+                                        p.District.Contains(city) ||
+                                        p.Address.Contains(city));
+            }
+
+            // Property type
+            if (!string.IsNullOrWhiteSpace(propertyType))
             {
                 query = query.Where(p => p.PropertyType == propertyType);
             }
 
+            // Price range
+            if (minRent.HasValue)
+                query = query.Where(p => p.RentAmount >= minRent.Value);
+            if (maxRent.HasValue)
+                query = query.Where(p => p.RentAmount <= maxRent.Value);
 
             return await query
-                .Include(p => p.Landlord)
-                .Include(p => p.Images)
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(50) // Pagination
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Updates the property asynchronous.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns></returns>
         public async Task<bool> UpdatePropertyAsync(Property property)
         {
             var existingProperty = await _context.Properties.FindAsync(property.PropertyId);

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
-using PropertyManagementSystem.Web.ViewModels;
+using PropertyManagementSystem.Web.ViewModels.Property;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
@@ -22,7 +22,7 @@ namespace PropertyManagementSystem.Web.Controllers
         private readonly IUserService _userService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PropertyController"/> class.
+        /// Initializes a new instance of the <see cref="PropertyController" /> class.
         /// </summary>
         /// <param name="propertyService">The property service.</param>
         /// <param name="userService">The user service.</param>
@@ -41,35 +41,48 @@ namespace PropertyManagementSystem.Web.Controllers
         /// <param name="minRent">The minimum rent.</param>
         /// <param name="maxRent">The maximum rent.</param>
         /// <returns></returns>
-        public async Task<IActionResult> Index(string? city, string? propertyType, decimal? minRent, decimal? maxRent)
+        // PropertyController.cs - Index method
+        public async Task<IActionResult> Index(string? city = null, string? propertyType = null, decimal? minRent = null, decimal? maxRent = null)
         {
-            IEnumerable<Property> properties = new List<Property>();
+            IEnumerable<Property> properties;
 
             try
             {
-                if (!string.IsNullOrEmpty(city))
-                {
-                    properties = await _propertyService.SearchPropertiesAsync(city, propertyType, minRent, maxRent);
-                    ViewBag.City = city;
-                    ViewBag.PropertyType = propertyType;
-                    ViewBag.MinRent = minRent;
-                    ViewBag.MaxRent = maxRent;
-                }
-                else
+                // Nếu KHÔNG có filter → Load tất cả
+                if (string.IsNullOrWhiteSpace(city) && string.IsNullOrWhiteSpace(propertyType))
                 {
                     properties = await _propertyService.GetAllPropertiesAsync();
                 }
+                else
+                {
+                    // Có filter → Search
+                    properties = await _propertyService.SearchPropertiesAsync(
+                        city ?? "",
+                        propertyType ?? "",
+                        minRent,
+                        maxRent);
+                }
+            }
+            catch (ArgumentException ex) when (ex.Message.Contains("City is required"))
+            {
+                // Fallback khi service strict
+                properties = await _propertyService.GetAllPropertiesAsync();
+                TempData["Warning"] = "Bộ lọc không hợp lệ, hiển thị tất cả BDS.";
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error loading properties: " + ex.Message;
+                TempData["Error"] = "Lỗi tải danh sách: " + ex.Message;
                 properties = new List<Property>();
             }
 
+            // ViewBag cho filter form
+            ViewBag.City = city;
+            ViewBag.PropertyType = propertyType;
+            ViewBag.MinRent = minRent;
+            ViewBag.MaxRent = maxRent;
             ViewBag.PropertyTypes = GetPropertyTypesSelectList();
 
-            // Chỉ định view "PropertyManagement"
-            return View("PropertyManagement", properties ?? new List<Property>());
+            return View("PropertyManagement",properties);
         }
 
         // GET: Property/Details/{id}
@@ -110,13 +123,15 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             return new List<SelectListItem>
             {
-                new SelectListItem { Value = "", Text = "-- Select Type --" },
-                new SelectListItem { Value = "Apartment", Text = "Apartment" },
-                new SelectListItem { Value = "House", Text = "House" },
-                new SelectListItem { Value = "Villa", Text = "Villa" },
-                new SelectListItem { Value = "Office", Text = "Office" }
+                new() { Value = "Apartment", Text = "Căn hộ (Apartment)" },
+                new() { Value = "House", Text = "Nhà riêng (House)" },
+                new() { Value = "Condo", Text = "Căn hộ chung cư (Condo)" },
+                new() { Value = "Studio", Text = "Studio" },
+                new() { Value = "Villa", Text = "Biệt thự (Villa)" },
+                new() { Value = "Office", Text = "Văn phòng (Office)" }
             };
         }
+
 
         // GET: Property/Create
         /// <summary>
@@ -149,30 +164,55 @@ namespace PropertyManagementSystem.Web.Controllers
                 {
                     var property = new Property
                     {
-                        Name = vm.Title,
-                        Description = vm.Description,
+                        // Core Info
+                        Name = vm.Name,
                         Address = vm.Address,
                         City = vm.City,
                         District = vm.District,
+                        ZipCode = vm.ZipCode,
+
+                        // Location
+                        Latitude = vm.Latitude,
+                        Longitude = vm.Longitude,
+
+                        // Type & Specs
                         PropertyType = vm.PropertyType,
-                        RentAmount = vm.BaseRentPrice,
-                        SquareFeet = vm.Area,
+                        Bedrooms = vm.Bedrooms,
+                        Bathrooms = vm.Bathrooms,
+                        SquareFeet = vm.SquareFeet,
+
+                        // Pricing
+                        RentAmount = vm.RentAmount,
+                        DepositAmount = vm.DepositAmount,
+
+                        // Description
+                        Description = vm.Description,
+                        Amenities = vm.Amenities,
+                        UtilitiesIncluded = vm.UtilitiesIncluded,
+
+                        // Features
+                        IsFurnished = vm.IsFurnished,
+                        PetsAllowed = vm.PetsAllowed,
+                        AvailableFrom = vm.AvailableFrom,
+
+                        // FK & Timestamps
                         LandlordId = vm.LandlordId,
+                        Status = "Available",
                         CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                        Status = "Available"
+                        UpdatedAt = DateTime.UtcNow
                     };
 
                     await _propertyService.AddPropertyAsync(property);
-                    TempData["Success"] = "Property created successfully!";
+                    TempData["Success"] = " Tạo bất động sản thành công!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", $"Lỗi tạo BDS: {ex.Message}");
                 }
             }
 
+            // Reload dropdowns khi lỗi
             vm.AvailableLandlords = await GetLandlordsSelectList();
             vm.PropertyTypes = GetPropertyTypesSelectList();
             return View("PropertyCreate", vm);
@@ -265,6 +305,90 @@ namespace PropertyManagementSystem.Web.Controllers
                 TempData["Error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
+        }
+        /// <summary>
+        /// Changes the status.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> ChangeStatus(int id)
+        {
+            var property = await _propertyService.GetPropertyByIdAsync(id);
+            if (property == null)
+            {
+                TempData["Error"] = "Không có quyền truy cập.";
+                return RedirectToAction("Index"); // Redirect to property list if property not found
+            }
+            var vm = new ChangePropertyStatusViewModel
+            {
+                PropertyId = property.PropertyId,
+                Name = property.Name,
+                CurrentStatus = property.Status,
+                NewStatus = property.Status
+            };
+            ViewBag.ValidStatuses = new List<string> { "Available", "Rented", "Maintenance", "Unavailable" }; // ViewBag used to populate dropdown in the view
+            return View(vm);
+        }
+        /// <summary>
+        /// Changes the status.
+        /// </summary>
+        /// <param name="vm">The vm.</param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeStatus(ChangePropertyStatusViewModel vm)
+        {
+            if (string.IsNullOrWhiteSpace(vm.NewStatus))
+            {
+                ModelState.AddModelError("NewStatus", "Vui lòng chọn trạng thái.");
+                return View(vm);
+            }
+
+            var property = await _propertyService.GetPropertyByIdAsync(vm.PropertyId);
+            if (property == null) return NotFound();
+
+            // Client đã validate rồi, server chỉ check valid statuses
+            if (!IsValidStatusTransition(vm.NewStatus))
+            {
+                ModelState.AddModelError("NewStatus", "Trạng thái không hợp lệ.");
+                return View(vm);
+            }
+
+            // Update (có thể giống hoặc khác đều OK)
+            property.Status = vm.NewStatus;
+            property.UpdatedAt = DateTime.UtcNow;
+
+            await _propertyService.UpdatePropertyAsync(property);
+
+            if (vm.NewStatus == vm.CurrentStatus)
+            {
+                TempData["Warning"] = "Trạng thái được làm mới.";
+            }
+            else
+            {
+                TempData["Success"] = $"Đã cập nhật trạng thái: {vm.NewStatus}";
+            }
+
+            return RedirectToAction("Details", new { id = vm.PropertyId });
+        }
+
+        /// <summary>
+        /// Determines whether [is valid status transition] [the specified status].
+        /// </summary>
+        /// <param name="status">The status.</param>
+        /// <param name="newStatus">The new status.</param>
+        /// <returns>
+        ///   <c>true</c> if [is valid status transition] [the specified status]; otherwise, <c>false</c>.
+        /// </returns>
+        private bool IsValidStatusTransition(string newStatus)
+        {
+            string[] validStatuses = { "Available", "Rented", "Maintenance", "Unavailable" }; // Available, Rented, Maintenance, Unavailable
+            if (!validStatuses.Contains(newStatus))
+            {
+                return false;
+            }
+            return true; // For simplicity, allow any transition between valid statuses regardless of current status
         }
     }
 }

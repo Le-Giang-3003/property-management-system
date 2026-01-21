@@ -63,7 +63,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return await _repo.GetPropertyByIdAsync(id);
         }
 
-        public async Task<IEnumerable<Property>> SearchPropertiesAsync(string city, string? propertyType, decimal? minRent, decimal? maxRent)
+        public async Task<IEnumerable<Property>> SearchPropertiesAsync(string? city, string? propertyType, decimal? minRent, decimal? maxRent)
         {
             if (string.IsNullOrWhiteSpace(city))
             {
