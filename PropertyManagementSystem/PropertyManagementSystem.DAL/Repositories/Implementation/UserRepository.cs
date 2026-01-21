@@ -9,15 +9,12 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
     /// Repository for user-related operations.
     /// </summary>
     /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Implementation.GenericRepository&lt;PropertyManagementSystem.DAL.Entities.User&gt;" />
+    /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Implementation.GenericRepository&lt;PropertyManagementSystem.DAL.Entities.User&gt;" />
     /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Interface.IUserRepository" />
     public class UserRepository : GenericRepository<User>, IUserRepository
     {
         /// <summary>
-        /// The context
-        /// </summary>
-        private readonly AppDbContext _context;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UserRepository" /> class.
+        /// Initializes a new instance of the <see cref="UserRepository"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
         public UserRepository(AppDbContext context) : base(context)
@@ -117,6 +114,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             return await query.AnyAsync();
         }
 
+        /// <summary>
+        /// Adds the new user.
+        /// </summary>
+        /// <param name="newUser">The new user.</param>
+        /// <returns></returns>
         public async Task<bool> AddNewUser(User newUser)
         {
             await _context.Users.AddAsync(newUser);
