@@ -1,6 +1,7 @@
 ﻿using PropertyManagementSystem.BLL.DTOs.Auth;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Data;
+using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
 namespace PropertyManagementSystem.BLL.Services.Implementation
@@ -8,15 +9,18 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IGenericRepository<User> _userGenericRepository;
         private readonly IPasswordService _passwordService;
         private readonly AppDbContext _context;
 
         public AuthService(
             IUserRepository userRepository,
+            IGenericRepository<User> userGenericRepository,
             IPasswordService passwordService,
             AppDbContext context)
         {
             _userRepository = userRepository;
+            _userGenericRepository = userGenericRepository;
             _passwordService = passwordService;
             _context = context;
         }
@@ -82,7 +86,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         public async Task<UserDto?> GetCurrentUserAsync(int userId)
         {
             // Dùng GetUserByIdAsync thay vì GetUserWithRolesAsync
-            var user = await _userRepository.GetUserByIdAsync(userId);
+            var user = await _userGenericRepository.GetByIdAsync(userId);
             if (user == null) return null;
 
             var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();

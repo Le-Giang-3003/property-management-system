@@ -8,41 +8,16 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
     /// <summary>
     /// Repository for user-related operations.
     /// </summary>
+    /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Implementation.GenericRepository&lt;PropertyManagementSystem.DAL.Entities.User&gt;" />
     /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Interface.IUserRepository" />
-    public class UserRepository : IUserRepository
+    public class UserRepository : GenericRepository<User>, IUserRepository
     {
-        /// <summary>
-        /// The context
-        /// </summary>
-        private readonly AppDbContext _context;
         /// <summary>
         /// Initializes a new instance of the <see cref="UserRepository"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public UserRepository(AppDbContext context)
+        public UserRepository(AppDbContext context) : base(context)
         {
-            _context = context;
-        }
-
-        /// <summary>
-        /// Adds the new user.
-        /// </summary>
-        /// <param name="newUser">The new user.</param>
-        /// <returns></returns>
-        public async Task<bool> AddNewUser(User newUser)
-        {
-            await _context.Users.AddAsync(newUser);
-            var result = await _context.SaveChangesAsync();
-            return result > 0;
-        }
-
-        /// <summary>
-        /// Gets all users asynchronous.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
-        {
-            return await _context.Users.ToListAsync();
         }
 
         /// <summary>
@@ -54,20 +29,6 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         {
             return _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
-
-        /// <summary>
-        /// Gets the user by identifier asynchronous.
-        /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
-        public async Task<User?> GetUserByIdAsync(int id)
-        {
-            return await _context.Users
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.UserId == id);
-        }
-
         /// <summary>
         /// Gets the users by role asynchronous.
         /// </summary>
@@ -83,12 +44,80 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             .ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the user with roles by email asynchronous.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <returns></returns>
         public async Task<User?> GetUserWithRolesByEmailAsync(string email)
         {
             return await _context.Users
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email == email);
+        }
+        /// <summary>
+        /// Gets the by phone number asynchronous.
+        /// </summary>
+        /// <param name="phoneNumber">The phone number.</param>
+        /// <returns></returns>
+        public async Task<User?> GetByPhoneNumberAsync(string phoneNumber)
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+        }
+        /// <summary>
+        /// Searchs the users asynchronous.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="phone">The phone.</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<User>> SearchUsersAsync(string? name, string? phone)
+        {
+            var query = _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                query = query.Where(u => u.FullName.ToLower().Contains(name.ToLower()));
+            }
+
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                query = query.Where(u => u.PhoneNumber != null && u.PhoneNumber.Contains(phone));
+            }
+
+            return await query.ToListAsync();
+        }
+        /// <summary>
+        /// Determines whether [is phone exists asynchronous] [the specified phone].
+        /// </summary>
+        /// <param name="phone">The phone.</param>
+        /// <param name="excludeUserId">The exclude user identifier.</param>
+        /// <returns></returns>
+        public async Task<bool> IsPhoneExistsAsync(string phone, int? excludeUserId = null)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) return false;
+
+            var query = _context.Users.Where(u => u.PhoneNumber == phone);
+
+            if (excludeUserId.HasValue)
+            {
+                query = query.Where(u => u.UserId != excludeUserId.Value);
+            }
+
+            return await query.AnyAsync();
+        }
+
+        public async Task<bool> AddNewUser(User newUser)
+        {
+            await _context.Users.AddAsync(newUser);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
         }
     }
 }
