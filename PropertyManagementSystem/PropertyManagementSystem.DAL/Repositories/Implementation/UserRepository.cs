@@ -13,7 +13,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
     public class UserRepository : GenericRepository<User>, IUserRepository
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UserRepository"/> class.
+        /// The context
+        /// </summary>
+        private readonly AppDbContext _context;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserRepository" /> class.
         /// </summary>
         /// <param name="context">The context.</param>
         public UserRepository(AppDbContext context) : base(context)

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.Services.Interface;
-using PropertyManagementSystem.Web.ViewModels;
+using PropertyManagementSystem.Web.ViewModels.User;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
@@ -29,7 +29,7 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            return View(new RegisterViewModel()); // Return an empty model to the view
+            return View(new RegisterViewModel()); // Return Register.cshtml with RegisterViewModel (empty)
         }
         /// <summary>
         /// Registers the specified vm.
@@ -59,7 +59,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
                 TempData["Info"] = "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.";
 
-                return RedirectToAction("VerifyOtp");
+                return RedirectToAction("VerifyOtp"); // Redirect to OTP verification page
             }
             catch (InvalidOperationException ex)
             {
@@ -81,7 +81,7 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             if (TempData["RegistrationEmail"] == null)
             {
-                return RedirectToAction("Register");
+                return RedirectToAction("Register"); // if no email in TempData, redirect to Register.cshtml
             }
 
             var model = new VerifyOtpViewModel
@@ -96,7 +96,7 @@ namespace PropertyManagementSystem.Web.Controllers
             TempData.Keep("RegistrationPassword");
             TempData.Keep("OtpHash");
 
-            return View(model);
+            return View(model); // Return VerifyOtp.cshtml with VerifyOtpViewModel (have email and otpHash)
         }
         /// <summary>
         /// Verifies the otp.
@@ -155,7 +155,7 @@ namespace PropertyManagementSystem.Web.Controllers
             }
 
             TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
-            return RedirectToAction("NavigateLoginPage","Login");
+            return View("Components/Header/Header");
         }
         /// <summary>
         /// Resends the otp.
