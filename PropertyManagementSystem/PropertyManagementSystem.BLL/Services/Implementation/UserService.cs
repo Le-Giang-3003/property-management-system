@@ -1,5 +1,6 @@
 ﻿using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
+using PropertyManagementSystem.DAL.Repositories.Implementation;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
 namespace PropertyManagementSystem.BLL.Services.Implementation
@@ -22,17 +23,20 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         /// The otp service
         /// </summary>
         private readonly IStatelessOtpService _otpService;
+        private readonly IGenericRepository<User> _userGenericRepository;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UserService" /> class.
         /// </summary>
         /// <param name="userRepository">The user repository.</param>
         /// <param name="passwordService">The password service.</param>
         /// <param name="otpService">The otp service.</param>
-        public UserService(IUserRepository userRepository, IPasswordService passwordService, IStatelessOtpService otpService)
+        public UserService(IUserRepository userRepository, IPasswordService passwordService, IStatelessOtpService otpService, IGenericRepository<User> userGenericRepository)
         {
             _repo = userRepository;
             _passwordService = passwordService;
             _otpService = otpService;
+            _userGenericRepository = userGenericRepository;
         }
         /// <summary>
         /// Gets all users asynchronous.
@@ -40,7 +44,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         /// <returns></returns>
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _repo.GetAllUsersAsync();
+            return await _userGenericRepository.GetAllAsync();
         }
 
         /// <summary>
@@ -50,7 +54,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         /// <returns></returns>
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            return await _repo.GetUserByIdAsync(id);
+            return await _userGenericRepository.GetByIdAsync(id);
         }
 
         /// <summary>

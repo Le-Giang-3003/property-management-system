@@ -360,3 +360,76 @@ a {
     ::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
+
+/* Profile / Dashboard Layout */
+.profile-shell {
+    min-height: calc(100vh - 80px);
+    padding: 24px;
+    background-color: #f5f7fb;
+}
+
+.profile-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+}
+
+.profile-sidebar-card {
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+}
+
+.profile-nav-item {
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #4b5563;
+}
+
+.profile-nav-item.active {
+    background: #1f6bff;
+    color: #ffffff;
+}
+
+.profile-nav-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #f3f4ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 999px;
+    background: #1f6bff;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 22px;
+}
+
+.profile-card {
+    border-radius: 18px;
+    box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 992px) {
+    .profile-shell {
+        padding: 16px;
+    }
+
+    .profile-sidebar {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+}

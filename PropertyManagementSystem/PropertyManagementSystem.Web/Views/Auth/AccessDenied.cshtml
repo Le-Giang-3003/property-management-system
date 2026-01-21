@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "Truy cập bị từ chối";
+    Layout = "_Layout";
+}
+
+<h2 style="color: red;">Truy cập bị từ chối</h2>
+
+<p>Bạn không có quyền truy cập trang này.</p>
+
+<a asp-controller="Home" asp-action="Index">Về trang chủ</a>
+|
+<a asp-controller="Auth" asp-action="Login">Đăng nhập lại</a>

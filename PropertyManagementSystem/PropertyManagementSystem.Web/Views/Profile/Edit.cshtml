@@ -1,0 +1,57 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.User.UpdateProfileDto
+@{
+    ViewData["Title"] = "Chỉnh sửa thông tin";
+}
+
+<h2>Chỉnh sửa thông tin</h2>
+
+@if (TempData["Error"] != null)
+{
+    <p style="color:red;">@TempData["Error"]</p>
+}
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+
+    <table cellpadding="10">
+        <tr>
+            <td><label asp-for="FullName">Họ tên *</label></td>
+            <td>
+                <input asp-for="FullName" />
+                <span asp-validation-for="FullName" style="color:red;"></span>
+            </td>
+        </tr>
+        <tr>
+            <td><label asp-for="PhoneNumber">Số điện thoại</label></td>
+            <td>
+                <input asp-for="PhoneNumber" />
+                <span asp-validation-for="PhoneNumber" style="color:red;"></span>
+            </td>
+        </tr>
+        <tr>
+            <td><label asp-for="DateOfBirth">Ngày sinh</label></td>
+            <td><input asp-for="DateOfBirth" type="date" /></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Address">Địa chỉ</label></td>
+            <td><textarea asp-for="Address" rows="3" cols="30"></textarea></td>
+        </tr>
+        <tr>
+            <td><label asp-for="Avatar">URL Avatar</label></td>
+            <td><input asp-for="Avatar" size="50" /></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <button type="submit">Lưu</button>
+                <a href="@Url.Action("Index", "Profile")">Hủy</a>
+            </td>
+        </tr>
+    </table>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

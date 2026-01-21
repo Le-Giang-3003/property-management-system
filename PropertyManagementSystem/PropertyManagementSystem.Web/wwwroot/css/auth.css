@@ -1,0 +1,81 @@
+/* Auth pages (Login/Register/...) */
+.auth-body {
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(1200px 600px at 50% 35%, #eaf3ff 0%, #d8e9ff 40%, #cfe4ff 100%);
+}
+
+.auth-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 460px;
+    border-radius: 18px;
+    box-shadow: 0 18px 55px rgba(16, 24, 40, 0.14);
+}
+
+.auth-logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #1f6bff;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 24px rgba(31, 107, 255, 0.35);
+}
+
+.auth-title {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.role-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.role-btn {
+    border: 1px solid #e9ecef;
+    background: #f6f7fb;
+    color: #4b5563;
+    font-weight: 600;
+    padding: 10px 12px;
+    border-radius: 10px;
+    transition: all 0.18s ease;
+    user-select: none;
+}
+
+.role-btn:hover {
+    background: #eef2ff;
+    border-color: #dbe4ff;
+}
+
+.role-btn.is-active {
+    background: #1f6bff;
+    color: #fff;
+    border-color: #1f6bff;
+    box-shadow: 0 10px 22px rgba(31, 107, 255, 0.28);
+}
+
+.auth-muted {
+    color: #6b7280;
+}
+
+.auth-link {
+    color: #1f6bff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.auth-link:hover {
+    text-decoration: underline;
+}
+

@@ -1,0 +1,63 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.User.UserSearchDto
+@{
+    ViewData["Title"] = "Tìm kiếm người dùng";
+    var results = ViewBag.SearchResults as IEnumerable<PropertyManagementSystem.BLL.DTOs.User.UserSearchResultDto>;
+}
+
+<h2>Tìm kiếm người dùng</h2>
+
+<form asp-action="Search" method="post">
+    @Html.AntiForgeryToken()
+
+    <table cellpadding="5">
+        <tr>
+            <td><label asp-for="Name">Tên:</label></td>
+            <td><input asp-for="Name" placeholder="Nhập tên..." /></td>
+            <td><label asp-for="PhoneNumber">SĐT:</label></td>
+            <td><input asp-for="PhoneNumber" placeholder="Nhập SĐT..." /></td>
+            <td><button type="submit">Tìm</button></td>
+        </tr>
+    </table>
+</form>
+
+<hr />
+
+@if (results != null)
+{
+    <h3>Kết quả: @results.Count()</h3>
+
+    @if (results.Any())
+    {
+        <table border="1" cellpadding="8">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>SĐT</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in results)
+                {
+                    <tr>
+                        <td>@user.UserId</td>
+                        <td>@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>@(user.PhoneNumber ?? "-")</td>
+                        <td>@string.Join(", ", user.Roles)</td>
+                        <td>@(user.IsActive ? "Hoạt động" : "Khóa")</td>
+                        <td><a href="@Url.Action("View", "Profile", new { id = user.UserId })">Xem</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Không tìm thấy người dùng nào.</p>
+    }
+}

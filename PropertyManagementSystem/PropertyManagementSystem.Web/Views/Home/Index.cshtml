@@ -1,9 +1,95 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+﻿@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "_Layout";
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Property Management System</h1>
+<p>Chào mừng đến với hệ thống quản lý bất động sản</p>
+
+<hr />
+
+@if (!isAuthenticated)
+{
+    <!-- ========== CHƯA ĐĂNG NHẬP ========== -->
+    <h3>Authentication</h3>
+    <ul>
+        <li>
+            <a asp-controller="Auth" asp-action="Login">Đăng nhập</a>
+        </li>
+    </ul>
+}
+else
+{
+    <!-- ========== ĐÃ ĐĂNG NHẬP ========== -->
+    <p>
+        👋 Xin chào <strong>@User.Identity!.Name</strong>
+    </p>
+
+    <h3>Authentication</h3>
+    <form asp-controller="Auth" asp-action="Logout" method="post" style="display:inline">
+        @Html.AntiForgeryToken()
+        <button type="submit">Đăng xuất</button>
+    </form>
+
+    <hr />
+
+    <!-- ========== PROFILE ========== -->
+    <h3>Profile</h3>
+    <ul>
+        <li><a asp-controller="Profile" asp-action="Index">Thông tin cá nhân</a></li>
+        <li><a asp-controller="Profile" asp-action="Edit">Chỉnh sửa thông tin</a></li>
+    </ul>
+
+    <!-- ========== PROPERTY ========== -->
+    <h3>Property</h3>
+    <ul>
+        <li><a asp-controller="Property" asp-action="Index">Danh sách bất động sản</a></li>
+    </ul>
+
+    <!-- ========== CONTRACT ========== -->
+    <h3>Contract</h3>
+    <ul>
+        <li><a asp-controller="Contract" asp-action="Index">Danh sách hợp đồng</a></li>
+    </ul>
+
+    <!-- ========== MAINTENANCE ========== -->
+    <h3>Maintenance</h3>
+    <ul>
+        <li><a asp-controller="Maintenance" asp-action="Index">Yêu cầu bảo trì</a></li>
+    </ul>
+
+    <!-- ========== ADMIN ONLY ========== -->
+    @if (User.IsInRole("Admin"))
+    {
+        <hr />
+        <h3>Admin</h3>
+        <ul>
+            <li><a asp-controller="Admin" asp-action="Index">Dashboard</a></li>
+            <li><a asp-controller="Admin" asp-action="Users">Quản lý người dùng</a></li>
+        </ul>
+    }
+
+    <!-- ========== LANDLORD ONLY ========== -->
+    @if (User.IsInRole("Landlord"))
+    {
+        <hr />
+        <h3>Landlord</h3>
+        <ul>
+            <li><a asp-controller="Landlord" asp-action="Index">Quản lý tài sản</a></li>
+        </ul>
+    }
+
+    <!-- ========== TECHNICIAN ONLY ========== -->
+    @if (User.IsInRole("Technician"))
+    {
+        <hr />
+        <h3>Technician</h3>
+        <ul>
+            <li><a asp-controller="Technician" asp-action="Index">Công việc bảo trì</a></li>
+        </ul>
+    }
+}
