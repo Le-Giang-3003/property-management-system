@@ -35,17 +35,6 @@
                                        placeholder="VD: Căn hộ 2PN cao cấp Quận 7" />
                                 <span asp-validation-for="Name" class="text-danger"></span>
                             </div>
-                            <div class="col-lg-4">
-                                <label asp-for="LandlordId" class="form-label fw-bold fs-5"></label>
-                                <select asp-for="LandlordId" class="form-select form-select-lg shadow-sm">
-                                    <option value="">-- Chọn chủ nhà --</option>
-                                    @foreach (var landlord in Model.AvailableLandlords ?? new())
-                                    {
-                                        <option value="@landlord.Value">@landlord.Text</option>
-                                    }
-                                </select>
-                                <span asp-validation-for="LandlordId" class="text-danger"></span>
-                            </div>
                         </div>
 
                         <!-- Section 2: Location -->

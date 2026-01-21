@@ -227,16 +227,5 @@ namespace PropertyManagementSystem.Web.ViewModels.Property
         /// The property types.
         /// </value>
         public List<SelectListItem>? PropertyTypes { get; set; }
-
-        // FK
-        /// <summary>
-        /// Gets or sets the landlord identifier.
-        /// </summary>
-        /// <value>
-        /// The landlord identifier.
-        /// </value>
-        [Required(ErrorMessage = "Chủ nhà là bắt buộc")]
-        [Display(Name = "Chủ nhà")]
-        public int LandlordId { get; set; }
     }
 }
