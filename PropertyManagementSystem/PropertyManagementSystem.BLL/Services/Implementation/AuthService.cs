@@ -1,8 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementSystem.BLL.DTOs.Auth;
+﻿using PropertyManagementSystem.BLL.DTOs.Auth;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Data;
-using PropertyManagementSystem.DAL.Repositories.Implementation;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
 namespace PropertyManagementSystem.BLL.Services.Implementation
