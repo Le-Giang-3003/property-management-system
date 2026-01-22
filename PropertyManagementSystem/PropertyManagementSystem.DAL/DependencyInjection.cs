@@ -26,7 +26,8 @@ namespace PropertyManagementSystem.DAL
             services.AddScoped<IPropertyRepository, PropertyRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-            
+            services.AddScoped<IFavoritePropertyRepository, FavoritePropertyRepository>();
+
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             return services;
         }

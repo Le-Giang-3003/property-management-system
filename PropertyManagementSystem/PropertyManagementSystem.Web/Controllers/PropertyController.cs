@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
@@ -10,11 +11,13 @@ namespace PropertyManagementSystem.Web.Controllers
     {
         private readonly IPropertyService _propertyService;
         private readonly IUserService _userService;
+        private readonly IFavoritePropertyService _favoritePropertyService;
 
-        public PropertyController(IPropertyService propertyService, IUserService userService)
+        public PropertyController(IPropertyService propertyService, IUserService userService, IFavoritePropertyService favoritePropertyService)
         {
             _propertyService = propertyService;
             _userService = userService;
+            _favoritePropertyService = favoritePropertyService;
         }
 
         #region Index & Search
@@ -47,6 +50,18 @@ namespace PropertyManagementSystem.Web.Controllers
                 properties = new List<Property>();
             }
 
+            // Load favorite status nếu user đã đăng nhập
+            var userId = GetCurrentUserId();
+            if (userId > 0)
+            {
+                var favorites = await _favoritePropertyService.GetFavoritesByUserIdAsync(userId);
+                ViewBag.FavoritePropertyIds = favorites.Select(f => f.PropertyId).ToHashSet();
+            }
+            else
+            {
+                ViewBag.FavoritePropertyIds = new HashSet<int>();
+            }
+
             ViewBag.City = city;
             ViewBag.PropertyType = propertyType;
             ViewBag.MinRent = minRent;
@@ -68,6 +83,18 @@ namespace PropertyManagementSystem.Web.Controllers
                 TempData["Error"] = "Không tìm thấy BDS.";
                 return RedirectToAction(nameof(Index));
             }
+
+            // Check nếu property này đã được favorite chưa
+            var userId = GetCurrentUserId();
+            if (userId>0)
+            {
+                ViewBag.IsFavorited = await _favoritePropertyService.IsPropertyFavoritedAsync(userId, id);
+            }
+            else
+            {
+                ViewBag.IsFavorited = false;
+            }
+
             return View("PropertyDetail", property);
         }
 
@@ -349,6 +376,114 @@ namespace PropertyManagementSystem.Web.Controllers
             }
 
             return RedirectToAction(nameof(Details), new { id = vm.PropertyId });
+        }
+
+
+
+        #endregion
+
+        #region Favorite Actions
+
+        /// <summary>
+        /// Toggle favorite - AJAX endpoint
+        /// </summary>
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleFavorite(int propertyId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId<0)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập" });
+                }
+
+                // Check property có tồn tại không
+                var property = await _propertyService.GetPropertyByIdAsync(propertyId);
+                if (property == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                }
+
+                var result = await _favoritePropertyService.ToggleFavoriteAsync(userId, propertyId);
+                var isFavorited = await _favoritePropertyService.IsPropertyFavoritedAsync(userId, propertyId);
+
+                return Json(new
+                {
+                    success = result,
+                    isFavorited = isFavorited,
+                    message = isFavorited ? "✅ Đã thêm vào yêu thích" : "❌ Đã xóa khỏi yêu thích"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Hiển thị danh sách BDS yêu thích của user
+        /// </summary>
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> MyFavorites()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId < 0)
+                {
+                    TempData["Error"] = "Vui lòng đăng nhập";
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var favorites = await _favoritePropertyService.GetFavoritesByUserIdAsync(userId);
+                return View("PropertyFavorite", favorites);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi tải danh sách yêu thích: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        /// <summary>
+        /// Xóa BDS khỏi danh sách yêu thích
+        /// </summary>
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveFavorite(int propertyId, string? returnUrl = null)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId < 0)
+                {
+                    TempData["Error"] = "Vui lòng đăng nhập";
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var result = await _favoritePropertyService.RemoveFromFavoriteAsync(userId, propertyId);
+
+                if (result)
+                    TempData["Success"] = "✅ Đã xóa khỏi danh sách yêu thích";
+                else
+                    TempData["Error"] = "❌ Không thể xóa";
+
+                // Redirect về trang trước đó hoặc MyFavorites
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    return Redirect(returnUrl);
+
+                return RedirectToAction(nameof(MyFavorites));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+                return RedirectToAction(nameof(MyFavorites));
+            }
         }
 
         #endregion
