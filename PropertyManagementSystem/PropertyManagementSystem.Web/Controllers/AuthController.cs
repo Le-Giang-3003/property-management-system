@@ -170,7 +170,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 return View(vm);
             }
 
-            TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập.";  // Đổi "Success" → "SuccessMessage"
+            TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập.";  
             return RedirectToAction("Login", "Auth");
         }
 
@@ -208,9 +208,13 @@ namespace PropertyManagementSystem.Web.Controllers
                 return View(vm);
             }
 
-            ViewData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
-            return View("Login"); 
+            // Logout user
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            TempData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+            return RedirectToAction("Login");
         }
+
 
         public IActionResult AccessDenied() => View();
     }
