@@ -1,4 +1,4 @@
-@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var title = ViewData["Title"] as string ?? "Property Management";
 }
@@ -31,6 +31,19 @@
         /
         window.antiForgeryToken = '@Antiforgery.GetAndStoreTokens(Context).RequestToken';
     </script>
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Document" asp-action="MyDocuments">
+            <i class="bi bi-folder2-open"></i> Tài liệu của tôi
+        </a>
+    </li>
+    @if (User.IsInRole("Admin"))
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Document" asp-action="DeletedDocuments">
+                <i class="bi bi-trash"></i> Thùng rác
+            </a>
+        </li>
+    }
 </body>
 </html>
 

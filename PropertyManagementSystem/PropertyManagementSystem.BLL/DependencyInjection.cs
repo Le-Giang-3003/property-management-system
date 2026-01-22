@@ -27,7 +27,7 @@ namespace PropertyManagementSystem.BLL
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             services.AddScoped<IPropertyViewingService, PropertyViewingService>();
             services.AddScoped<IFavoritePropertyService, FavoritePropertyService>();
-
+            services.AddScoped<IDocumentService, DocumentService>();
 
             return services;
         }
