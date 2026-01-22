@@ -184,6 +184,43 @@ namespace PropertyManagementSystem.Web.Controllers
             return RedirectToAction("Login");
         }
 
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View(new ChangePasswordViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel vm)
+        {
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var dto = new ChangePasswordRequestDTO
+            {
+                CurrentPassword = vm.CurrentPassword,
+                NewPassword = vm.NewPassword,
+                ConfirmPassword = vm.ConfirmPassword
+            };
+
+            var result = await _authService.ChangePasswordAsync(email, dto);
+            if (!result)
+            {
+                ModelState.AddModelError(string.Empty,
+                    "Mật khẩu hiện tại không đúng hoặc mật khẩu mới không khớp.");
+                return View(vm);
+            }
+
+            TempData["Success"] = "Đổi mật khẩu thành công!";
+            return RedirectToAction("Login");
+        }
         public IActionResult AccessDenied() => View();
     }
 }

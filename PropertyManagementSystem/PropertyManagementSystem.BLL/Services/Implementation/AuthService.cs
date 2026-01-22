@@ -173,12 +173,43 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             var user = await _userRepository.GetUserByEmailAsync(request.Email);
             if (user == null) return false;
 
-            var oldHash = user.PasswordHash;
+            var newHash = _passwordService.HashPassword(request.NewPassword);
+            user.PasswordHash = newHash;
 
-            user.PasswordHash = request.NewPassword;
             await _userRepository.UpdateUserAsync(user);
-
             return true;
         }
+
+        public async Task<bool> ChangePasswordAsync(string email, ChangePasswordRequestDTO request)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null) return false;
+
+            // 1. Kiểm tra mật khẩu hiện tại
+            if (!_passwordService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
+            {
+                Console.WriteLine($"ChangePassword failed: wrong current password for {email}");
+                return false;
+            }
+
+            // 2. Kiểm tra mật khẩu mới và confirm
+            if (request.NewPassword != request.ConfirmPassword)
+            {
+                Console.WriteLine($"ChangePassword failed: new password and confirm do not match for {email}");
+                return false;
+            }
+
+            // 3. Hash và lưu mật khẩu mới
+            var oldHash = user.PasswordHash;
+            var newHash = _passwordService.HashPassword(request.NewPassword);
+            user.PasswordHash = newHash;
+
+            await _userRepository.UpdateUserAsync(user);
+
+            Console.WriteLine($"ChangePassword success: email={user.Email}, old={oldHash}, new={user.PasswordHash}");
+            return true;
+        }
+
+
     }
 }
