@@ -47,5 +47,6 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         /// <param name="password">The password.</param>
         /// <returns></returns>
         Task<bool> RegisterWithVerifiedEmail(string email, string username, string password);
+        Task<User?> GetUserByEmailAsync(string email);
     }
 }

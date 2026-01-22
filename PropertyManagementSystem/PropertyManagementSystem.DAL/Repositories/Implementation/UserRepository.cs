@@ -125,5 +125,12 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+        public async Task<User?> UpdateUserAsync(User user)
+        {
+            user.UpdatedAt = DateTime.Now;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
     }
 }

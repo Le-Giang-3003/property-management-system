@@ -53,5 +53,6 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         /// <param name="excludeUserId">The exclude user identifier.</param>
         /// <returns></returns>
         Task<bool> IsPhoneExistsAsync(string phone, int? excludeUserId = null);
+        Task<User?> UpdateUserAsync(User user);
     }
 }
