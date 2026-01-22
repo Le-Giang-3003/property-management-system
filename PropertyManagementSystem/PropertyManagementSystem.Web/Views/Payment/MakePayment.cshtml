@@ -1,0 +1,93 @@
+﻿@using PropertyManagementSystem.Web.ViewModels.Payment
+@model MakePaymentViewModel
+
+@{
+    ViewData["Title"] = "Thanh toán hóa đơn";
+    Layout = "_Layout";
+}
+
+<div class="container mt-5">
+    <h2>Thanh toán hóa đơn</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-action="Make" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Invoice Selection -->
+                <div class="mb-3">
+                    <label asp-for="InvoiceId" class="form-label">Hóa đơn</label>
+                    <select asp-for="InvoiceId" class="form-select">
+                        <option value="">-- Chọn hóa đơn --</option>
+                        @foreach (var invoice in Model.AvailableInvoices)
+                        {
+                            <option value="@invoice.InvoiceId">
+                                @invoice.InvoiceNumber - Còn nợ: @invoice.RemainingAmount.ToString("N0") VND (Hạn: @invoice.DueDate.ToString("dd/MM/yyyy"))
+                            </option>
+                        }
+                    </select>
+                    <span asp-validation-for="InvoiceId" class="text-danger"></span>
+                </div>
+
+                <!-- Amount -->
+                <div class="mb-3">
+                    <label asp-for="Amount" class="form-label">Số tiền thanh toán (VND)</label>
+                    <input asp-for="Amount" type="number" class="form-control" step="0.01" placeholder="0.00" />
+                    <span asp-validation-for="Amount" class="text-danger"></span>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="mb-3">
+                    <label asp-for="PaymentMethod" class="form-label">Phương thức thanh toán</label>
+                    <select asp-for="PaymentMethod" class="form-select">
+                        <option value="">-- Chọn phương thức --</option>
+                        <option value="Cash">Tiền mặt</option>
+                        <option value="BankTransfer">Chuyển khoản ngân hàng</option>
+                        <option value="CreditCard">Thẻ tín dụng</option>
+                        <option value="Momo">Momo</option>
+                        <option value="ZaloPay">ZaloPay</option>
+                    </select>
+                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-3">
+                    <label asp-for="Notes" class="form-label">Ghi chú (tùy chọn)</label>
+                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
+                </div>
+
+                <!-- Buttons -->
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">Thanh toán</button>
+                    <a asp-action="History" class="btn btn-secondary">Hủy</a>
+                </div>
+
+                <!-- Display validation summary -->
+                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Hướng dẫn</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Bước 1:</strong> Chọn hóa đơn cần thanh toán</p>
+                    <p><strong>Bước 2:</strong> Nhập số tiền thanh toán</p>
+                    <p><strong>Bước 3:</strong> Chọn phương thức thanh toán</p>
+                    <p><strong>Bước 4:</strong> Bấm "Thanh toán"</p>
+                    <hr />
+                    <p class="text-muted small">Bạn có thể thanh toán một phần hoặc toàn bộ số tiền còn nợ.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -21,6 +21,8 @@ namespace PropertyManagementSystem.BLL
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<IStatelessOtpService, StatelessOtpService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddScoped<IProfileService, ProfileService>();
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             
