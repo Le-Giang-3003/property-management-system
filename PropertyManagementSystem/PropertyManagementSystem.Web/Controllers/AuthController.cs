@@ -170,18 +170,8 @@ namespace PropertyManagementSystem.Web.Controllers
                 return View(vm);
             }
 
-            TempData["Success"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập.";
+            TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập.";  // Đổi "Success" → "SuccessMessage"
             return RedirectToAction("Login", "Auth");
-        }
-
-        // ===== LOGOUT & ACCESS DENIED =====
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
-            return RedirectToAction("Login");
         }
 
         [HttpGet]
@@ -218,9 +208,10 @@ namespace PropertyManagementSystem.Web.Controllers
                 return View(vm);
             }
 
-            TempData["Success"] = "Đổi mật khẩu thành công!";
-            return RedirectToAction("Login");
+            ViewData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+            return View("Login"); 
         }
+
         public IActionResult AccessDenied() => View();
     }
 }
