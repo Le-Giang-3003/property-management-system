@@ -1,4 +1,5 @@
-﻿using PropertyManagementSystem.BLL.DTOs.Payments;
+﻿using PropertyManagementSystem.BLL.DTOs.Invoice;
+using PropertyManagementSystem.BLL.DTOs.Payments;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -18,30 +19,36 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             _invoiceService = invoiceService;
         }
 
+        public async Task<List<InvoiceDto>> GetAvailableInvoicesAsync(int tenantId)
+        {
+            return await _invoiceService.GetAvailableInvoicesByTenantAsync(tenantId);
+        }
+
         public async Task<PaymentDto> MakePaymentAsync(int tenantId, MakePaymentRequestDto request)
         {
-            // Load invoice
             var invoice = await _invoiceService.GetInvoiceByIdAsync(request.InvoiceId);
             if (invoice == null)
                 throw new Exception("Hóa đơn không tồn tại");
 
-            // TODO: Check invoice có thuộc tenant này không
+            if (request.Amount <= 0)
+                throw new Exception("Số tiền thanh toán phải lớn hơn 0");
 
-            // Cập nhật hóa đơn
+            if (request.Amount > invoice.RemainingAmount)
+                throw new Exception("Số tiền thanh toán vượt quá số tiền còn nợ");
+
             invoice.PaidAmount += request.Amount;
             invoice.RemainingAmount = invoice.TotalAmount - invoice.PaidAmount;
 
             if (invoice.RemainingAmount <= 0)
             {
                 invoice.Status = "Paid";
-                invoice.PaidDate = DateTime.UtcNow;
+                //invoice.PaidDate = DateTime.UtcNow;
             }
             else if (invoice.PaidAmount > 0)
             {
                 invoice.Status = "PartiallyPaid";
             }
 
-            // Tạo payment
             var payment = new Payment
             {
                 InvoiceId = invoice.InvoiceId,
@@ -65,11 +72,6 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 PaymentDate = payment.PaymentDate,
                 Status = payment.Status
             };
-        }
-
-        public async Task<List<Invoice>> GetAvailableInvoicesAsync(int tenantId)
-        {
-            return await _invoiceService.GetAvailableInvoicesByTenantAsync(tenantId);
         }
     }
 }
