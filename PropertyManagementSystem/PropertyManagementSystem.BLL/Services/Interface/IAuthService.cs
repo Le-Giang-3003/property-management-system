@@ -11,5 +11,6 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         Task<bool> SendOtpEmailAsync(ForgotPasswordRequestDTO request);
         Task<(bool isValid, int userId)> VerifyOtpAsync(VerifyOtpRequestDTO request);
         Task<bool> ResetPasswordAsync(ResetPasswordRequestDTO request);
+        Task<bool> ChangePasswordAsync(string email, ChangePasswordRequestDTO request);
     }
 }
