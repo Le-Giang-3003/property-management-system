@@ -24,6 +24,7 @@ namespace PropertyManagementSystem.BLL
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IInvoiceService, InvoiceService>();
             services.AddScoped<ILeaseService , LeaseService>();
+            services.AddScoped<IInvoiceExportService , InvoiceExportService>();
             services.AddScoped<IProfileService, ProfileService>();
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             services.AddScoped<IPropertyViewingService, PropertyViewingService>();
