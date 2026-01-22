@@ -7,6 +7,7 @@
         IUserRoleRepository UserRoles { get; }
         IPropertyRepository Properties { get; }
         IPropertyViewingRepository PropertyViewings { get; }
+        IRentalApplicationRepository RentalApplications { get; }
         Task<int> SaveChangesAsync();
         int SaveChanges();
     }

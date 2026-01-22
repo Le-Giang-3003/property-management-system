@@ -1,0 +1,252 @@
+﻿@model PropertyManagementSystem.DAL.Entities.RentalApplication
+@{
+    ViewData["Title"] = "Chi tiết đơn xin thuê";
+    // ✅ BỎ PHÂN QUYỀN - CHỈ CHECK STATUS
+    var canUpdate = Model.Status == "Pending";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-alt"></i> Đơn xin thuê #@Model.ApplicationNumber
+                        </h4>
+                        @switch (Model.Status)
+                        {
+                            case "Pending":
+                                <span class="badge bg-warning text-dark fs-6">Chờ xử lý</span>
+                                break;
+                            case "Approved":
+                                <span class="badge bg-success fs-6">Đã duyệt</span>
+                                break;
+                            case "Rejected":
+                                <span class="badge bg-danger fs-6">Từ chối</span>
+                                break;
+                            case "Withdrawn":
+                                <span class="badge bg-secondary fs-6">Đã rút</span>
+                                break;
+                        }
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- THÔNG TIN TỔNG QUAN -->
+                    <div class="alert alert-light border">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small class="text-muted">Ngày gửi đơn</small>
+                                <div><strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Ngày dự kiến chuyển vào</small>
+                                <div><strong>@Model.DesiredMoveInDate.ToString("dd/MM/yyyy")</strong></div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Số người ở</small>
+                                <div><strong>@Model.NumberOfOccupants người</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN BẤT ĐỘNG SẢN -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-home"></i> Thông tin bất động sản</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Tên:</strong> @Model.Property?.Name</p>
+                            <p><strong>Địa chỉ:</strong> @Model.Property?.Address</p>
+                            <p><strong>Loại:</strong> @Model.Property?.PropertyType</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Giá thuê:</strong> <span class="text-danger fs-5">@Model.Property?.RentAmount.ToString("N0") VNĐ/tháng</span></p>
+                            <p><strong>Diện tích:</strong> @Model.Property?.SquareFeet m²</p>
+                            <p><strong>Phòng ngủ/WC:</strong> @Model.Property?.Bedrooms / @Model.Property?.Bathrooms</p>
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN NGƯỜI THUÊ -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-user"></i> Thông tin người thuê</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Họ tên:</strong> @Model.Applicant?.FullName</p>
+                            <p><strong>Email:</strong> @Model.Applicant?.Email</p>
+                            <p><strong>Số điện thoại:</strong> @Model.Applicant?.PhoneNumber</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Ngày sinh:</strong> @Model.Applicant?.DateOfBirth?.ToString("dd/MM/yyyy")</p>
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN VIỆC LÀM -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-briefcase"></i> Thông tin việc làm</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Tình trạng việc làm:</strong>
+                                <span class="badge bg-info">@Model.EmploymentStatus</span>
+                            </p>
+                            <p><strong>Nơi làm việc:</strong> @(Model.Employer ?? "Không cung cấp")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Thu nhập hàng tháng:</strong>
+                                @if (Model.MonthlyIncome.HasValue)
+                                {
+                                    <span class="text-success fs-5">@Model.MonthlyIncome.Value.ToString("N0") VNĐ</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không cung cấp</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN NƠI Ở TRƯỚC -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-map-marker-alt"></i> Thông tin nơi ở trước đây</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-12 mb-2">
+                            <p><strong>Địa chỉ cũ:</strong> @(Model.PreviousAddress ?? "Không cung cấp")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Chủ nhà trước:</strong> @(Model.PreviousLandlord ?? "Không cung cấp")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>SĐT chủ nhà trước:</strong> @(Model.PreviousLandlordPhone ?? "Không cung cấp")</p>
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN THÚ CƯNG -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-paw"></i> Thông tin thú cưng</h5>
+                    <div class="mb-4">
+                        <p>
+                            <strong>Có nuôi thú cưng:</strong>
+                            @if (Model.HasPets)
+                            {
+                                <span class="badge bg-warning text-dark">Có</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Không</span>
+                            }
+                        </p>
+                        @if (Model.HasPets && !string.IsNullOrEmpty(Model.PetDetails))
+                        {
+                            <p><strong>Chi tiết:</strong> @Model.PetDetails</p>
+                        }
+                    </div>
+
+                    <!-- GHI CHÚ -->
+                    @if (!string.IsNullOrEmpty(Model.AdditionalNotes))
+                    {
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-sticky-note"></i> Ghi chú thêm</h5>
+                        <div class="mb-4">
+                            <div class="alert alert-secondary">
+                                @Model.AdditionalNotes
+                            </div>
+                        </div>
+                    }
+
+                    <!-- THÔNG TIN XÉT DUYỆT -->
+                    @if (Model.ReviewedAt.HasValue)
+                    {
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-check-circle"></i> Thông tin xét duyệt</h5>
+                        <div class="mb-4">
+                            <p><strong>Người xét duyệt:</strong> @Model.ReviewedByUser?.FullName</p>
+                            <p><strong>Thời gian xét duyệt:</strong> @Model.ReviewedAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
+
+                            @if (Model.Status == "Rejected" && !string.IsNullOrEmpty(Model.RejectionReason))
+                            {
+                                <div class="alert alert-danger">
+                                    <strong><i class="fas fa-exclamation-triangle"></i> Lý do từ chối:</strong><br />
+                                    @Model.RejectionReason
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <!-- ✅ FORM XÉT DUYỆT - CHỈ CHECK STATUS, BỎ PHÂN QUYỀN -->
+                    @if (canUpdate)
+                    {
+                        <div class="card bg-light mt-4">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-tasks"></i> Xét duyệt đơn</h5>
+
+                                <div class="row">
+                                    <!-- APPROVE -->
+                                    <div class="col-md-6 mb-3">
+                                        <form asp-action="Approve" method="post" onsubmit="return confirm('Bạn có chắc muốn DUYỆT đơn này không?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@Model.ApplicationId" />
+                                            <button type="submit" class="btn btn-success w-100 btn-lg">
+                                                <i class="fas fa-check-circle"></i> Chấp nhận đơn
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- REJECT -->
+                                    <div class="col-md-6 mb-3">
+                                        <button type="button" class="btn btn-danger w-100 btn-lg" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                            <i class="fas fa-times-circle"></i> Từ chối đơn
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- NAVIGATION BUTTONS -->
+                    <div class="mt-4 d-flex gap-2">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Danh sách đơn
+                        </a>
+                        <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-outline-primary">
+                            <i class="fas fa-home"></i> Xem BĐS
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TỪ CHỐI -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Reject" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.ApplicationId" />
+
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-times-circle"></i> Từ chối đơn xin thuê</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Bạn đang từ chối đơn xin thuê <strong>@Model.ApplicationNumber</strong>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="rejectionReason" class="form-label">
+                            Lý do từ chối<span class="text-danger">*</span>
+                        </label>
+                        <textarea name="rejectionReason" id="rejectionReason" class="form-control" rows="4"
+                                  required placeholder="Vui lòng nêu rõ lý do từ chối để người thuê hiểu..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times-circle"></i> Xác nhận từ chối
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
