@@ -70,7 +70,7 @@ namespace PropertyManagementSystem.DAL.Entities
         // Navigation
         public User Landlord { get; set; }
         public ICollection<PropertyImage> Images { get; set; }
-        public ICollection<Lease> Leases { get; set; }
+        public ICollection<Lease> Leases { get; set; }  
         public ICollection<MaintenanceRequest> MaintenanceRequests { get; set; }
         public ICollection<PropertyViewing> Viewings { get; set; }
         public ICollection<RentalApplication> RentalApplications { get; set; }

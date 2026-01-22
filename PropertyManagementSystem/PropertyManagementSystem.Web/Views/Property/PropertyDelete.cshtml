@@ -1,77 +1,168 @@
 ﻿@model PropertyManagementSystem.DAL.Entities.Property
 
 @{
-    ViewData["Title"] = "Delete Property";
+    ViewData["Title"] = $"Xóa {Model.Name}";
+    Layout = "_AuthLayout";
 }
 
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h3 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Delete Property</h3>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-warning" role="alert">
-                        <i class="bi bi-exclamation-circle"></i>
-                        <strong>Warning!</strong> Are you sure you want to delete this property? This action cannot be undone.
+    <!-- Warning Header -->
+    <div class="text-center mb-4">
+        <h1 class="text-danger">Xác nhận xóa BDS</h1>
+        <p class="text-muted">Hành động này không thể hoàn tác!</p>
+    </div>
+
+    <!-- Property Card -->
+    <div class="card border-danger mb-3">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Thông tin BDS sẽ bị xóa</h5>
+        </div>
+        <div class="card-body">
+            <!-- Alert -->
+            <div class="alert alert-warning" role="alert">
+                <h5 class="alert-heading">Cảnh báo quan trọng!</h5>
+                <p class="mb-0">
+                    Bạn có chắc chắn muốn xóa bất động sản này?
+                    Mọi dữ liệu liên quan (hợp đồng, bảo trì, ảnh) sẽ bị xóa vĩnh viễn.
+                </p>
+            </div>
+
+            <!-- Property Details -->
+            <div class="bg-light p-3 rounded mb-3">
+                <h4 class="mb-3">@Model.Name</h4>
+
+                <div class="row">
+                    <!-- Location -->
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block">Địa chỉ</small>
+                        <strong>@Model.Address</strong>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block">Khu vực</small>
+                        <strong>
+                            @Model.City@(Model.District != null ? $", {Model.District}" : "")
+                        </strong>
                     </div>
 
-                    <h4 class="mb-3">@Model.Name</h4>
+                    <!-- Type & Specs -->
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block">Loại BDS</small>
+                        <span class="badge badge-info">@Model.PropertyType</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block">Thông số</small>
+                        <strong>
+                            @Model.Bedrooms PN • @Model.Bathrooms PT • @Model.SquareFeet.ToString("N0") ft²
+                        </strong>
+                    </div>
 
-                    <dl class="row">
-                        <dt class="col-sm-3">Address</dt>
-                        <dd class="col-sm-9">@Model.Address</dd>
+                    <!-- Pricing -->
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block">Giá thuê</small>
+                        <h5 class="text-success mb-0">
+                            @Model.RentAmount.ToString("N0") ₫/tháng
+                        </h5>
+                    </div>
 
-                        <dt class="col-sm-3">City</dt>
-                        <dd class="col-sm-9">@Model.City</dd>
+                    <!-- Status -->
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block">Trạng thái</small>
+                        <span class="badge @GetStatusBadgeClass(Model.Status)">
+                            @GetStatusDisplay(Model.Status)
+                        </span>
+                    </div>
 
-                        <dt class="col-sm-3">District</dt>
-                        <dd class="col-sm-9">@(Model.District ?? "N/A")</dd>
-
-                        <dt class="col-sm-3">Property Type</dt>
-                        <dd class="col-sm-9">@Model.PropertyType</dd>
-
-                        <dt class="col-sm-3">Rent Price</dt>
-                        <dd class="col-sm-9">@string.Format("{0:N0}", Model.RentAmount) VND/month</dd>
-
-                        <dt class="col-sm-3">Status</dt>
-                        <dd class="col-sm-9">
-                            @if (Model.Status == "Available")
-                            {
-                                <span class="badge bg-success">@Model.Status</span>
-                            }
-                            else if (Model.Status == "Rented")
-                            {
-                                <span class="badge bg-warning text-dark">@Model.Status</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">@Model.Status</span>
-                            }
-                        </dd>
-
-                        <dt class="col-sm-3">Created</dt>
-                        <dd class="col-sm-9">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
-                    </dl>
-
-                    <form asp-action="Delete" method="post" class="mt-4">
-                        <input type="hidden" asp-for="PropertyId" />
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-trash"></i> Yes, Delete Property
-                            </button>
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </a>
+                    <!-- Deposit -->
+                    @if (Model.DepositAmount.HasValue)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block">Tiền cọc</small>
+                            <strong class="text-warning">
+                                @Model.DepositAmount.Value.ToString("N0") ₫
+                            </strong>
                         </div>
-                    </form>
+                    }
+
+                    <!-- Created Date -->
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block">Ngày tạo</small>
+                        <strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
+                    </div>
                 </div>
             </div>
+
+            <!-- Landlord Info -->
+            @if (Model.Landlord != null)
+            {
+                <div class="bg-light p-3 rounded mb-3">
+                    <h6 class="mb-2">Chủ BDS</h6>
+                    <div>
+                        <strong class="d-block">@Model.Landlord.FullName</strong>
+                        <small class="text-muted">@Model.Landlord.Email</small>
+                    </div>
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <form asp-action="Delete" method="post" class="mt-4">
+                <input type="hidden" asp-for="PropertyId" />
+
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <button type="submit" class="btn btn-danger btn-block"
+                                onclick="return confirm('Bạn có CHẮC CHẮN muốn xóa BDS này không?');">
+                            Xác nhận xóa vĩnh viễn
+                        </button>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <a asp-action="Index" class="btn btn-secondary btn-block">
+                            Hủy bỏ
+                        </a>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Hoặc quay lại
+                        <a asp-action="Details" asp-route-id="@Model.PropertyId">
+                            xem chi tiết BDS
+                        </a>
+                    </small>
+                </div>
+            </form>
         </div>
+    </div>
+
+    <!-- Additional Warning -->
+    <div class="alert alert-danger">
+        <strong>Lưu ý:</strong>
+        Hành động xóa này sẽ xóa tất cả dữ liệu liên quan bao gồm
+        hợp đồng, yêu cầu bảo trì, lịch xem nhà, và ứng tuyển thuê.
     </div>
 </div>
 
-@section Styles {
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Available" => "badge-success",
+            "Rented" => "badge-warning",
+            "Maintenance" => "badge-info",
+            "Unavailable" => "badge-secondary",
+            _ => "badge-secondary"
+        };
+    }
+
+    string GetStatusDisplay(string status)
+    {
+        return status switch
+        {
+            "Available" => "Có sẵn",
+            "Rented" => "Đã thuê",
+            "Maintenance" => "Bảo trì",
+            "Unavailable" => "Không khả dụng",
+            _ => status
+        };
+    }
 }

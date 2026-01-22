@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PropertyManagementSystem.BLL.DTOs.Auth;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.User;
 
@@ -157,8 +156,8 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction("Register");
             }
 
-            TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
-            return View("Components/Header/Header");
+            TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+            return RedirectToAction("Login", "Auth");
         }
         /// <summary>
         /// Resends the otp.
@@ -193,6 +192,6 @@ namespace PropertyManagementSystem.Web.Controllers
                 TempData["Error"] = "Không thể gửi lại mã OTP. Vui lòng thử lại.";
                 return RedirectToAction("VerifyOtp");
             }
-        }  
+        }
     }
 }

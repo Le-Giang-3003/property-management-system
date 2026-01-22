@@ -34,6 +34,12 @@ else
         @Html.AntiForgeryToken()
         <button type="submit">Đăng xuất</button>
     </form>
+    
+    <ul>
+        <li>
+            <a asp-controller="Auth" asp-action="ChangePassword">Đổi mật khẩu</a>
+        </li>
+    </ul>
 
     <hr />
 

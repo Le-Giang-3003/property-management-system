@@ -2,275 +2,286 @@
 
 @{
     ViewData["Title"] = $"{Model.Name} - Chi tiết";
-    var statuses = new Dictionary<string, string>
-    {
-        ["Available"] = "Có sẵn",
-        ["Rented"] = "Đã thuê",
-        ["Maintenance"] = "Bảo trì",
-        ["Unavailable"] = "Không khả dụng"
-    };
+    Layout = "_AuthLayout";
 }
 
-<div class="container-fluid py-4 min-vh-100">
-    <!-- Hero Header -->
-    <div class="row g-4 mb-5">
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Danh sách BDS</a></li>
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="row mb-4">
+        <!-- Main Info -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-lg overflow-hidden h-100">
-                <div class="bg-image" style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200');
-                                              background-position: center; background-size: cover; height: 400px;">
-                    <div class="bg-dark bg-opacity-60 d-flex align-items-end p-5 h-100">
-                        <div>
-                            <h1 class="display-4 fw-bold text-white mb-2 lh-1">@Model.Name</h1>
-                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                <span class="badge bg-light text-dark fs-6 px-3 py-2 shadow-sm">
-                                    <i class="fas fa-home me-1"></i>@Model.PropertyType
-                                </span>
-                                <span class="badge bg-success fs-6 px-3 py-2 shadow-sm">
-                                    <i class="fas @GetStatusIcon(Model.Status) me-1"></i>
-                                    @statuses.GetValueOrDefault(Model.Status, Model.Status)
-                                </span>
-                                @if (Model.IsFurnished)
-                                {
-                                    <span class="badge bg-info fs-6 px-3 py-2 shadow-sm">
-                                        <i class="fas fa-couch me-1"></i>Nội thất full
-                                    </span>
-                                }
-                            </div>
-                            <div class="hstack gap-3 text-white-50">
-                                <span><i class="fas fa-bed me-1"></i>@Model.Bedrooms PN</span>
-                                <span><i class="fas fa-bath me-1"></i>@Model.Bathrooms PT</span>
-                                <span><i class="fas fa-ruler-combined me-1"></i>@Model.SquareFeet:N0 m²</span>
-                            </div>
-                        </div>
+            <div class="card">
+                <div class="card-body">
+                    <h1>@Model.Name</h1>
+                    <div class="mb-3">
+                        <span class="badge badge-light">@Model.PropertyType</span>
+                        <span class="badge @GetStatusBadgeClass(Model.Status)">@GetStatusDisplay(Model.Status)</span>
+                        @if (Model.IsFurnished)
+                        {
+                            <span class="badge badge-info">Nội thất đầy đủ</span>
+                        }
+                        @if (Model.PetsAllowed)
+                        {
+                            <span class="badge badge-success">Cho phép thú cưng</span>
+                        }
                     </div>
+                    <p class="text-muted">
+                        <strong>@Model.Bedrooms</strong> Phòng ngủ •
+                        <strong>@Model.Bathrooms</strong> Phòng tắm •
+                        <strong>@Model.SquareFeet.ToString("N0")</strong> ft²
+                    </p>
                 </div>
             </div>
         </div>
+
+        <!-- Price & Actions -->
         <div class="col-lg-4">
-            <!-- Price Card -->
-            <div class="card shadow-lg border-0 h-100">
-                <div class="card-body text-center p-4">
-                    <div class="h1 fw-bold text-success mb-2">@Model.RentAmount:N0 ₫</div>
-                    <div class="text-muted mb-3">/tháng</div>
-                    @if (Model.DepositAmount.HasValue)
-                    {
-                        <div class="h5 text-warning mb-3">
-                            Cọc: @Model.DepositAmount.Value:N0 ₫
-                        </div>
-                    }
-                    <div class="hstack gap-2 justify-content-center mb-4">
-                        <span class="badge bg-light text-dark px-3 py-2">
-                            <i class="fas fa-calendar-day me-1"></i>
-                            @Model.AvailableFrom?.ToString("dd/MM/yyyy")
-                        </span>
-                        @if (Model.PetsAllowed)
+            <div class="card">
+                <div class="card-body">
+                    <!-- Price -->
+                    <div class="text-center mb-3">
+                        <h2 class="text-success">@Model.RentAmount.ToString("N0") ₫</h2>
+                        <p class="text-muted">/tháng</p>
+                        @if (Model.DepositAmount.HasValue)
                         {
-                            <span class="badge bg-success px-3 py-2">
-                                <i class="fas fa-paw me-1"></i>Cho phép pet
+                            <span class="badge badge-warning">
+                                Cọc: @Model.DepositAmount.Value.ToString("N0") ₫
                             </span>
                         }
                     </div>
-                    <a asp-action="Edit" asp-route-id="@Model.PropertyId"
-                       class="btn btn-warning btn-lg w-100 shadow-sm mb-2">
-                        <i class="fas fa-edit me-2"></i>Sửa thông tin
-                    </a>
-                    <a asp-action="ChangeStatus" asp-route-id="@Model.PropertyId"
-                       class="btn btn-outline-primary btn-lg w-100 shadow-sm">
-                        <i class="fas fa-exchange-alt me-2"></i>Đổi trạng thái
-                    </a>
+
+                    <!-- Availability -->
+                    @if (Model.AvailableFrom.HasValue)
+                    {
+                        <div class="mb-3 text-center">
+                            <small class="text-muted d-block">Có sẵn từ</small>
+                            <strong>@Model.AvailableFrom.Value.ToString("dd/MM/yyyy")</strong>
+                        </div>
+                    }
+
+                    <!-- Actions -->
+                    <div class="btn-group-vertical w-100">
+                        <a asp-action="Edit" asp-route-id="@Model.PropertyId" class="btn btn-warning">
+                            Chỉnh sửa thông tin
+                        </a>
+                        <a asp-action="ChangeStatus" asp-route-id="@Model.PropertyId" class="btn btn-primary">
+                            Thay đổi trạng thái
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.PropertyId" class="btn btn-danger">
+                            Xóa BDS
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            Danh sách BDS
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Main Details -->
+    <!-- Details Section -->
+    <div class="row">
+        <!-- Left Column -->
         <div class="col-lg-8">
             <!-- Location -->
-            <div class="card shadow-lg border-0 mb-4">
-                <div class="card-header bg-primary bg-gradient text-white py-3 px-4">
-                    <h5 class="mb-0">
-                        <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ
-                    </h5>
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Vị trí & Địa chỉ</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h6 class="fw-bold mb-2">@Model.Address</h6>
-                            <p class="mb-1"><strong>@Model.City</strong>@(Model.District != null ? $", {Model.District}" : "")</p>
-                            @if (!string.IsNullOrEmpty(Model.ZipCode))
-                            {
-                                <p class="text-muted mb-0">Mã bưu điện: @Model.ZipCode</p>
-                            }
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Địa chỉ đầy đủ</small>
+                        <strong>@Model.Address</strong>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.City) || !string.IsNullOrEmpty(Model.District))
+                    {
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Khu vực</small>
+                            <strong>
+                                @if (!string.IsNullOrEmpty(Model.District))
+                                {
+                                    @Model.District
+                                    <span>, </span>
+                                }
+                                @Model.City
+                            </strong>
                         </div>
-                        <div class="col-md-4 text-end">
-                            @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
-                            {
-                                <div class="btn-group-vertical btn-group-sm">
-                                    <a href="https://maps.google.com/?q=@Model.Latitude,@Model.Longitude"
-                                       target="_blank" class="btn btn-outline-primary">
-                                        <i class="fas fa-map me-1"></i>Mở Google Maps
-                                    </a>
-                                </div>
-                            }
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ZipCode))
+                    {
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Mã bưu điện</small>
+                            <strong>@Model.ZipCode</strong>
                         </div>
+                    }
+                    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                    {
+                        <div class="mt-3 pt-3 border-top">
+                            <small class="text-muted d-block mb-1">Tọa độ GPS</small>
+                            <code>@Model.Latitude.Value.ToString("F6"), @Model.Longitude.Value.ToString("F6")</code>
+                            <br>
+                            <a href="https://maps.google.com/?q=@Model.Latitude,@Model.Longitude"
+                               target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                Xem trên Google Maps
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Description -->
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Mô tả chi tiết</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            @Html.Raw(Model.Description.Replace("\n", "<br/>"))
+                        </p>
                     </div>
                 </div>
-            </div>
+            }
 
-            <!-- Description & Amenities -->
-            <div class="card shadow-lg border-0 mb-4">
-                <div class="card-header bg-info bg-gradient text-white py-3 px-4">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Mô tả & Tiện ích
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if (!string.IsNullOrEmpty(Model.Description))
-                    {
-                        <div class="mb-4">
-                            <h6 class="fw-bold mb-3">Mô tả</h6>
-                            <div class="text-muted">@Html.Raw(Model.Description.Replace("\n", "<br/>"))</div>
-                        </div>
-                    }
-
-                    @if (!string.IsNullOrEmpty(Model.Amenities))
-                    {
-                        <div>
-                            <h6 class="fw-bold mb-3">Tiện ích</h6>
-                            @{
-                                var amenities = Model.Amenities.Split(',');
-                            }
-                            <div class="row g-2">
-                                @foreach (var amenity in amenities)
+            <!-- Amenities & Utilities -->
+            @if (!string.IsNullOrEmpty(Model.Amenities) || !string.IsNullOrEmpty(Model.UtilitiesIncluded))
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Tiện ích & Dịch vụ</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(Model.Amenities))
+                        {
+                            <div class="mb-3">
+                                <h6>Tiện ích nổi bật</h6>
+                                @foreach (var amenity in Model.Amenities.Split(',', StringSplitOptions.RemoveEmptyEntries))
                                 {
-                                    <div class="col-auto">
-                                        <span class="badge bg-light text-dark px-3 py-2 shadow-sm border">
-                                            @amenity.Trim()
-                                        </span>
-                                    </div>
+                                    <span class="badge badge-light border">@amenity.Trim()</span>
                                 }
                             </div>
-                        </div>
-                    }
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.UtilitiesIncluded))
+                        {
+                            <div class="@(!string.IsNullOrEmpty(Model.Amenities) ? "pt-3 border-top" : "")">
+                                <h6>Tiện ích đi kèm</h6>
+                                @foreach (var utility in Model.UtilitiesIncluded.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <span class="badge badge-info">@utility.Trim()</span>
+                                }
+                            </div>
+                        }
+                    </div>
                 </div>
-            </div>
+            }
         </div>
 
-        <!-- Sidebar -->
+        <!-- Right Column -->
         <div class="col-lg-4">
             <!-- Landlord -->
             @if (Model.Landlord != null)
             {
-                <div class="card shadow-lg border-0 mb-4">
-                    <div class="card-header bg-secondary bg-gradient text-white py-3 px-4">
-                        <h6 class="mb-0">
-                            <i class="fas fa-user-circle me-2"></i>Chủ BDS
-                        </h6>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Chủ sở hữu</h6>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="text-center mb-3">
-                            <i class="fas fa-user-circle fa-4x text-muted mb-3"></i>
-                            <h6 class="fw-bold">@Model.Landlord.FullName</h6>
-                        </div>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <i class="fas fa-envelope text-muted me-2"></i>
-                                @Model.Landlord.Email
-                            </li>
-                            @if (!string.IsNullOrEmpty(Model.Landlord.PhoneNumber))
-                            {
-                                <li class="mb-2">
-                                    <i class="fas fa-phone text-muted me-2"></i>
-                                    @Model.Landlord.PhoneNumber
-                                </li>
-                            }
-                        </ul>
+                    <div class="card-body">
+                        <h5>@Model.Landlord.FullName</h5>
+                        <p class="mb-1">
+                            <small class="text-muted">Email:</small><br>
+                            <a href="mailto:@Model.Landlord.Email">@Model.Landlord.Email</a>
+                        </p>
+                        @if (!string.IsNullOrEmpty(Model.Landlord.PhoneNumber))
+                        {
+                            <p class="mb-0">
+                                <small class="text-muted">Điện thoại:</small><br>
+                                <a href="tel:@Model.Landlord.PhoneNumber">@Model.Landlord.PhoneNumber</a>
+                            </p>
+                        }
                     </div>
                 </div>
             }
 
             <!-- System Info -->
-            <div class="card shadow border-0">
-                <div class="card-header py-3 px-4">
-                    <h6 class="mb-0 fw-bold">Thông tin hệ thống</h6>
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Thông tin hệ thống</h6>
                 </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item px-0 border-0">
-                            <small class="text-muted">ID:</small>
-                            <strong class="float-end">#@Model.PropertyId</strong>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <small class="text-muted">ID BDS:</small><br>
+                        <strong>#@Model.PropertyId</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <small class="text-muted">Ngày tạo:</small><br>
+                        <strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
+                    </li>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <li class="list-group-item">
+                            <small class="text-muted">Cập nhật lần cuối:</small><br>
+                            <strong>@Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</strong>
                         </li>
-                        <li class="list-group-item px-0 border-0">
-                            <small class="text-muted">Tạo ngày:</small>
-                            <strong class="float-end">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
-                        </li>
-                        <li class="list-group-item px-0 border-0">
-                            <small class="text-muted">Cập nhật:</small>
-                            <strong class="float-end">@Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm")</strong>
-                        </li>
-                        <li class="list-group-item px-0">
-                            <small class="text-muted">Tọa độ:</small>
-                            <strong class="float-end">
-                                @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
-                                {
-                                    <span>@Model.Latitude:F6, @Model.Longitude:F6</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">Chưa có</span>
-                                }
-                            </strong>
-                        </li>
-                    </ul>
-                </div>
+                    }
+                    <li class="list-group-item">
+                        <small class="text-muted">Trạng thái:</small><br>
+                        <span class="badge @GetStatusBadgeClass(Model.Status)">
+                            @GetStatusDisplay(Model.Status)
+                        </span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
 
-@section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .bg-image {
-            position: relative;
-        }
-
-        .hstack {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        }
-
-        .bg-gradient-info {
-            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%) !important;
-        }
-
-        .bg-gradient-secondary {
-            background: linear-gradient(135deg, #a4b0be 0%, #74b9ff 100%) !important;
-        }
-    </style>
-}
-
 @section Scripts {
     <script>
-        // Google Maps link
+        // Open Google Maps in new tab
         document.querySelectorAll('a[href*="maps.google"]').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                const url = this.getAttribute('href');
-                window.open(url, '_blank');
+                window.open(this.getAttribute('href'), '_blank');
             });
         });
     </script>
 }
 
 @functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Available" => "badge-success",
+            "Rented" => "badge-warning",
+            "Maintenance" => "badge-info",
+            "Unavailable" => "badge-secondary",
+            _ => "badge-secondary"
+        };
+    }
+
+    string GetStatusDisplay(string status)
+    {
+        return status switch
+        {
+            "Available" => "Có sẵn",
+            "Rented" => "Đã thuê",
+            "Maintenance" => "Bảo trì",
+            "Unavailable" => "Không khả dụng",
+            _ => status
+        };
+    }
+
     string GetStatusIcon(string status)
     {
         return status switch

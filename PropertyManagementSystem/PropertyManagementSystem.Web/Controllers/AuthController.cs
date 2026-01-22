@@ -170,19 +170,51 @@ namespace PropertyManagementSystem.Web.Controllers
                 return View(vm);
             }
 
-            TempData["Success"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập.";
+            TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập.";  
             return RedirectToAction("Login", "Auth");
         }
 
-        // ===== LOGOUT & ACCESS DENIED =====
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View(new ChangePasswordViewModel());
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel vm)
         {
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var dto = new ChangePasswordRequestDTO
+            {
+                CurrentPassword = vm.CurrentPassword,
+                NewPassword = vm.NewPassword,
+                ConfirmPassword = vm.ConfirmPassword
+            };
+
+            var result = await _authService.ChangePasswordAsync(email, dto);
+            if (!result)
+            {
+                ModelState.AddModelError(string.Empty,
+                    "Mật khẩu hiện tại không đúng hoặc mật khẩu mới không khớp.");
+                return View(vm);
+            }
+
+            // Logout user
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
+
+            TempData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
             return RedirectToAction("Login");
         }
+
 
         public IActionResult AccessDenied() => View();
     }
