@@ -2,293 +2,251 @@
 
 @{
     ViewData["Title"] = "Quản lý bất động sản";
+    Layout = "_AuthLayout";
     var city = ViewBag.City as string ?? "";
     var propertyType = ViewBag.PropertyType as string ?? "";
     var minRent = ViewBag.MinRent as decimal?;
     var maxRent = ViewBag.MaxRent as decimal?;
     var propertyTypes = ViewBag.PropertyTypes as List<SelectListItem> ?? new();
+    var hasFilters = !string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(propertyType) || minRent.HasValue || maxRent.HasValue;
 }
 
-<div class="container-fluid py-4">
-    <!-- Header Hero -->
-    <div class="d-flex justify-content-between align-items-center mb-5 pb-4 border-bottom">
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="display-5 fw-bold text-primary mb-1">
-                <i class="fas fa-building me-3"></i>
-                Quản lý BDS
-            </h1>
-            <p class="lead text-muted mb-0">
+            <h1>Quản lý Bất động sản</h1>
+            <p class="text-muted">
                 @if (Model.Any())
                 {
-                    <span class="badge bg-success fs-6">@Model.Count() BDS</span>
+                    if (hasFilters)
+                    {
+                        <span>@Model.Count() kết quả tìm kiếm</span>
+                    }
+                    else
+                    {
+                        <span>Tổng cộng: @Model.Count() BDS</span>
+                    }
                 }
                 else
                 {
-                    <span class="text-muted">Chưa có BDS nào</span>
+                    <span>Chưa có bất động sản nào</span>
                 }
             </p>
         </div>
-        <a asp-action="Create" class="btn btn-success btn-lg px-5 py-3 shadow-lg">
-            <i class="fas fa-plus-circle me-2"></i>
-            <span class="fw-bold">Tạo BDS mới</span>
-        </a>
+        <a asp-action="Create" class="btn btn-success">Tạo BDS mới</a>
     </div>
 
-    <!-- Messages -->
+    <!-- Notifications -->
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show position-fixed end-0 top-0 mt-4 me-4 shadow-lg"
-             style="z-index: 9999; min-width: 350px; max-width: 450px;" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Thành công!</strong> @TempData["Success"]
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show position-fixed end-0 top-0 mt-4 me-4 shadow-lg"
-             style="z-index: 9999; min-width: 350px; max-width: 450px;" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Lỗi!</strong> @TempData["Error"]
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
     }
     @if (TempData["Warning"] != null)
     {
-        <div class="alert alert-warning alert-dismissible fade show position-fixed end-0 top-0 mt-20 me-4 shadow-lg"
-             style="z-index: 9999; min-width: 350px; max-width: 450px;" role="alert">
-            <i class="fas fa-info-circle me-2"></i>
-            @TempData["Warning"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Cảnh báo!</strong> @TempData["Warning"]
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
     }
 
-    <!-- Advanced Filter Card -->
-    <div class="card shadow-lg mb-5 border-0 overflow-hidden">
-        <div class="card-header bg-gradient-primary text-white p-4">
-            <h3 class="mb-0">
-                <i class="fas fa-filter me-2"></i>
-                Bộ lọc nâng cao
-            </h3>
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Tìm kiếm & Lọc</h5>
         </div>
-        <div class="card-body p-4">
-            <form asp-action="Index" method="get" class="row g-3 g-md-4 align-items-end">
-                <!-- Location -->
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">📍 Địa điểm</label>
-                    <input type="text" name="city" id="city" class="form-control form-control-lg shadow-sm"
-                           placeholder="VD: Quận 7, TP.HCM" value="@city" />
-                </div>
-
-                <!-- Property Type -->
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">🏠 Loại BDS</label>
-                    <select name="propertyType" class="form-select form-select-lg shadow-sm" asp-items="@propertyTypes">
-                        <option value="">Tất cả</option>
-                    </select>
-                </div>
-
-                <!-- Price Range -->
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">💰 Giá tối thiểu</label>
-                    <div class="input-group">
-                        <span class="input-group-text">₫</span>
-                        <input type="number" name="minRent" class="form-control shadow-sm"
-                               placeholder="0" step="500000" min="0" value="@minRent" />
+        <div class="card-body">
+            <form asp-action="Index" method="get">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Địa điểm</label>
+                            <input type="text" name="city" class="form-control"
+                                   placeholder="VD: Quận 7, TP.HCM" value="@city" />
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">💎 Giá tối đa</label>
-                    <div class="input-group">
-                        <span class="input-group-text">₫</span>
-                        <input type="number" name="maxRent" class="form-control shadow-sm"
-                               placeholder="50tr" step="500000" min="0" value="@maxRent" />
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Loại BDS</label>
+                            <select name="propertyType" class="form-control">
+                                <option value="">-- Tất cả --</option>
+                                @foreach (var type in propertyTypes)
+                                {
+                                    <option value="@type.Value" selected="@(type.Value == propertyType)">
+                                        @type.Text
+                                    </option>
+                                }
+                            </select>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="col-md-3">
-                    <div class="d-grid gap-2 h-100">
-                        <button type="submit" class="btn btn-primary btn-lg h-100 shadow-sm">
-                            <i class="fas fa-search me-2"></i>Tìm kiếm
-                        </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg h-100">
-                            <i class="fas fa-times me-2"></i>Xóa bộ lọc
-                        </a>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Giá tối thiểu (₫)</label>
+                            <input type="number" name="minRent" class="form-control"
+                                   placeholder="0" step="500000" min="0" value="@minRent" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Giá tối đa (₫)</label>
+                            <input type="number" name="maxRent" class="form-control"
+                                   placeholder="50000000" step="500000" min="0" value="@maxRent" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary btn-block">Tìm</button>
+                        <a asp-action="Index" class="btn btn-secondary btn-block">Xóa</a>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Stats Cards (Optional) -->
+    <!-- Statistics -->
     @if (Model.Any())
     {
-        <div class="row g-4 mb-5">
+        var availableCount = Model.Count(p => p.Status == "Available");
+        var rentedCount = Model.Count(p => p.Status == "Rented");
+        var maintenanceCount = Model.Count(p => p.Status == "Maintenance");
+        var totalRevenue = Model.Sum(p => p.RentAmount);
+
+        <div class="row mb-4">
             <div class="col-md-3">
-                <div class="card border-0 shadow h-100 text-center bg-gradient-success text-white">
+                <div class="card text-center">
                     <div class="card-body">
-                        <i class="fas fa-building fa-3x mb-3 opacity-75"></i>
-                        <h2 class="display-5 fw-bold">@Model.Count()</h2>
-                        <p class="mb-0 lead">Tổng BDS</p>
-                    </div>
-                </div>
-            </div>
-            @{
-                var availableCount = Model.Count(p => p.Status == "Available");
-                var rentedCount = Model.Count(p => p.Status == "Rented");
-            }
-            <div class="col-md-3">
-                <div class="card border-0 shadow h-100 text-center bg-gradient-primary text-white">
-                    <div class="card-body">
-                        <i class="fas fa-check-circle fa-3x mb-3 opacity-75"></i>
-                        <h2 class="display-5 fw-bold">@availableCount</h2>
-                        <p class="mb-0 lead">Có sẵn</p>
+                        <h2>@Model.Count()</h2>
+                        <p class="mb-0">Tổng BDS</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-0 shadow h-100 text-center bg-gradient-warning text-dark">
+                <div class="card text-center">
                     <div class="card-body">
-                        <i class="fas fa-handshake fa-3x mb-3 opacity-75"></i>
-                        <h2 class="display-5 fw-bold">@rentedCount</h2>
-                        <p class="mb-0 lead">Đã thuê</p>
+                        <h2>@availableCount</h2>
+                        <p class="mb-0">Có sẵn</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card border-0 shadow h-100 text-center bg-gradient-info text-white">
+                <div class="card text-center">
                     <div class="card-body">
-                        <i class="fas fa-dollar-sign fa-3x mb-3 opacity-75"></i>
-                        <h2 class="display-5 fw-bold">@Model.Sum(p => p.RentAmount).ToString("N0") ₫</h2>
-                        <p class="mb-0 lead">Tổng doanh thu</p>
+                        <h2>@rentedCount</h2>
+                        <p class="mb-0">Đã thuê</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4>@totalRevenue.ToString("N0")</h4>
+                        <p class="mb-0">VNĐ/tháng</p>
                     </div>
                 </div>
             </div>
         </div>
     }
 
-    <!-- Properties Table -->
-    <div class="card shadow-lg border-0">
-        <div class="card-header bg-light py-3 px-4 border-bottom">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0 fw-bold">
-                    <i class="fas fa-list me-2 text-primary"></i>
-                    Danh sách bất động sản
-                    @if (!string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(propertyType))
-                    {
-                        <span class="badge bg-secondary ms-2">
-                            @Model.Count() kết quả
-                        </span>
-                    }
-                </h4>
-            </div>
+    <!-- Properties List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                Danh sách bất động sản
+                @if (hasFilters)
+                {
+                    <span class="badge badge-info">@Model.Count() kết quả</span>
+                }
+            </h5>
         </div>
         <div class="card-body p-0">
             @if (Model != null && Model.Any())
             {
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-dark sticky-top">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
                             <tr>
-                                <th style="width: 20%; min-width: 200px;">Tên BDS</th>
-                                <th style="width: 25%;">Địa chỉ</th>
-                                <th style="width: 10%;">Loại</th>
-                                <th style="width: 8%;">Diện tích</th>
-                                <th style="width: 8%;">Phòng</th>
-                                <th style="width: 12%;">Giá thuê</th>
-                                <th style="width: 10%;">Trạng thái</th>
-                                <th style="width: 7%;">Chủ nhà</th>
-                                <th class="text-center" style="width: 120px;">Thao tác</th>
+                                <th>Tên BDS</th>
+                                <th>Địa chỉ</th>
+                                <th>Loại</th>
+                                <th>Diện tích</th>
+                                <th>Phòng</th>
+                                <th>Giá thuê</th>
+                                <th>Trạng thái</th>
+                                <th>Chủ nhà</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody class="table-group-divider">
+                        <tbody>
                             @foreach (var item in Model)
                             {
-                                <tr class="@GetStatusRowClass(item.Status)">
+                                <tr>
                                     <td>
-                                        <div>
-                                            <h6 class="mb-1 fw-bold">@item.Name</h6>
-                                            <small class="text-muted">
-                                                @item.CreatedAt.ToString("dd/MM/yyyy")
-                                            </small>
-                                        </div>
+                                        <a asp-action="Details" asp-route-id="@item.PropertyId">
+                                            <strong>@item.Name</strong>
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">@item.CreatedAt.ToString("dd/MM/yyyy")</small>
                                     </td>
                                     <td>
                                         <div>@item.Address</div>
                                         @if (!string.IsNullOrEmpty(item.City))
                                         {
-                                            <small class="text-muted">@item.City @(item.District != null ? $", {item.District}" : "")</small>
+                                            <small class="text-muted">
+                                                @(item.District != null ? $"{item.District}, " : "")@item.City
+                                            </small>
                                         }
                                     </td>
                                     <td>
-                                        <span class="badge bg-info-subtle px-2 py-1">@item.PropertyType</span>
+                                        <span class="badge badge-info">@item.PropertyType</span>
                                     </td>
                                     <td>
-                                        <strong>@item.SquareFeet.ToString("N0") ft²</strong>
+                                        <strong>@item.SquareFeet.ToString("N0")</strong> ft²
                                     </td>
                                     <td>
-                                        <div class="text-center">
-                                            <span class="badge bg-light border px-2 py-1">@item.Bedrooms PN</span>
-                                            <br>
-                                            <small class="text-muted">@item.Bathrooms PT</small>
+                                        <div>Ngủ: <strong>@item.Bedrooms</strong></div>
+                                        <div>Tắm: <strong>@item.Bathrooms</strong></div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="badge badge-success">@item.RentAmount.ToString("N0") ₫</span>
                                         </div>
+                                        @if (item.DepositAmount.HasValue)
+                                        {
+                                            <small class="text-muted">
+                                                Cọc: @item.DepositAmount.Value.ToString("N0") ₫
+                                            </small>
+                                        }
                                     </td>
                                     <td>
-                                        <div class="hstack gap-1">
-                                            <span class="badge bg-success fs-6">@item.RentAmount.ToString("N0") ₫</span>
-                                            @if (item.DepositAmount.HasValue)
-                                            {
-                                                <span class="badge bg-warning text-dark fs-6">
-                                                    Cọc @item.DepositAmount.Value.ToString("N0") ₫
-                                                </span>
-                                            }
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge fs-6 px-3 py-2 @GetStatusBadgeClass(item.Status)">
+                                        <span class="badge @GetStatusBadgeClass(item.Status)">
                                             @GetStatusDisplay(item.Status)
                                         </span>
                                     </td>
                                     <td>
                                         @if (item.Landlord != null)
                                         {
-                                            <div class="dropdown">
-                                                <a href="#" class="text-decoration-none text-muted"
-                                                   data-bs-toggle="dropdown">
-                                                    <i class="fas fa-user-circle me-1"></i>
-                                                    @item.Landlord.FullName
-                                                </a>
-                                                <ul class="dropdown-menu">
-                                                    <li><span class="dropdown-item-text small text-muted">@item.Landlord.Email</span></li>
-                                                </ul>
-                                            </div>
+                                            <div>@item.Landlord.FullName</div>
+                                            <small class="text-muted">@item.Landlord.Email</small>
                                         }
                                     </td>
-                                    <td class="text-center">
-                                        <div class="btn-group btn-group-sm" role="group">
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
                                             <a asp-action="Details" asp-route-id="@item.PropertyId"
-                                               class="btn btn-outline-primary" title="Chi tiết"
-                                               data-bs-toggle="tooltip">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                               class="btn btn-outline-primary" title="Chi tiết">Chi tiết</a>
                                             <a asp-action="Edit" asp-route-id="@item.PropertyId"
-                                               class="btn btn-outline-warning" title="Sửa"
-                                               data-bs-toggle="tooltip">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            @if (User.IsInRole("Landlord"))
-                                            {
-                                                <a asp-action="ChangeStatus" asp-route-id="@item.PropertyId"
-                                                   class="btn btn-outline-info" title="Đổi trạng thái">
-                                                    <i class="fas fa-exchange-alt"></i>
-                                                </a>
-                                            }
+                                               class="btn btn-outline-warning" title="Sửa">Sửa</a>
                                             <a asp-action="Delete" asp-route-id="@item.PropertyId"
-                                               class="btn btn-outline-danger" title="Xóa"
-                                               data-bs-toggle="tooltip">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
+                                               class="btn btn-outline-danger" title="Xóa">Xóa</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -296,130 +254,60 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Pagination (Optional) -->
-                <nav class="d-flex justify-content-center mt-4">
-                    <ul class="pagination">
-                        <li class="page-item disabled">
-                            <a class="page-link">Trước</a>
-                        </li>
-                        <li class="page-item active">
-                            <a class="page-link">1</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link">Tiếp</a>
-                        </li>
-                    </ul>
-                </nav>
             }
             else
             {
                 <div class="text-center py-5">
-                    <i class="fas fa-building fa-5x text-muted mb-4 opacity-50"></i>
-                    <h3 class="text-muted mb-3">Chưa có bất động sản nào</h3>
-                    <p class="text-muted mb-4">
-                        @if (!string.IsNullOrEmpty(city))
+                    <h3 class="text-muted">
+                        @if (hasFilters)
                         {
-                            <span>Không tìm thấy BDS phù hợp với bộ lọc.</span>
-                    
-                            <br>
+                            <span>Không tìm thấy BDS phù hợp</span>
+                        }
+                        else
+                        {
+                            <span>Chưa có bất động sản nào</span>
+                        }
+                    </h3>
+                    <p class="text-muted">
+                        @if (hasFilters)
+                        {
+                            <span>Thử điều chỉnh bộ lọc hoặc </span>
                         }
                         Bắt đầu bằng cách
-                        <a asp-action="Create" class="text-primary fw-bold">tạo BDS đầu tiên</a>.
+                        <a asp-action="Create">tạo BDS đầu tiên</a>.
                     </p>
-                    <a asp-action="Create" class="btn btn-primary btn-lg px-5">
-                        <i class="fas fa-plus me-2"></i>Tạo ngay
-                    </a>
+                    <a asp-action="Create" class="btn btn-success">Tạo BDS mới</a>
                 </div>
             }
         </div>
     </div>
 </div>
 
-@section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .bg-gradient-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        }
-
-        .bg-gradient-light {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0,123,255,.075);
-        }
-
-        .hstack {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .status-available {
-            background: #d4edda !important;
-            color: #155724 !important;
-        }
-
-        .status-rented {
-            background: #fff3cd !important;
-            color: #856404 !important;
-        }
-
-        .status-maintenance {
-            background: #d1ecf1 !important;
-            color: #0c5460 !important;
-        }
-
-        .status-unavailable {
-            background: #f8d7da !important;
-            color: #721c24 !important;
-        }
-
-        .table-group-divider {
-            border-top: 2px solid #dee2e6;
-        }
-    </style>
-}
-
 @section Scripts {
     <script>
-        // Tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-
-        // Auto-hide alerts after 5s
+        // Auto-hide alerts after 5 seconds
         setTimeout(() => {
             document.querySelectorAll('.alert').forEach(alert => {
-                var alertEl = bootstrap.Alert.getOrCreateInstance(alert);
-                alertEl.close();
+                $(alert).alert('close');
             });
         }, 5000);
     </script>
 }
 
 @functions {
-    public string GetStatusBadgeClass(string status)
+    string GetStatusBadgeClass(string status)
     {
         return status switch
         {
-            "Available" => "status-available",
-            "Rented" => "status-rented",
-            "Maintenance" => "status-maintenance",
-            "Unavailable" => "status-unavailable",
-            _ => "bg-secondary"
+            "Available" => "badge-success",
+            "Rented" => "badge-warning",
+            "Maintenance" => "badge-info",
+            "Unavailable" => "badge-secondary",
+            _ => "badge-secondary"
         };
     }
 
-    public string GetStatusDisplay(string status)
+    string GetStatusDisplay(string status)
     {
         return status switch
         {
@@ -430,17 +318,4 @@
             _ => status
         };
     }
-
-    public string GetStatusRowClass(string status)
-    {
-        return status switch
-        {
-            "Available" => "table-success",
-            "Rented" => "table-warning",
-            "Maintenance" => "table-info",
-            "Unavailable" => "table-secondary",
-            _ => ""
-        };
-    }
 }
-

@@ -5,100 +5,49 @@
     var currentStatus = Model.CurrentStatus ?? "";
 }
 
-<div class="container-fluid py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-xl-6">
-            <!-- Header -->
-            <div class="card border-0 shadow-lg mb-4">
-                <div class="card-body text-center p-5 bg-gradient-primary text-white rounded-top">
-                    <div class="display-5 mb-3">
-                        <i class="fas fa-exchange-alt"></i>
-                    </div>
-                    <h2 class="mb-2 fw-bold">Thay đổi trạng thái</h2>
-                    <p class="lead opacity-90 mb-0">
-                        <strong>@Model.Name</strong>
-                        <br>
-                        <span class="badge bg-light text-dark px-3 py-2 fs-6">
-                            <i class="fas fa-circle me-1"></i>@currentStatus
-                        </span>
-                    </p>
-                </div>
-            </div>
+<div class="container mt-4">
+    <h1>Thay đổi trạng thái BDS</h1>
 
-            <!-- Form -->
-            <div class="card border-0 shadow">
-                <div class="card-body p-5">
-                    <form asp-action="ChangeStatus" method="post" novalidate>
-                        <input type="hidden" asp-for="PropertyId" />
+    <div class="alert alert-info">
+        <strong>Bất động sản:</strong> @Model.Name
+        <br>
+        <strong>Trạng thái hiện tại:</strong> <span class="badge badge-secondary">@currentStatus</span>
+    </div>
 
-                        <!-- Status Selector -->
-                        <div class="mb-5">
-                            <label for="NewStatus" class="form-label fw-bold fs-5 mb-3 d-block">
-                                <i class="fas fa-list text-primary me-2"></i>
-                                Trạng thái mới <span class="text-danger">*</span>
-                            </label>
+    <form asp-action="ChangeStatus" method="post" novalidate>
+        <input type="hidden" asp-for="PropertyId" />
 
-                            <div class="row g-3">
-                                <!-- Dropdown -->
-                                <div class="col-md-6">
-                                    <select asp-for="NewStatus" id="statusSelect"
-                                            class="form-select form-select-lg shadow-sm"
-                                            style="font-size: 1.1rem; padding: 1rem 0.75rem;">
-                                        <option value="">-- Chọn trạng thái mới --</option>
-                                        <option value="Available" data-color="success" data-label="Có sẵn">
-                                            🏠 Available
-                                        </option>
-                                        <option value="Rented" data-color="primary" data-label="Đã cho thuê">
-                                            ✅ Rented
-                                        </option>
-                                        <option value="Maintenance" data-color="warning" data-label="Bảo trì">
-                                            🔧 Maintenance
-                                        </option>
-                                        <option value="Unavailable" data-color="secondary" data-label="Không khả dụng">
-                                            ❌ Unavailable
-                                        </option>
-                                    </select>
-                                    <div class="invalid-feedback" id="statusError"></div>
-                                </div>
+        <div class="form-group">
+            <label for="NewStatus">Trạng thái mới <span class="text-danger">*</span></label>
+            <select asp-for="NewStatus" id="statusSelect" class="form-control">
+                <option value="">-- Chọn trạng thái mới --</option>
+                <option value="Available" data-color="success" data-label="Có sẵn">Available</option>
+                <option value="Rented" data-color="primary" data-label="Đã cho thuê">Rented</option>
+                <option value="Maintenance" data-color="warning" data-label="Bảo trì">Maintenance</option>
+                <option value="Unavailable" data-color="secondary" data-label="Không khả dụng">Unavailable</option>
+            </select>
+            <div class="invalid-feedback" id="statusError"></div>
+        </div>
 
-                                <!-- Preview -->
-                                <div class="col-md-6">
-                                    <div id="statusPreview" class="h-100 p-4 border border-dashed rounded-3 bg-light d-flex align-items-center justify-content-center"
-                                         style="min-height: 120px;">
-                                        <div class="text-center text-muted">
-                                            <i class="fas fa-mouse-pointer fa-3x mb-3 opacity-50"></i>
-                                            <h5>Chọn trạng thái để xem trước</h5>
-                                            <small class="opacity-75">Trạng thái mới sẽ hiển thị ở đây</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Note -->
-                            <div class="alert alert-info mt-3 border-start border-4 border-primary p-3">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Lưu ý:</strong> Vui lòng chọn trạng thái <strong>khác</strong> với
-                                trạng thái hiện tại (<code>@currentStatus</code>) để cập nhật.
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="d-grid gap-3">
-                            <button type="submit" id="submitBtn" class="btn btn-success btn-lg py-3" disabled>
-                                <i class="fas fa-check-circle me-2"></i>
-                                <span id="submitText">Cập nhật trạng thái</span>
-                                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
-                            </button>
-                            <a asp-action="Details" asp-route-id="@Model.PropertyId"
-                               class="btn btn-outline-secondary btn-lg py-3">
-                                <i class="fas fa-times-circle me-2"></i>Hủy
-                            </a>
-                        </div>
-                    </form>
-                </div>
+        <div class="form-group">
+            <div id="statusPreview" class="alert alert-light border">
+                <p class="text-muted mb-0">Chọn trạng thái để xem trước</p>
             </div>
         </div>
-    </div>
+
+        <div class="alert alert-info">
+            <strong>Lưu ý:</strong> Vui lòng chọn trạng thái khác với trạng thái hiện tại (<code>@currentStatus</code>) để cập nhật.
+        </div>
+
+        <div class="form-group">
+            <button type="submit" id="submitBtn" class="btn btn-primary" disabled>
+                <span id="submitText">Cập nhật trạng thái</span>
+            </button>
+            <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-secondary">
+                Hủy
+            </a>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
@@ -123,32 +72,21 @@
 
                 if (!value) {
                     // No selection
-                    preview.innerHTML = `
-                        <div class="text-center text-muted">
-                            <i class="fas fa-mouse-pointer fa-3x mb-3 opacity-50"></i>
-                            <h5>Chọn trạng thái để xem trước</h5>
-                            <small class="opacity-75">Trạng thái mới sẽ hiển thị ở đây</small>
-                        </div>
-                    `;
+                    preview.className = 'alert alert-light border';
+                    preview.innerHTML = '<p class="text-muted mb-0">Chọn trạng thái để xem trước</p>';
                     submitBtn.disabled = true;
-                    submitBtn.className = 'btn btn-success btn-lg py-3';
+                    submitBtn.className = 'btn btn-primary';
                 }
                 else if (value === currentStatus) {
                     // Same as current
+                    preview.className = 'alert alert-warning';
                     preview.innerHTML = `
-                        <div class="text-center">
-                            <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
-                            <h5 class="text-warning fw-bold mb-1">Giữ nguyên trạng thái</h5>
-                            <div class="badge bg-warning fs-6 px-3 py-2 mb-2">
-                                <i class="fas fa-circle me-1"></i>${value}
-                            </div>
-                            <small class="text-muted">
-                                Vui lòng chọn trạng thái <strong>khác</strong> với hiện tại
-                            </small>
-                        </div>
+                        <strong>Giữ nguyên trạng thái:</strong> ${value}
+                        <br>
+                        <small>Vui lòng chọn trạng thái khác với hiện tại</small>
                     `;
                     submitBtn.disabled = true;
-                    submitBtn.className = 'btn btn-outline-warning btn-lg py-3';
+                    submitBtn.className = 'btn btn-warning';
                     submitText.innerHTML = 'Không cần cập nhật';
                 }
                 else {
@@ -156,20 +94,14 @@
                     const color = selectedOption.dataset.color;
                     const label = selectedOption.dataset.label || selectedOption.textContent;
 
+                    preview.className = 'alert alert-' + color;
                     preview.innerHTML = `
-                        <div class="text-center">
-                            <div class="badge bg-${color} fs-5 px-4 py-2 mb-3 shadow-sm">
-                                <i class="fas fa-circle me-2"></i>${value}
-                            </div>
-                            <h5 class="text-${color} fw-bold mb-1">${label}</h5>
-                            <div class="text-success">
-                                <i class="fas fa-check-circle me-2"></i>
-                                <strong>Sẵn sàng cập nhật</strong>
-                            </div>
-                        </div>
+                        <strong>Trạng thái mới:</strong> ${value} (${label})
+                        <br>
+                        <small>Sẵn sàng cập nhật</small>
                     `;
                     submitBtn.disabled = false;
-                    submitBtn.className = 'btn btn-success btn-lg py-3 shadow-sm';
+                    submitBtn.className = 'btn btn-success';
                     submitText.innerHTML = `Cập nhật thành ${value}`;
                 }
             }
