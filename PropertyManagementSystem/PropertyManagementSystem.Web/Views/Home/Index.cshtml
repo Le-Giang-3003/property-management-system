@@ -62,6 +62,13 @@ else
         <li><a asp-controller="Maintenance" asp-action="Index">Yêu cầu bảo trì</a></li>
     </ul>
 
+    <!-- ========== Property ========== -->
+
+    <h3> Property Viewing</h3>
+    <ul>
+        <li><a asp-controller="PropertyViewing" asp-action="MyViewings">Lịch xem nhà của tôi</a></li>
+        <li><a asp-controller="PropertyViewing" asp-action="Reschedule">Lên lịch xem nhà mới</a></li>
+    </ul>
     <!-- ========== ADMIN ONLY ========== -->
     @if (User.IsInRole("Admin"))
     {

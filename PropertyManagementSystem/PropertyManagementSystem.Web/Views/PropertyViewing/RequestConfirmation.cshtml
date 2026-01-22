@@ -1,0 +1,41 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto
+@{
+    ViewData["Title"] = "Request Submitted";
+}
+
+<h2>Request Submitted Successfully!</h2>
+
+<p>Your viewing request has been sent to the landlord.</p>
+
+<hr />
+
+<h4>Request Details</h4>
+<table border="1" cellpadding="5">
+    <tr>
+        <td><strong>Property:</strong></td>
+        <td>@Model.PropertyName</td>
+    </tr>
+    <tr>
+        <td><strong>Address:</strong></td>
+        <td>@Model.PropertyAddress</td>
+    </tr>
+    <tr>
+        <td><strong>Preferred Time:</strong></td>
+        <td>@Model.PreferredDate1?.ToString("dd/MM/yyyy HH:mm")</td>
+    </tr>
+    <tr>
+        <td><strong>Status:</strong></td>
+        <td>@Model.Status</td>
+    </tr>
+</table>
+
+<br />
+<p>
+    <em>
+        You will receive an email at <strong>@Model.RequesterEmail</strong>
+        once the landlord confirms your viewing.
+    </em>
+</p>
+
+<br />
+<a href="/">Back to Home</a>

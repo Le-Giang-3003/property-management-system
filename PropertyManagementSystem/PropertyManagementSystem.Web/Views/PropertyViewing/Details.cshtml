@@ -1,0 +1,155 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto
+@{
+    ViewData["Title"] = "Viewing Details";
+}
+
+<h2>Viewing Details</h2>
+
+<p><a href="javascript:history.back()">Back</a></p>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <tr>
+        <td><strong>Status:</strong></td>
+        <td><strong>@Model.Status</strong></td>
+    </tr>
+</table>
+
+<hr />
+
+@* === PROPERTY INFO === *@
+<h4>Property Information</h4>
+<table border="1" cellpadding="5">
+    <tr>
+        <td><strong>Property Name:</strong></td>
+        <td>@Model.PropertyName</td>
+    </tr>
+    <tr>
+        <td><strong>Address:</strong></td>
+        <td>@Model.PropertyAddress</td>
+    </tr>
+</table>
+
+<hr />
+
+@* === SCHEDULE INFO === *@
+<h4>Schedule</h4>
+<table border="1" cellpadding="5">
+    @if (Model.ScheduledDate.HasValue)
+    {
+        <tr>
+            <td><strong>Confirmed Date:</strong></td>
+            <td>@Model.ScheduledDate.Value.ToString("dddd, dd MMMM yyyy HH:mm")</td>
+        </tr>
+    }
+    else
+    {
+        <tr>
+            <td><strong>Status:</strong></td>
+            <td>Not yet scheduled</td>
+        </tr>
+    }
+    <tr>
+        <td><strong>Preferred Time 1:</strong></td>
+        <td>@Model.PreferredDate1?.ToString("dd/MM/yyyy HH:mm")</td>
+    </tr>
+    @if (Model.PreferredDate2.HasValue)
+    {
+        <tr>
+            <td><strong>Preferred Time 2:</strong></td>
+            <td>@Model.PreferredDate2.Value.ToString("dd/MM/yyyy HH:mm")</td>
+        </tr>
+    }
+    @if (Model.PreferredDate3.HasValue)
+    {
+        <tr>
+            <td><strong>Preferred Time 3:</strong></td>
+            <td>@Model.PreferredDate3.Value.ToString("dd/MM/yyyy HH:mm")</td>
+        </tr>
+    }
+    <tr>
+        <td><strong>Virtual Viewing:</strong></td>
+        <td>@(Model.IsVirtualViewing ? "Yes" : "No")</td>
+    </tr>
+    @if (!string.IsNullOrEmpty(Model.MeetingLink))
+    {
+        <tr>
+            <td><strong>Meeting Link:</strong></td>
+            <td><a href="@Model.MeetingLink" target="_blank">@Model.MeetingLink</a></td>
+        </tr>
+    }
+</table>
+
+<hr />
+
+@* === REQUESTER INFO === *@
+<h4>Requester Information</h4>
+<table border="1" cellpadding="5">
+    <tr>
+        <td><strong>Name:</strong></td>
+        <td>@Model.RequesterName</td>
+    </tr>
+    <tr>
+        <td><strong>Email:</strong></td>
+        <td>@Model.RequesterEmail</td>
+    </tr>
+    <tr>
+        <td><strong>Phone:</strong></td>
+        <td>@Model.RequesterPhone</td>
+    </tr>
+</table>
+
+<hr />
+
+@* === LANDLORD INFO === *@
+<h4>Landlord Information</h4>
+<table border="1" cellpadding="5">
+    <tr>
+        <td><strong>Name:</strong></td>
+        <td>@Model.LandlordName</td>
+    </tr>
+    <tr>
+        <td><strong>Email:</strong></td>
+        <td>@Model.LandlordEmail</td>
+    </tr>
+    <tr>
+        <td><strong>Phone:</strong></td>
+        <td>@Model.LandlordPhone</td>
+    </tr>
+</table>
+
+<hr />
+
+@* === NOTES === *@
+<h4>Notes</h4>
+@if (!string.IsNullOrEmpty(Model.TenantNotes))
+{
+    <p><strong>From Requester:</strong> <em>@Model.TenantNotes</em></p>
+}
+@if (!string.IsNullOrEmpty(Model.LandlordNotes))
+{
+    <p><strong>From Landlord:</strong> <em>@Model.LandlordNotes</em></p>
+}
+
+@* === FEEDBACK (neu da hoan thanh) === *@
+@if (Model.Rating.HasValue)
+{
+    <hr />
+    <h4>Feedback</h4>
+    <p><strong>Rating:</strong> @Model.Rating.Value / 5</p>
+    @if (!string.IsNullOrEmpty(Model.Feedback))
+    {
+        <p><strong>Comment:</strong> <em>@Model.Feedback</em></p>
+    }
+}
+
+<hr />
+
+@* === TIMELINE === *@
+<h4>Timeline</h4>
+<ul>
+    <li>Requested: @Model.RequestedDate.ToString("dd/MM/yyyy HH:mm")</li>
+    @if (Model.ScheduledDate.HasValue)
+    {
+        <li>Scheduled: @Model.ScheduledDate.Value.ToString("dd/MM/yyyy HH:mm")</li>
+    }
+</ul>

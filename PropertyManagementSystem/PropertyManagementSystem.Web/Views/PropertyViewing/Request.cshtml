@@ -1,0 +1,83 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.Schedule.CreateViewingRequestDto
+@{
+    ViewData["Title"] = "Schedule Viewing";
+}
+
+<h2>Schedule Property Viewing</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <p style="color:red;">@TempData["ErrorMessage"]</p>
+}
+
+<form asp-action="Request" method="post">
+    <input type="hidden" asp-for="PropertyId" />
+
+    @* === GUEST INFO (chi hien khi chua dang nhap) === *@
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <p><em>You are requesting as a guest. Please provide your contact info.</em></p>
+
+        <div>
+            <label asp-for="GuestName">Full Name *</label><br />
+            <input asp-for="GuestName" required />
+            <span asp-validation-for="GuestName" style="color:red;"></span>
+        </div>
+        <br />
+        <div>
+            <label asp-for="GuestEmail">Email *</label><br />
+            <input asp-for="GuestEmail" type="email" required />
+            <span asp-validation-for="GuestEmail" style="color:red;"></span>
+        </div>
+        <br />
+        <div>
+            <label asp-for="GuestPhone">Phone *</label><br />
+            <input asp-for="GuestPhone" required />
+            <span asp-validation-for="GuestPhone" style="color:red;"></span>
+        </div>
+        <hr />
+    }
+
+    @* === PREFERRED DATES === *@
+    <h4>Preferred Viewing Times</h4>
+    <p>Select up to 3 preferred times.</p>
+
+    <div>
+        <label asp-for="PreferredDate1">Option 1 (Required) *</label><br />
+        <input asp-for="PreferredDate1" type="datetime-local" required />
+        <span asp-validation-for="PreferredDate1" style="color:red;"></span>
+    </div>
+    <br />
+    <div>
+        <label asp-for="PreferredDate2">Option 2 (Optional)</label><br />
+        <input asp-for="PreferredDate2" type="datetime-local" />
+    </div>
+    <br />
+    <div>
+        <label asp-for="PreferredDate3">Option 3 (Optional)</label><br />
+        <input asp-for="PreferredDate3" type="datetime-local" />
+    </div>
+    <br />
+
+    @* === VIRTUAL VIEWING === *@
+    <div>
+        <input asp-for="IsVirtualViewing" type="checkbox" />
+        <label asp-for="IsVirtualViewing">Request Virtual Viewing (video call)</label>
+    </div>
+    <br />
+
+    @* === NOTES === *@
+    <div>
+        <label asp-for="TenantNotes">Additional Notes</label><br />
+        <textarea asp-for="TenantNotes" rows="3" cols="50"
+                  placeholder="Any questions or requirements..."></textarea>
+    </div>
+    <br />
+
+    <button type="submit">Submit Request</button>
+    <a href="javascript:history.back()">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

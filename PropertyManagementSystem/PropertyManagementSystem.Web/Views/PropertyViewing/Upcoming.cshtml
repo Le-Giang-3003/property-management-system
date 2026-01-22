@@ -1,0 +1,85 @@
+﻿@model IEnumerable<PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto>
+@{
+    ViewData["Title"] = "Upcoming Viewings";
+}
+
+<h2>Upcoming Viewings</h2>
+<p>Your confirmed viewings scheduled for the future.</p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <p style="color:green;">@TempData["SuccessMessage"]</p>
+}
+
+@if (!Model.Any())
+{
+    <p>No upcoming viewings scheduled.</p>
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Scheduled Date</th>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Contact</th>
+                <th>Meeting Link</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.OrderBy(v => v.ScheduledDate))
+            {
+                @* Tinh so ngay con lai *@
+                var daysUntil = (item.ScheduledDate!.Value.Date - DateTime.Today).Days;
+                var urgency = daysUntil switch
+                {
+                    0 => "TODAY!",
+                    1 => "Tomorrow",
+                    _ => $"In {daysUntil} days"
+                };
+
+                <tr>
+                    <td>
+                        <strong>@item.PropertyName</strong><br />
+                        @item.PropertyAddress
+                    </td>
+                    <td>
+                        @item.ScheduledDate!.Value.ToString("dd/MM/yyyy")<br />
+                        <em>(@urgency)</em>
+                    </td>
+                    <td>@item.ScheduledDate.Value.ToString("HH:mm")</td>
+                    <td>@(item.IsVirtualViewing ? "Virtual" : "In-Person")</td>
+                    <td>
+                        @* Hien thi contact tuy theo role *@
+                        @if (User.IsInRole("Tenant"))
+                        {
+                            <text>Landlord: @item.LandlordName<br />@item.LandlordPhone</text>
+                        }
+                        else
+                        {
+                            <text>Visitor: @item.RequesterName<br />@item.RequesterPhone</text>
+                        }
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.MeetingLink))
+                        {
+                            <a href="@item.MeetingLink" target="_blank">Join Meeting</a>
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.ViewingId">Details</a>
+                        <span> | </span>
+                        <a asp-action="Reschedule" asp-route-id="@item.ViewingId">Reschedule</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

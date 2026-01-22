@@ -1,0 +1,108 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.Schedule.ConfirmViewingRequestDto
+@{
+    ViewData["Title"] = "Confirm Viewing";
+    var viewing = ViewBag.Viewing as PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto;
+}
+
+<h2>Confirm & Schedule Viewing</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <p style="color:red;">@TempData["ErrorMessage"]</p>
+}
+
+@* === REQUEST DETAILS === *@
+@if (viewing != null)
+{
+    <h4>Request Details</h4>
+    <table border="1" cellpadding="5">
+        <tr>
+            <td><strong>Property:</strong></td>
+            <td>@viewing.PropertyName - @viewing.PropertyAddress</td>
+        </tr>
+        <tr>
+            <td><strong>Requester:</strong></td>
+            <td>@viewing.RequesterName</td>
+        </tr>
+        <tr>
+            <td><strong>Email:</strong></td>
+            <td>@viewing.RequesterEmail</td>
+        </tr>
+        <tr>
+            <td><strong>Phone:</strong></td>
+            <td>@viewing.RequesterPhone</td>
+        </tr>
+        <tr>
+            <td><strong>Virtual Viewing:</strong></td>
+            <td>@(viewing.IsVirtualViewing ? "Yes" : "No")</td>
+        </tr>
+    </table>
+
+    <br />
+    <h4>Requester's Preferred Times</h4>
+    <ul>
+        <li><strong>Option 1:</strong> @viewing.PreferredDate1?.ToString("dd/MM/yyyy HH:mm")</li>
+        @if (viewing.PreferredDate2.HasValue)
+        {
+            <li><strong>Option 2:</strong> @viewing.PreferredDate2.Value.ToString("dd/MM/yyyy HH:mm")</li>
+        }
+        @if (viewing.PreferredDate3.HasValue)
+        {
+            <li><strong>Option 3:</strong> @viewing.PreferredDate3.Value.ToString("dd/MM/yyyy HH:mm")</li>
+        }
+    </ul>
+
+    @if (!string.IsNullOrEmpty(viewing.TenantNotes))
+    {
+        <p><strong>Notes from Requester:</strong> <em>@viewing.TenantNotes</em></p>
+    }
+}
+
+<hr />
+
+@* === CONFIRM FORM === *@
+<h4>Schedule the Viewing</h4>
+
+<form asp-action="Confirm" method="post">
+    <input type="hidden" asp-for="ViewingId" />
+
+    <div>
+        <label asp-for="ScheduledDate">Select Date & Time *</label><br />
+        <input asp-for="ScheduledDate" type="datetime-local" required />
+        <span asp-validation-for="ScheduledDate" style="color:red;"></span>
+    </div>
+    <br />
+
+    <div>
+        <label asp-for="LandlordNotes">Notes for Tenant (Optional)</label><br />
+        <textarea asp-for="LandlordNotes" rows="3" cols="50"
+                  placeholder="Any instructions for the tenant..."></textarea>
+    </div>
+    <br />
+
+    @if (viewing?.IsVirtualViewing == true)
+    {
+        <div>
+            <label asp-for="MeetingLink">Meeting Link (Required for Virtual Viewing) *</label><br />
+            <input asp-for="MeetingLink" type="url" size="60"
+                   placeholder="https://meet.google.com/..." required />
+            <span asp-validation-for="MeetingLink" style="color:red;"></span>
+        </div>
+    }
+    else
+    {
+        <div>
+            <label asp-for="MeetingLink">Meeting Link (Optional)</label><br />
+            <input asp-for="MeetingLink" type="url" size="60"
+                   placeholder="https://meet.google.com/..." />
+        </div>
+    }
+    <br />
+
+    <button type="submit">Confirm Viewing</button>
+    <a asp-action="PendingRequests">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

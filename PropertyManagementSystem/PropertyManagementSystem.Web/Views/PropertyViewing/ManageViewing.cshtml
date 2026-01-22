@@ -1,0 +1,112 @@
+﻿@model IEnumerable<PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto>
+@{
+    ViewData["Title"] = "Manage Viewings";
+}
+
+<h2>Manage Property Viewings (Landlord)</h2>
+
+<p>
+    <a asp-action="PendingRequests">
+        View Pending Requests (@Model.Count(v => v.Status == "Requested"))
+    </a>
+</p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <p style="color:green;">@TempData["SuccessMessage"]</p>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <p style="color:red;">@TempData["ErrorMessage"]</p>
+}
+
+@if (!Model.Any())
+{
+    <p>No viewing requests yet.</p>
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Requester</th>
+                <th>Contact</th>
+                <th>Requested Date</th>
+                <th>Scheduled Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @item.PropertyName<br />
+                        <small>@item.PropertyAddress</small>
+                    </td>
+                    <td>
+                        @item.RequesterName
+                        @if (item.IsVirtualViewing)
+                        {
+                            <br />
+                
+                            <em>(Virtual)</em>
+                        }
+                    </td>
+                    <td>
+                        @item.RequesterEmail<br />
+                        @item.RequesterPhone
+                    </td>
+                    <td>
+                        @item.PreferredDate1?.ToString("dd/MM/yyyy HH:mm")
+                        @if (item.PreferredDate2.HasValue)
+                        {
+                            <br />
+                
+                            <small>Alt: @item.PreferredDate2.Value.ToString("dd/MM HH:mm")</small>
+                        }
+                    </td>
+                    <td>
+                        @if (item.ScheduledDate.HasValue)
+                        {
+                            @item.ScheduledDate.Value.ToString("dd/MM/yyyy HH:mm")
+                        }
+                        else
+                        {
+                            <em>Not scheduled</em>
+                        }
+                    </td>
+                    <td>@item.Status</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.ViewingId">Details</a>
+
+                        @if (item.Status == "Requested")
+                        {
+                            <span> | </span>
+                            <a asp-action="Confirm" asp-route-id="@item.ViewingId">Confirm</a>
+                            <span> | </span>
+                            <form asp-action="Reject" asp-route-id="@item.ViewingId" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Reject this request?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit">Reject</button>
+                            </form>
+                        }
+
+                        @if (item.Status == "Confirmed")
+                        {
+                            <span> | </span>
+                            <form asp-action="Complete" asp-route-id="@item.ViewingId" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit">Mark Complete</button>
+                            </form>
+                            <span> | </span>
+                            <a asp-action="Reschedule" asp-route-id="@item.ViewingId">Reschedule</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
