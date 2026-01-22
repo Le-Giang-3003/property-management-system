@@ -503,9 +503,8 @@ namespace PropertyManagementSystem.DAL.Data
             // Seed Roles
             modelBuilder.Entity<Role>().HasData(
                 new Role { RoleId = 1, RoleName = "Admin", Description = "System Administrator" },
-                new Role { RoleId = 2, RoleName = "Landlord", Description = "Property Owner" },
-                new Role { RoleId = 3, RoleName = "Tenant", Description = "Property Renter" },
-                new Role { RoleId = 4, RoleName = "Technician", Description = "Maintenance Technician" }
+                new Role { RoleId = 2, RoleName = "Member", Description = "Landlord and Tenant" },
+                new Role { RoleId = 3, RoleName = "Technician", Description = "Maintenance Technician" }
             );
         }
     }

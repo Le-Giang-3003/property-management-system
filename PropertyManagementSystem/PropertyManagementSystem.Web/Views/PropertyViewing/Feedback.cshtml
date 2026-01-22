@@ -1,0 +1,65 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.Schedule.ViewingFeedbackRequestDto
+@{
+    ViewData["Title"] = "Submit Feedback";
+    var viewing = ViewBag.Viewing as PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto;
+}
+
+<h2>Submit Viewing Feedback</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <p style="color:red;">@TempData["ErrorMessage"]</p>
+}
+
+@* === VIEWING INFO === *@
+@if (viewing != null)
+{
+    <table border="1" cellpadding="5">
+        <tr>
+            <td><strong>Property:</strong></td>
+            <td>@viewing.PropertyName</td>
+        </tr>
+        <tr>
+            <td><strong>Address:</strong></td>
+            <td>@viewing.PropertyAddress</td>
+        </tr>
+        <tr>
+            <td><strong>Viewed On:</strong></td>
+            <td>@viewing.ScheduledDate?.ToString("dd/MM/yyyy HH:mm")</td>
+        </tr>
+    </table>
+    <br />
+}
+
+@* === FEEDBACK FORM === *@
+<form asp-action="Feedback" method="post">
+    <input type="hidden" asp-for="ViewingId" />
+
+    <div>
+        <label asp-for="Rating">Rating (1-5) *</label><br />
+        <select asp-for="Rating" required>
+            <option value="">-- Select Rating --</option>
+            <option value="1">1 - Poor</option>
+            <option value="2">2 - Fair</option>
+            <option value="3">3 - Good</option>
+            <option value="4">4 - Very Good</option>
+            <option value="5">5 - Excellent</option>
+        </select>
+        <span asp-validation-for="Rating" style="color:red;"></span>
+    </div>
+    <br />
+
+    <div>
+        <label asp-for="Feedback">Comments (Optional)</label><br />
+        <textarea asp-for="Feedback" rows="4" cols="50"
+                  placeholder="Share your experience... Was the property as described? Was the landlord helpful?"></textarea>
+    </div>
+    <br />
+
+    <button type="submit">Submit Feedback</button>
+    <a asp-action="MyViewings">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

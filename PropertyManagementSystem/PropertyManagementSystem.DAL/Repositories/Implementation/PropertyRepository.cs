@@ -9,19 +9,10 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
     /// Repository for managing properties.
     /// </summary>
     /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Interface.IPropertyRepository" />
-    public class PropertyRepository : IPropertyRepository
+    public class PropertyRepository : GenericRepository<Property>, IPropertyRepository
     {
-        /// <summary>
-        /// The context
-        /// </summary>
-        private readonly AppDbContext _context;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PropertyRepository"/> class.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        public PropertyRepository(AppDbContext context)
+        public PropertyRepository(AppDbContext context) : base(context)
         {
-            _context = context;
         }
         /// <summary>
         /// Adds the property asynchronous.
@@ -67,6 +58,25 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Property>> GetAvailablePropertiesAsync()
+        {
+            return await _dbSet
+                .Include(p => p.Landlord)
+                .Include(p => p.Images.Where(i => i.IsThumbnail))
+                .Where(p => p.Status == "Available")
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Property>> GetByLandlordIdAsync(int landlordId)
+        {
+            return await _dbSet
+                .Include(p => p.Images.Where(i => i.IsThumbnail))
+                .Where(p => p.LandlordId == landlordId)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+
         /// <summary>
         /// Gets the properties by landlord identifier asynchronous.
         /// </summary>
@@ -91,6 +101,14 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .Include(p => p.Landlord)
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync(p => p.PropertyId == id && p.Status != "Deleted");
+        }
+
+        public async Task<Property?> GetPropertyWithDetailsAsync(int propertyId)
+        {
+            return await _dbSet
+                .Include(p => p.Landlord)
+                .Include(p => p.Images.OrderBy(i => i.DisplayOrder))
+                .FirstOrDefaultAsync(p => p.PropertyId == propertyId);
         }
 
         /// <summary>

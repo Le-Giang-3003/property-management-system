@@ -9,7 +9,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         private IUserRepository? _users;
         private IRoleRepository? _roles;
         private IUserRoleRepository? _userRoles;
-
+        private IPropertyRepository? _properties;
+        private IPropertyViewingRepository? _propertyViewings;
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
@@ -18,7 +19,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         public IUserRepository Users => _users ??= new UserRepository(_context);
         public IRoleRepository Roles => _roles ??= new RoleRepository(_context);
         public IUserRoleRepository UserRoles => _userRoles ??= new UserRoleRepository(_context);
-
+        public IPropertyRepository Properties => _properties ??= new PropertyRepository(_context);
+        public IPropertyViewingRepository PropertyViewings => _propertyViewings ??= new PropertyViewingRepository(_context);
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();

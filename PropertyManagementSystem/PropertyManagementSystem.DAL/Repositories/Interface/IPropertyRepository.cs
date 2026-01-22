@@ -2,7 +2,7 @@
 
 namespace PropertyManagementSystem.DAL.Repositories.Interface
 {
-    public interface IPropertyRepository
+    public interface IPropertyRepository : IGenericRepository<Property>
     {
         public Task<IEnumerable<Property>> GetAllPropertiesAsync();
         public Task<Property?> GetPropertyByIdAsync(int id);
@@ -11,5 +11,9 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         public Task<bool> DeletePropertyAsync(int id);
         public Task<IEnumerable<Property>> GetPropertiesByLandlordIdAsync(int landlordId);
         public Task<IEnumerable<Property>> SearchPropertiesAsync(string city, string? propertyType, decimal? minRent, decimal? maxRent);
+        Task<Property?> GetPropertyWithDetailsAsync(int propertyId);
+        Task<IEnumerable<Property>> GetAvailablePropertiesAsync();
+        Task<IEnumerable<Property>> GetByLandlordIdAsync(int landlordId);
+
     }
 }
