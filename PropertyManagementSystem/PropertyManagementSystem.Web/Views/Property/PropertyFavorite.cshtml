@@ -1,0 +1,192 @@
+﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.FavoriteProperty>
+
+@{
+    ViewData["Title"] = "Bất động sản yêu thích";
+    Layout = "_AuthLayout";
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="fas fa-heart text-danger"></i> Bất động sản yêu thích</h1>
+            <p class="text-muted">
+                @if (Model.Any())
+                {
+                    <span>Bạn có @Model.Count() BDS yêu thích</span>
+                }
+                else
+                {
+                    <span>Bạn chưa có BDS yêu thích nào</span>
+                }
+            </p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <!-- Notifications -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Thành công!</strong> @TempData["Success"]
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Lỗi!</strong> @TempData["Error"]
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    }
+
+    <!-- Favorites List -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row">
+            @foreach (var favorite in Model)
+            {
+                var property = favorite.Property;
+                if (property != null)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title mb-0">
+                                        <a asp-action="Details" asp-route-id="@property.PropertyId" class="text-dark">
+                                            @property.Name
+                                        </a>
+                                    </h5>
+                                    <form asp-action="RemoveFavorite" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="propertyId" value="@property.PropertyId" />
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <button type="submit" class="btn btn-link p-0 text-danger"
+                                                title="Xóa khỏi yêu thích"
+                                                onclick="return confirm('Bạn có chắc muốn xóa BDS này khỏi danh sách yêu thích?');">
+                                            <i class="fas fa-heart" style="font-size: 1.3rem;"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="mb-2">
+                                    <span class="badge badge-info">@property.PropertyType</span>
+                                    <span class="badge @GetStatusBadgeClass(property.Status)">
+                                        @GetStatusDisplay(property.Status)
+                                    </span>
+                                </div>
+
+                                <p class="card-text">
+                                    <i class="fas fa-map-marker-alt text-muted"></i>
+                                    @property.Address<br />
+                                    @if (!string.IsNullOrEmpty(property.City))
+                                    {
+                                        <small class="text-muted">
+                                            @(property.District != null ? $"{property.District}, " : "")@property.City
+                                        </small>
+                                    }
+                                </p>
+
+                                <div class="row text-center mb-3">
+                                    <div class="col-4">
+                                        <small class="text-muted">Phòng ngủ</small><br />
+                                        <strong>@property.Bedrooms</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Phòng tắm</small><br />
+                                        <strong>@property.Bathrooms</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Diện tích</small><br />
+                                        <strong>@property.SquareFeet ft²</strong>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="text-success mb-0">@property.RentAmount.ToString("N0") ₫</h4>
+                                        <small class="text-muted">/tháng</small>
+                                    </div>
+                                    <a asp-action="Details" asp-route-id="@property.PropertyId"
+                                       class="btn btn-primary btn-sm">
+                                        Xem chi tiết
+                                    </a>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(property.Description))
+                                {
+                                    <hr />
+                                    <p class="card-text small text-muted mb-0">
+                                        @(property.Description.Length > 100
+                                                                ? property.Description.Substring(0, 100) + "..."
+                                                                : property.Description)
+                                    </p>
+                                }
+
+                                <hr />
+                                <small class="text-muted">
+                                    <i class="far fa-clock"></i> Đã thêm vào yêu thích: @favorite.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="far fa-heart text-muted" style="font-size: 5rem;"></i>
+                <h3 class="mt-3 text-muted">Bạn chưa có BDS yêu thích nào</h3>
+                <p class="text-muted">
+                    Hãy khám phá và thêm các bất động sản yêu thích của bạn!
+                </p>
+                <a asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Tìm kiếm BDS
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                $(alert).alert('close');
+            });
+        }, 5000);
+    </script>
+}
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Available" => "badge-success",
+            "Rented" => "badge-warning",
+            "Maintenance" => "badge-info",
+            "Unavailable" => "badge-secondary",
+            _ => "badge-secondary"
+        };
+    }
+
+    string GetStatusDisplay(string status)
+    {
+        return status switch
+        {
+            "Available" => "Có sẵn",
+            "Rented" => "Đã thuê",
+            "Maintenance" => "Bảo trì",
+            "Unavailable" => "Không khả dụng",
+            _ => status
+        };
+    }
+}
