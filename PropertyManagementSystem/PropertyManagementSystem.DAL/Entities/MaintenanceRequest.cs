@@ -38,10 +38,13 @@ namespace PropertyManagementSystem.DAL.Entities
         [Required, MaxLength(20)]
         public string Status { get; set; } = "Pending"; // Pending, Assigned, InProgress, Completed, Cancelled, OnHold, Closed
 
-        public DateTime RequestDate { get; set; } = DateTime.UtcNow;
+        public DateTime RequestDate { get; set; } = DateTime.UtcNow; // When the request was created
 
-        public DateTime? AssignedDate { get; set; }
-        public DateTime? StartedDate { get; set; }
+        public DateOnly? AssignedDate { get; set; }
+        public DateTime? RepairDate { get; set; } // The date tenant wants the repair
+        public TimeOnly? TimeFrom { get; set; } // The time tenant wants start
+        public TimeOnly? TimeTo { get; set; } // The time tenant wants end
+
         public DateTime? CompletedDate { get; set; }
         public DateTime? ClosedDate { get; set; }
 
@@ -61,6 +64,9 @@ namespace PropertyManagementSystem.DAL.Entities
 
         [MaxLength(1000)]
         public string TenantFeedback { get; set; }
+
+        [MaxLength(20)]
+        public string TechnicianStatus { get; set; } // Accepted, Rejected, null (pending)
 
         // Navigation
         public Property Property { get; set; }

@@ -60,11 +60,18 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
 //app.MapControllerRoute(
 //    name: "default",
-//    pattern: "{controller=Auth}/{action=Login}/{id?}");
+//    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Auth}/{action=Login}/{id?}");
+
+
+//Thiên Start Route
+//app.MapControllerRoute(
+//    name: "default",
+//    pattern: "{controller=Maintenance}/{action=TenantIndex}");
+
 app.Run();
