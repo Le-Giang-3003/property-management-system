@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementSystem.BLL.DTOs.Maintenance;
+using PropertyManagementSystem.BLL.Services.Implementation;
 using PropertyManagementSystem.BLL.Services.Interface;
+using PropertyManagementSystem.DAL;
+using PropertyManagementSystem.DAL.Data;
 using System.Security.Claims;
 
 namespace PropertyManagementSystem.Web.Controllers
@@ -10,10 +14,14 @@ namespace PropertyManagementSystem.Web.Controllers
     public class MaintenanceController : Controller
     {
         private readonly IMaintenanceService _maintenanceService;
+        private readonly AppDbContext _context;
 
-        public MaintenanceController(IMaintenanceService maintenanceService)
+
+
+        public MaintenanceController(IMaintenanceService maintenanceService, AppDbContext context)
         {
             _maintenanceService = maintenanceService;
+            _context = context;
         }
 
         private int GetCurrentUserId()
@@ -40,8 +48,11 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: /Maintenance/CreateRequest
-        public IActionResult CreateRequest()
+        public async Task<IActionResult> CreateRequest()
         {
+            var userId = GetCurrentUserId();
+            var properties = await GetUserPropertiesAsync(userId);
+            ViewBag.Properties = properties;
             return View();
         }
 
@@ -305,6 +316,13 @@ namespace PropertyManagementSystem.Web.Controllers
                     return RedirectToAction(nameof(TenantIndex));
                 }
 
+                // Load technicians for landlord view
+                if (IsInRole("Landlord") || IsInRole("Member"))
+                {
+                    var technicians = await _maintenanceService.GetAvailableTechniciansAsync();
+                    ViewBag.Technicians = technicians;
+                }
+
                 return View(request);
             }
             catch (Exception ex)
@@ -375,6 +393,26 @@ namespace PropertyManagementSystem.Web.Controllers
             {
                 return Json(new { error = ex.Message });
             }
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private async Task<List<PropertySelectDto>> GetUserPropertiesAsync(int userId)
+        {
+            var properties = await _context.Leases
+                .Include(l => l.Property)
+                .Where(l => l.TenantId == userId && l.Status == "Active")
+                .Select(l => new PropertySelectDto
+                {
+                    PropertyId = l.PropertyId,
+                    Name = l.Property.Name,
+                    Address = l.Property.Address
+                })
+                .ToListAsync();
+
+            return properties;
         }
 
         #endregion
