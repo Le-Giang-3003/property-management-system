@@ -60,7 +60,7 @@ namespace PropertyManagementSystem.DAL.Entities
         public bool PetsAllowed { get; set; } = false;
 
         [Required, MaxLength(20)]
-        public string Status { get; set; } = "Available"; // Available, Rented, Maintenance, Unavailable
+        public string Status { get; set; } = "Available"; // Available, PendingLease , Rented, Maintenance, Unavailable
 
         public DateTime? AvailableFrom { get; set; }
 

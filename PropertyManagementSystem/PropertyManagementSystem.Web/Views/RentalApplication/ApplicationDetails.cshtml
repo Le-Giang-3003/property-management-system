@@ -2,10 +2,13 @@
 @{
     ViewData["Title"] = "Chi tiết đơn xin thuê";
 
-    // ✅ VALIDATE: Chỉ cho approve/reject nếu Property thuộc về user này
     var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
     var isPropertyOwner = Model.Property?.LandlordId == userId;
     var canUpdate = isPropertyOwner && Model.Status == "Pending";
+
+    // ✅ FIX: Thêm check ExistingLease từ ViewBag
+    var hasExistingLease = ViewBag.ExistingLease != null;
+    var canCreateLease = isPropertyOwner && Model.Status == "Approved" && !hasExistingLease;
 }
 
 <div class="container mt-4">
@@ -170,12 +173,113 @@
                         </div>
                     }
 
+                    <!-- ✅ HIỂN THỊ HỢP ĐỒNG ĐÃ TẠO (NẾU CÓ) -->
+                    @if (hasExistingLease && ViewBag.ExistingLease != null)
+                    {
+                        <div class="card border-success mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-check-circle"></i> Hợp đồng đã được tạo
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-file-contract text-primary"></i> Mã hợp đồng:</strong>
+                                            <span class="badge bg-primary fs-6">@ViewBag.ExistingLease.LeaseNumber</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-calendar-alt text-info"></i> Thời gian:</strong>
+                                            @ViewBag.ExistingLease.StartDate.ToString("dd/MM/yyyy")
+                                            → @ViewBag.ExistingLease.EndDate.ToString("dd/MM/yyyy")
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-info-circle text-warning"></i> Trạng thái:</strong>
+                                            @if (ViewBag.ExistingLease.Status == "Draft")
+                                            {
+                                                <span class="badge bg-secondary">Nháp</span>
+                                            }
+                                            else if (ViewBag.ExistingLease.Status == "Active")
+                                            {
+                                                <span class="badge bg-success">Đang hiệu lực</span>
+                                            }
+                                            else if (ViewBag.ExistingLease.Status == "Expired")
+                                            {
+                                                <span class="badge bg-danger">Đã hết hạn</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-info">@ViewBag.ExistingLease.Status</span>
+                                            }
+                                        </p>
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-money-bill-wave text-success"></i> Tiền thuê:</strong>
+                                            @ViewBag.ExistingLease.MonthlyRent.ToString("N0") VNĐ/tháng
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a asp-controller="Lease" asp-action="Details"
+                                       asp-route-id="@ViewBag.ExistingLease.LeaseId"
+                                       class="btn btn-primary">
+                                        <i class="fas fa-eye"></i> Xem chi tiết hợp đồng
+                                    </a>
+
+                                    @if (ViewBag.ExistingLease.Status == "Draft")
+                                    {
+                                        <a asp-controller="Lease" asp-action="Edit"
+                                           asp-route-id="@ViewBag.ExistingLease.LeaseId"
+                                           class="btn btn-warning">
+                                            <i class="fas fa-edit"></i> Chỉnh sửa hợp đồng
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- ✅ NÚT TẠO HỢP ĐỒNG - CHỈ HIỆN KHI CHƯA CÓ LEASE -->
+                    @if (canCreateLease)
+                    {
+                        <div class="card bg-success text-white shadow-lg mt-4 border-0">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-file-contract fa-3x"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-1">
+                                            <i class="fas fa-check-circle"></i> Đơn đã được duyệt!
+                                        </h5>
+                                        <p class="mb-0">
+                                            Bạn có thể tạo hợp đồng thuê chính thức cho <strong>@Model.Applicant?.FullName</strong>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <a asp-controller="Lease" asp-action="Create" asp-route-applicationId="@Model.ApplicationId"
+                                   class="btn btn-light btn-lg w-100 shadow">
+                                    <i class="fas fa-file-contract"></i> <strong>Tạo hợp đồng thuê ngay</strong>
+                                </a>
+                            </div>
+                        </div>
+                    }
+
                     <!-- ✅ FORM XÉT DUYỆT - CHỈ CHO PROPERTY OWNER -->
                     @if (canUpdate)
                     {
-                        <div class="card bg-light mt-4">
+                        <div class="card bg-light mt-4 shadow">
                             <div class="card-body">
                                 <h5 class="card-title"><i class="fas fa-tasks"></i> Xét duyệt đơn</h5>
+                                <p class="text-muted mb-3">
+                                    Sau khi duyệt, bạn có thể tạo hợp đồng thuê chính thức.
+                                </p>
 
                                 <div class="row">
                                     <!-- APPROVE -->
@@ -199,8 +303,8 @@
                             </div>
                         </div>
                     }
-                    @* ✅ THÔNG BÁO NẾU KHÔNG PHẢI PROPERTY OWNER *@
-                    else if (!isPropertyOwner && Model.Status == "Pending")
+
+                    @if (!isPropertyOwner && Model.Status == "Pending")
                     {
                         <div class="alert alert-warning mt-4">
                             <i class="fas fa-exclamation-triangle"></i>
@@ -209,22 +313,19 @@
                     }
 
                     <!-- NAVIGATION BUTTONS -->
-                    <div class="mt-4 d-flex gap-2">
-                        @* ✅ NẾU LÀ PROPERTY OWNER → Xem danh sách đơn *@
+                    <div class="mt-4 d-flex gap-2 flex-wrap">
                         @if (isPropertyOwner)
                         {
                             <a asp-action="ByProperty" asp-route-propertyId="@Model.PropertyId" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Đơn của BĐS này
                             </a>
                         }
-                        @* ✅ NẾU LÀ APPLICANT → Về đơn của tôi *@
                         else if (Model.ApplicantId == userId)
                         {
                             <a asp-action="MyApplications" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Đơn của tôi
                             </a>
                         }
-                        @* ✅ USER KHÁC → Về danh sách *@
                         else
                         {
                             <a asp-action="Index" class="btn btn-secondary">
@@ -235,6 +336,13 @@
                         <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-outline-primary">
                             <i class="fas fa-home"></i> Xem BĐS
                         </a>
+
+                        @if (isPropertyOwner && Model.Status == "Approved")
+                        {
+                            <a asp-controller="Lease" asp-action="Index" class="btn btn-outline-success">
+                                <i class="fas fa-file-contract"></i> Quản lý hợp đồng
+                            </a>
+                        }
                     </div>
                 </div>
             </div>

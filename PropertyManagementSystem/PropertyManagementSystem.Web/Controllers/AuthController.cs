@@ -224,14 +224,7 @@ namespace PropertyManagementSystem.Web.Controllers
             TempData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
             return RedirectToAction("Login");
         }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
-            return RedirectToAction("Login");
-        }
+        
 
 
         public IActionResult AccessDenied() => View();

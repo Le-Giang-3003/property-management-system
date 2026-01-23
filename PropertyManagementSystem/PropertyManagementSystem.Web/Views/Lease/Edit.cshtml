@@ -1,0 +1,290 @@
+﻿@model PropertyManagementSystem.Web.ViewModels.Lease.UpdateLeaseViewModel
+@{
+    ViewData["Title"] = "Chỉnh sửa hợp đồng";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Hợp đồng</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.LeaseId">@Model.LeaseNumber</a></li>
+                    <li class="breadcrumb-item active">Chỉnh sửa</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
+                        <i class="fas fa-edit"></i> Chỉnh sửa hợp đồng @Model.LeaseNumber
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Thông tin cơ bản -->
+                    <div class="alert alert-light border mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Bất động sản:</strong> @Model.PropertyName</p>
+                                <p class="mb-0"><strong>Người thuê:</strong> @Model.TenantName</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                @if (Model.Status == "Draft")
+                                {
+                                    <span class="badge bg-secondary fs-6">Nháp</span>
+                                }
+                                else if (Model.Status == "Active")
+                                {
+                                    <span class="badge bg-success fs-6">Đang hiệu lực</span>
+                                }
+                                else if (Model.Status == "Expired")
+                                {
+                                    <span class="badge bg-danger fs-6">Đã hết hạn</span>
+                                }
+                                else if (Model.Status == "Terminated")
+                                {
+                                    <span class="badge bg-dark fs-6">Đã chấm dứt</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info fs-6">@Model.Status</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Edit" method="post" id="editLeaseForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="LeaseId" />
+                        <input type="hidden" asp-for="LeaseNumber" />
+                        <input type="hidden" asp-for="PropertyName" />
+                        <input type="hidden" asp-for="TenantName" />
+                        <input type="hidden" asp-for="Status" />
+
+                        <!-- Thời gian -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Thời gian hợp đồng</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="StartDate" class="form-label fw-bold">
+                                            <i class="fas fa-calendar-check"></i> Ngày bắt đầu
+                                        </label>
+                                        <input asp-for="StartDate" type="date" class="form-control form-control-lg" id="startDate" />
+                                        <span asp-validation-for="StartDate" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="LeaseDurationMonths" class="form-label fw-bold">
+                                            <i class="fas fa-hourglass-half"></i> Thời hạn thuê
+                                        </label>
+                                        <select asp-for="LeaseDurationMonths" class="form-select form-select-lg" id="leaseDuration">
+                                            <option value="3">3 tháng</option>
+                                            <option value="6">6 tháng</option>
+                                            <option value="9">9 tháng</option>
+                                            <option value="12">12 tháng</option>
+                                            <option value="18">18 tháng</option>
+                                            <option value="24">24 tháng</option>
+                                            <option value="36">36 tháng</option>
+                                        </select>
+                                        <span asp-validation-for="LeaseDurationMonths" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-calendar-times"></i> Ngày kết thúc (dự kiến)
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg bg-light"
+                                           id="endDateDisplay" value="@Model.EndDate.ToString("dd/MM/yyyy")" readonly />
+                                </div>
+
+                                <div class="alert alert-info" id="paymentDayInfo">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <i class="fas fa-calendar-day fa-2x"></i>
+                                        </div>
+                                        <div class="col">
+                                            <small class="text-muted">Ngày thanh toán hàng tháng</small>
+                                            <h5 class="mb-0" id="paymentDayDisplay">Ngày @Model.PaymentDueDay</h5>
+                                            <small id="paymentNote" class="text-muted"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tài chính -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Thông tin tài chính</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="MonthlyRent" class="form-label fw-bold">
+                                            <i class="fas fa-hand-holding-usd"></i> Tiền thuê hàng tháng
+                                        </label>
+                                        <div class="input-group input-group-lg">
+                                            <input asp-for="MonthlyRent" type="number" step="1000"
+                                                   class="form-control" id="monthlyRentInput" />
+                                            <span class="input-group-text bg-success text-white">VNĐ</span>
+                                        </div>
+                                        <span asp-validation-for="MonthlyRent" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="SecurityDeposit" class="form-label fw-bold">
+                                            <i class="fas fa-shield-alt"></i> Tiền đặt cọc
+                                        </label>
+                                        <div class="input-group input-group-lg">
+                                            <input asp-for="SecurityDeposit" type="number" step="1000" class="form-control" />
+                                            <span class="input-group-text bg-warning text-dark">VNĐ</span>
+                                        </div>
+                                        <span asp-validation-for="SecurityDeposit" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-success">
+                                    <div class="row text-center">
+                                        <div class="col-md-6">
+                                            <small>Tổng giá trị hợp đồng</small>
+                                            <h4 class="mb-0" id="totalContract">0 VNĐ</h4>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small>Thời hạn</small>
+                                            <h4 class="mb-0" id="monthsDisplay">0 tháng</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Điều khoản -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-file-signature"></i> Điều khoản</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label asp-for="Terms" class="form-label fw-bold">
+                                        <i class="fas fa-file-alt"></i> Điều khoản hợp đồng
+                                    </label>
+                                    <textarea asp-for="Terms" class="form-control font-monospace" rows="10"></textarea>
+                                    <span asp-validation-for="Terms" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="SpecialConditions" class="form-label fw-bold">
+                                        <i class="fas fa-star"></i> Điều kiện đặc biệt
+                                    </label>
+                                    <textarea asp-for="SpecialConditions" class="form-control" rows="3"></textarea>
+                                    <span asp-validation-for="SpecialConditions" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-check form-switch">
+                                    <input asp-for="AutoRenew" class="form-check-input" type="checkbox" role="switch" />
+                                    <label asp-for="AutoRenew" class="form-check-label fw-bold">
+                                        <i class="fas fa-sync-alt"></i> Tự động gia hạn khi hết hạn
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Details" asp-route-id="@Model.LeaseId" class="btn btn-lg btn-outline-secondary">
+                                <i class="fas fa-times"></i> Hủy bỏ
+                            </a>
+                            <button type="submit" class="btn btn-lg btn-warning">
+                                <i class="fas fa-save"></i> Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ✅ LẤY ELEMENTS ĐÚNG VỚI ID ASP.NET GENERATED
+            const startDateInput = document.getElementById('startDate');
+            const leaseDurationSelect = document.getElementById('leaseDuration');
+            const monthlyRentInput = document.getElementById('monthlyRentInput');
+            const endDateDisplay = document.getElementById('endDateDisplay');
+            const totalContractDisplay = document.getElementById('totalContract');
+            const monthsDisplaySpan = document.getElementById('monthsDisplay');
+            const paymentDayDisplay = document.getElementById('paymentDayDisplay');
+            const paymentNote = document.getElementById('paymentNote');
+            const paymentDayInfo = document.getElementById('paymentDayInfo');
+
+            // ✅ HÀM TÍNH TOÁN
+            function updateCalculations() {
+                const startDateValue = startDateInput.value;
+                if (!startDateValue) return;
+
+                const startDate = new Date(startDateValue);
+                const months = parseInt(leaseDurationSelect.value) || 12;
+                const monthlyRent = parseFloat(monthlyRentInput.value) || 0;
+
+                // Tính EndDate
+                const endDate = new Date(startDate);
+                endDate.setMonth(endDate.getMonth() + months);
+
+                const day = String(endDate.getDate()).padStart(2, '0');
+                const month = String(endDate.getMonth() + 1).padStart(2, '0');
+                const year = endDate.getFullYear();
+
+                endDateDisplay.value = day + '/' + month + '/' + year;
+
+                // Tính PaymentDueDay
+                const startDay = startDate.getDate();
+                const paymentDay = startDay >= 29 ? 28 : startDay;
+
+                paymentDayDisplay.textContent = 'Ngày ' + paymentDay;
+
+                if (startDay >= 29) {
+                    paymentNote.innerHTML = '<i class="fas fa-info-circle"></i> Điều chỉnh từ ngày ' + startDay + ' về ngày 28 (để phù hợp với tất cả tháng)';
+                    paymentDayInfo.classList.remove('alert-info');
+                    paymentDayInfo.classList.add('alert-warning');
+                } else {
+                    paymentNote.innerHTML = '';
+                    paymentDayInfo.classList.remove('alert-warning');
+                    paymentDayInfo.classList.add('alert-info');
+                }
+
+                // Tính tổng
+                const totalContract = monthlyRent * months;
+                totalContractDisplay.textContent = totalContract.toLocaleString('vi-VN') + ' VNĐ';
+                monthsDisplaySpan.textContent = months + ' tháng';
+            }
+
+            // ✅ LẮNG NGHE SỰ KIỆN
+            startDateInput.addEventListener('change', updateCalculations);
+            leaseDurationSelect.addEventListener('change', updateCalculations);
+            monthlyRentInput.addEventListener('input', updateCalculations);
+
+            // ✅ CHẠY LẦN ĐẦU
+            updateCalculations();
+
+            // ✅ CONFIRM KHI SUBMIT
+            const form = document.getElementById('editLeaseForm');
+            form.addEventListener('submit', function(e) {
+                if (!confirm('Bạn có chắc muốn lưu các thay đổi?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+    </script>
+}

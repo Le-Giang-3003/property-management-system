@@ -38,13 +38,13 @@ namespace PropertyManagementSystem.DAL.Entities
         public string Terms { get; set; }
 
         [MaxLength(500)]
-        public string SpecialConditions { get; set; }
+        public string? SpecialConditions { get; set; }
 
         [MaxLength(500)]
-        public string ContractFileUrl { get; set; }
-
+        public string? ContractFileUrl { get; set; }
+        
         [MaxLength(500)]
-        public string ContractFilePath { get; set; }
+        public string? ContractFilePath { get; set; }
 
         [Required, MaxLength(20)]
         public string Status { get; set; } = "Draft"; // Draft, PendingSignature, Active, Expired, Terminated, Renewed
@@ -52,7 +52,7 @@ namespace PropertyManagementSystem.DAL.Entities
         public DateTime? SignedDate { get; set; }
 
         [MaxLength(1000)]
-        public string TerminationReason { get; set; }
+        public string? TerminationReason { get; set; }
 
         public DateTime? TerminatedDate { get; set; }
 

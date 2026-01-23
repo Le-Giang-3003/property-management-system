@@ -1,0 +1,78 @@
+﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.Lease>
+@{
+    ViewData["Title"] = "Hợp đồng tôi thuê";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-tie"></i> Hợp đồng tôi đang thuê</h2>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <h4>Bạn chưa có hợp đồng thuê nào</h4>
+            <p class="text-muted">Sau khi đơn xin thuê được duyệt, chủ nhà sẽ tạo hợp đồng cho bạn</p>
+            <a asp-controller="Property" asp-action="Index" class="btn btn-primary mt-3">
+                <i class="fas fa-search"></i> Tìm bất động sản
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var lease in Model.OrderByDescending(l => l.StartDate))
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between">
+                            <strong>@lease.LeaseNumber</strong>
+                            @switch (lease.Status)
+                            {
+                                case "Draft":
+                                    <span class="badge bg-light text-dark">Nháp</span>
+                                    break;
+                                case "Active":
+                                    <span class="badge bg-success">Hiệu lực</span>
+                                    break;
+                                case "Expired":
+                                    <span class="badge bg-danger">Hết hạn</span>
+                                    break;
+                            }
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@lease.Property?.Name</h5>
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-map-marker-alt"></i> @lease.Property?.Address
+                            </p>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Tiền thuê</small>
+                                    <h5 class="text-danger mb-0">@lease.MonthlyRent.ToString("N0") VNĐ</h5>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Ngày thanh toán</small>
+                                    <h5 class="mb-0">Ngày @lease.PaymentDueDay</h5>
+                                </div>
+                            </div>
+                            <p class="mb-2">
+                                <i class="fas fa-calendar"></i>
+                                <strong>Thời hạn:</strong>
+                                @lease.StartDate.ToString("dd/MM/yyyy") - @lease.EndDate.ToString("dd/MM/yyyy")
+                            </p>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <a asp-action="Details" asp-route-id="@lease.LeaseId" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-eye"></i> Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
