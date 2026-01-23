@@ -40,18 +40,18 @@ namespace PropertyManagementSystem.DAL.Entities
         public bool HasPets { get; set; } = false;
 
         [MaxLength(200)]
-        public string PetDetails { get; set; }
+        public string? PetDetails { get; set; }
 
         public DateTime DesiredMoveInDate { get; set; }
 
         [MaxLength(2000)]
-        public string AdditionalNotes { get; set; }
+        public string? AdditionalNotes { get; set; }
 
         [Required, MaxLength(20)]
         public string Status { get; set; } = "Pending"; // Pending, UnderReview, Approved, Rejected, Withdrawn
 
         [MaxLength(1000)]
-        public string RejectionReason { get; set; }
+        public string? RejectionReason { get; set; }
 
         [ForeignKey("ReviewedByUser")]
         public int? ReviewedBy { get; set; }

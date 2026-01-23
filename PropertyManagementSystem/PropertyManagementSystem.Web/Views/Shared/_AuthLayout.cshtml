@@ -1,4 +1,5 @@
 @using System.Security.Claims
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var title = ViewData["Title"] as string ?? "Property Management";
     var userName = User.FindFirstValue(ClaimTypes.Name) ?? "User";
@@ -708,5 +709,9 @@
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        window.antiForgeryToken = '@Antiforgery.GetAndStoreTokens(Context).RequestToken';
+    </script>
 </body>
 </html>

@@ -1,0 +1,142 @@
+﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.RentalApplication>
+@{
+    ViewData["Title"] = "Đơn xin thuê của tôi";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-file-contract"></i> Đơn xin thuê của tôi</h2>
+
+        <a asp-controller="RentalApplication" asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Tạo đơn mới
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card text-center py-5">
+            <div class="card-body">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Bạn chưa có đơn xin thuê nào</h4>
+                <p class="text-muted mb-4">Hãy bắt đầu tìm kiếm căn nhà phù hợp với bạn</p>
+
+                <a asp-controller="RentalApplication" asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-file-alt"></i> Tạo đơn xin thuê đầu tiên
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <ul class="nav nav-tabs mb-3" id="statusTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-filter="all">
+                    Tất cả <span class="badge bg-secondary">@Model.Count()</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-filter="Pending">
+                    Chờ xử lý <span class="badge bg-warning text-dark">@Model.Count(a => a.Status == "Pending")</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-filter="Approved">
+                    Đã duyệt <span class="badge bg-success">@Model.Count(a => a.Status == "Approved")</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-filter="Rejected">
+                    Từ chối <span class="badge bg-danger">@Model.Count(a => a.Status == "Rejected")</span>
+                </button>
+            </li>
+        </ul>
+
+        <div class="row" id="applicationsContainer">
+            @foreach (var app in Model.OrderByDescending(a => a.CreatedAt))
+            {
+                <div class="col-md-6 mb-3 application-card" data-status="@app.Status">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">@app.Property?.Name</h5>
+                                @switch (app.Status)
+                                {
+                                    case "Pending":
+                                        <span class="badge bg-warning text-dark">Chờ xử lý</span>
+                                        break;
+                                    case "Approved":
+                                        <span class="badge bg-success">Đã duyệt</span>
+                                        break;
+                                    case "Rejected":
+                                        <span class="badge bg-danger">Từ chối</span>
+                                        break;
+                                    case "Withdrawn":
+                                        <span class="badge bg-secondary">Đã rút</span>
+                                        break;
+                                }
+                            </div>
+
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt"></i> @app.Property?.Address
+                            </p>
+
+                            <div class="row text-center border-top border-bottom py-2 my-2">
+                                <div class="col-4">
+                                    <small class="text-muted d-block">Mã đơn</small>
+                                    <strong class="text-primary">@app.ApplicationNumber</strong>
+                                </div>
+                                <div class="col-4 border-start">
+                                    <small class="text-muted d-block">Ngày gửi</small>
+                                    <strong>@app.CreatedAt.ToString("dd/MM/yyyy")</strong>
+                                </div>
+                                <div class="col-4 border-start">
+                                    <small class="text-muted d-block">Dự kiến vào</small>
+                                    <strong>@app.DesiredMoveInDate.ToString("dd/MM/yyyy")</strong>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3">
+                                <a asp-action="Details" asp-route-id="@app.ApplicationId"
+                                   class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="fas fa-eye"></i> Chi tiết
+                                </a>
+
+                                @if (app.Status == "Pending")
+                                {
+                                    <form asp-action="Withdraw" asp-route-id="@app.ApplicationId"
+                                          method="post" class="d-inline flex-fill"
+                                          onsubmit="return confirm('Bạn có chắc muốn rút đơn này không?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                            <i class="fas fa-times"></i> Rút đơn
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.nav-tabs button').click(function() {
+                $('.nav-tabs button').removeClass('active');
+                $(this).addClass('active');
+
+                var filter = $(this).data('filter');
+
+                if (filter === 'all') {
+                    $('.application-card').fadeIn();
+                } else {
+                    $('.application-card').hide();
+                    $('.application-card[data-status="' + filter + '"]').fadeIn();
+                }
+            });
+        });
+    </script>
+}
