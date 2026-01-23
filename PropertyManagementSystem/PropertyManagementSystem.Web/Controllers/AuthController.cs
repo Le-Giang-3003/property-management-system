@@ -88,6 +88,16 @@ namespace PropertyManagementSystem.Web.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        // ===== LOGOUT & ACCESS DENIED =====
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
+            return RedirectToAction("Login");
+        }
+
         // ===== FORGOT PASSWORD =====
         [HttpGet]
         public IActionResult ForgotPassword()
@@ -215,6 +225,14 @@ namespace PropertyManagementSystem.Web.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             TempData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+            return RedirectToAction("Login");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
             return RedirectToAction("Login");
         }
 
