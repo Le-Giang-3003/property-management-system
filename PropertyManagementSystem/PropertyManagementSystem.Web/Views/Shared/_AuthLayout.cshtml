@@ -1,5 +1,5 @@
 @using System.Security.Claims
-﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var title = ViewData["Title"] as string ?? "Property Management";
     var userName = User.FindFirstValue(ClaimTypes.Name) ?? "User";

@@ -1,4 +1,4 @@
-@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
+﻿@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
 @{
     ViewData["Title"] = "Maintenance Requests - Technician";
     Layout = "_AuthLayout";
@@ -600,14 +600,16 @@
                     @if (request.EstimatedCost.HasValue)
                     {
                         <div class="estimated-cost">
-                            <strong>Estimated Cost:</strong> $@request.EstimatedCost.Value.ToString("N2")
+                            <strong>Estimated Cost:</strong> $@request.EstimatedCost.Value.ToString("N2") 
+                            <br />
+                            <strong>Ghi chú của thợ:</strong> cho tôi xin thêm tiền uống cf
                         </div>
                     }
                     <div class="request-actions">
                         <a href="@Url.Action("Details", "Maintenance", new { id = request.RequestId })" class="btn-action btn-view">
                             <i class="bi bi-eye"></i> View Details
                         </a>
-                        @if (request.Status == "Assigned" && string.IsNullOrEmpty(request.TechnicianStatus))
+                        @if (request.Status == "InProgress" && request.TechnicianStatus == "Pending")
                         {
                             <button class="btn-action btn-accept" onclick="openAcceptModal(@request.RequestId)">
                                 <i class="bi bi-check-circle"></i> Accept
