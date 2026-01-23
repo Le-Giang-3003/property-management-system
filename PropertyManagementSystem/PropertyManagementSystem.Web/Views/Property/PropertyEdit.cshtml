@@ -10,6 +10,7 @@
         new() { Value = "Maintenance", Text = "Bảo trì" },
         new() { Value = "Unavailable", Text = "Không khả dụng" }
     };
+    var documents = ViewBag.Documents as IEnumerable<PropertyManagementSystem.DAL.Entities.Document> ?? new List<PropertyManagementSystem.DAL.Entities.Document>();
     Layout = "_AuthLayout";
 }
 
@@ -26,6 +27,99 @@
         <div>
             <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-primary">Xem chi tiết</a>
             <a asp-action="Index" class="btn btn-secondary">Danh sách</a>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
+        </div>
+    }
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            @TempData["Warning"]
+            <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
+        </div>
+    }
+
+    <!-- Images Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-images"></i> Hình ảnh BDS
+                    @if (documents.Any())
+                    {
+                        <span class="badge badge-info">@documents.Count()</span>
+                    }
+                </h5>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="fas fa-cloud-upload"></i> Upload hình ảnh
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            @if (documents.Any())
+            {
+                <div class="row">
+                    @foreach (var doc in documents.OrderByDescending(d => d.UploadedAt))
+                    {
+                        <div class="col-md-2 col-sm-3 col-4 mb-3">
+                            <div class="card h-100 shadow-sm">
+                                @if (doc.FileType.ToLower() is "jpg" or "jpeg" or "png" or "webp")
+                                {
+                                    <img src="@doc.FileUrl" class="card-img-top" alt="@doc.FileName"
+                                         style="height: 150px; object-fit: cover; cursor: pointer;"
+                                         onclick="showImage('@doc.FileUrl', '@doc.FileName')">
+                                }
+                                else
+                                {
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                         style="height: 150px;">
+                                        <i class="fas fa-file fa-3x text-muted"></i>
+                                    </div>
+                                }
+                                <div class="card-body p-2">
+                                    <small class="text-muted d-block text-truncate" title="@doc.FileName">
+                                        @doc.FileName
+                                    </small>
+                                    <div class="btn-group btn-group-sm w-100 mt-1">
+                                        <a href="@Url.Action("Download", "Document", new { id = doc.DocumentId })"
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                                onclick="deleteImage(@doc.DocumentId, '@doc.FileName')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-images" style="font-size: 3rem;"></i>
+                    <p class="mt-2">Chưa có hình ảnh nào</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                        <i class="fas fa-cloud-upload"></i> Upload hình ảnh
+                    </button>
+                </div>
+            }
         </div>
     </div>
 
@@ -79,14 +173,14 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group">
-                    <label asp-for="City">Quận/Huyện</label>
+                    <label asp-for="City">Thành Phố</label>
                     <input asp-for="City" class="form-control" />
                     <span asp-validation-for="City" class="text-danger"></span>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label asp-for="District">Phường/Xã</label>
+                    <label asp-for="District">Quận</label>
                     <input asp-for="District" class="form-control" />
                     <span asp-validation-for="District" class="text-danger"></span>
                 </div>
@@ -162,14 +256,14 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label asp-for="RentAmount">Giá thuê/tháng (₫)</label>
-                    <input asp-for="RentAmount" type="number" step="100000" min="0" class="form-control" />
+                    <input asp-for="RentAmount" type="number" min="0" class="form-control" />
                     <span asp-validation-for="RentAmount" class="text-danger"></span>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="form-group">
                     <label asp-for="DepositAmount">Tiền cọc (₫)</label>
-                    <input asp-for="DepositAmount" type="number" step="100000" min="0" class="form-control" />
+                    <input asp-for="DepositAmount" type="number" min="0" class="form-control" />
                     <span asp-validation-for="DepositAmount" class="text-danger"></span>
                 </div>
             </div>
@@ -179,15 +273,14 @@
         <h3>Mô tả & Tiện ích</h3>
         <div class="form-group">
             <label asp-for="Description">Mô tả chi tiết</label>
-            <textarea asp-for="Description" rows="5" class="form-control" placeholder="Mô tả chi tiết..."></textarea>
+            <textarea asp-for="Description" rows="5" class="form-control"></textarea>
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
         <div class="row">
             <div class="col-lg-6">
                 <div class="form-group">
                     <label asp-for="Amenities">Tiện ích</label>
-                    <textarea asp-for="Amenities" rows="3" class="form-control"
-                              placeholder="VD: Hồ bơi, Gym, Parking"></textarea>
+                    <textarea asp-for="Amenities" rows="3" class="form-control"></textarea>
                     <small class="form-text text-muted">Phân cách bằng dấu phẩy</small>
                     <span asp-validation-for="Amenities" class="text-danger"></span>
                 </div>
@@ -195,8 +288,7 @@
             <div class="col-lg-6">
                 <div class="form-group">
                     <label asp-for="UtilitiesIncluded">Tiện ích đi kèm</label>
-                    <textarea asp-for="UtilitiesIncluded" rows="3" class="form-control"
-                              placeholder="VD: Điện, Nước, Internet"></textarea>
+                    <textarea asp-for="UtilitiesIncluded" rows="3" class="form-control"></textarea>
                     <small class="form-text text-muted">Phân cách bằng dấu phẩy</small>
                     <span asp-validation-for="UtilitiesIncluded" class="text-danger"></span>
                 </div>
@@ -231,16 +323,164 @@
     </form>
 </div>
 
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cloud-upload"></i> Upload hình ảnh
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="entityType" value="Property" />
+                <input type="hidden" name="entityId" value="@Model.PropertyId" />
+                <input type="hidden" name="documentType" value="Image" />
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Chọn hình ảnh <span class="text-danger">*</span></label>
+                        <input type="file" name="file" id="fileInput" class="form-control-file"
+                               accept="image/*" required />
+                        <small class="form-text text-muted">JPG, PNG, WEBP. Tối đa 5MB.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả (không bắt buộc)</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div id="imagePreview"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageTitle"></h5>
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="imageView" src="" class="img-fluid" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Auto-hide alerts
+        setTimeout(() => $('.alert').fadeOut('slow'), 5000);
+
+        // Upload
+                document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang upload...';
+
+            try {
+                const formData = new FormData(this);
+
+                const response = await fetch('@Url.Action("Upload", "Document")', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'  // ✅ Thêm header để controller biết đây là AJAX
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();  // ✅ Parse JSON response
+
+                if (result.success) {  
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: result.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    location.reload();
+                } else {
+                    throw new Error(result.message);  
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: error.message || 'Có lỗi xảy ra khi upload file'
+                });
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-upload"></i> Upload';
+            }
+        });
+
+        // Preview
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+
+            if (this.files[0] && this.files[0].type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.innerHTML = `<img src="${e.target.result}" class="img-thumbnail mt-2" style="max-height: 200px;">`;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Show image
+        function showImage(url, filename) {
+            document.getElementById('imageTitle').textContent = filename;
+            document.getElementById('imageView').src = url;
+            $('#imageModal').modal('show');
+        }
+
+        // Delete
+        function deleteImage(id, filename) {
+            Swal.fire({
+                title: 'Xóa hình ảnh?',
+                text: `Xóa "${filename}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('deleteForm');
+                    form.action = '@Url.Action("Delete", "Document")/' + id + '?returnUrl=' + encodeURIComponent(window.location.pathname);
+                    form.submit();
+                }
+            });
+        }
+
+        // Money input
         ['RentAmount', 'DepositAmount'].forEach(id => {
             const input = document.getElementById(id);
-            if (input) {
-                input.addEventListener('input', function() {
-                    this.value = this.value.replace(/[^0-9.]/g, '');
-                });
-            }
+            if (input) input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
         });
     </script>
 }

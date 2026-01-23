@@ -1,4 +1,5 @@
-﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
+﻿@using System.Security.Claims
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
 
 @{
     ViewData["Title"] = "Quản lý bất động sản";
@@ -10,13 +11,21 @@
     var propertyTypes = ViewBag.PropertyTypes as List<SelectListItem> ?? new();
     var hasFilters = !string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(propertyType) || minRent.HasValue || maxRent.HasValue;
     var favoritePropertyIds = ViewBag.FavoritePropertyIds as HashSet<int> ?? new HashSet<int>();
+
+    // Lấy UserId của user đang đăng nhập
+    var currentUserId = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        Console.WriteLine($"Current UserId: {currentUserId}");
+    }
 }
 
 <div class="container mt-4">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1>Quản lý Bất động sản</h1>
+            <h1>Danh sách Bất động sản</h1>
             <p class="text-muted">
                 @if (Model.Any())
                 {
@@ -41,8 +50,10 @@
                 <a asp-action="MyFavorites" class="btn btn-outline-danger mr-2">
                     <i class="fas fa-heart"></i> Yêu thích của tôi
                 </a>
+                <a asp-action="Create" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Đăng tin cho thuê
+                </a>
             }
-            <a asp-action="Create" class="btn btn-success">Tạo BDS mới</a>
         </div>
     </div>
 
@@ -193,21 +204,31 @@
                                 <th>Giá thuê</th>
                                 <th>Trạng thái</th>
                                 <th>Chủ nhà</th>
-                                <th>Thao tác</th>
+                                <th style="width: 180px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model)
                             {
+                                // ✅ Kiểm tra quyền sở hữu
+                                var isOwner = (item.LandlordId == currentUserId) || User.IsInRole("Admin");
+
                                 <tr>
                                     <td class="text-center">
-                                        <button type="button"
-                                                class="btn btn-link p-0 favorite-btn"
-                                                data-property-id="@item.PropertyId"
-                                                title="@(favoritePropertyIds.Contains(item.PropertyId) ? "Bỏ yêu thích" : "Thêm yêu thích")">
-                                            <i class="@(favoritePropertyIds.Contains(item.PropertyId) ? "fas fa-heart text-danger" : "far fa-heart text-muted")"
-                                               style="font-size: 1.3rem;"></i>
-                                        </button>
+                                        @if (User.Identity?.IsAuthenticated == true)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-link p-0 favorite-btn"
+                                                    data-property-id="@item.PropertyId"
+                                                    title="@(favoritePropertyIds.Contains(item.PropertyId) ? "Bỏ yêu thích" : "Thêm yêu thích")">
+                                                <i class="@(favoritePropertyIds.Contains(item.PropertyId) ? "fas fa-heart text-danger" : "far fa-heart text-muted")"
+                                                   style="font-size: 1.3rem;"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-heart text-muted" style="font-size: 1.3rem;" title="Đăng nhập để yêu thích"></i>
+                                        }
                                     </td>
                                     <td>
                                         <a asp-action="Details" asp-route-id="@item.PropertyId">
@@ -258,14 +279,45 @@
                                             <small class="text-muted">@item.Landlord.Email</small>
                                         }
                                     </td>
+
                                     <td>
-                                        <div class="btn-group btn-group-sm">
+                                        <div class="btn-group-vertical btn-group-sm w-100">
+                                            <!-- Chi tiết - luôn hiện -->
                                             <a asp-action="Details" asp-route-id="@item.PropertyId"
-                                               class="btn btn-outline-primary" title="Chi tiết">Chi tiết</a>
-                                            <a asp-action="Edit" asp-route-id="@item.PropertyId"
-                                               class="btn btn-outline-warning" title="Sửa">Sửa</a>
-                                            <a asp-action="Delete" asp-route-id="@item.PropertyId"
-                                               class="btn btn-outline-danger" title="Xóa">Xóa</a>
+                                               class="btn btn-outline-primary mb-1">
+                                                <i class="fas fa-eye"></i> Chi tiết
+                                            </a>
+
+                                            @if (isOwner)
+                                            {
+                                                <!-- Chủ nhà/Admin: Hiện Update & Delete -->
+                                                <a asp-action="Edit" asp-route-id="@item.PropertyId"
+                                                   class="btn btn-outline-warning mb-1">
+                                                    <i class="fas fa-edit"></i> Chỉnh sửa
+                                                </a>
+                                                <a asp-action="Delete" asp-route-id="@item.PropertyId"
+                                                   class="btn btn-outline-danger">
+                                                    <i class="fas fa-trash"></i> Xóa
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <!-- Người khác: Hiện nút Thuê ngay -->
+                                                @if (item.Status == "Available")
+                                                {
+                                                    <button type="button"
+                                                            class="btn btn-success rent-now-btn"
+                                                            data-property-id="@item.PropertyId">
+                                                        <i class="fas fa-handshake"></i> Thuê ngay
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="btn btn-secondary" disabled>
+                                                        <i class="fas fa-ban"></i> Không khả dụng
+                                                    </button>
+                                                }
+                                            }
                                         </div>
                                     </td>
                                 </tr>
@@ -293,9 +345,12 @@
                             <span>Thử điều chỉnh bộ lọc hoặc </span>
                         }
                         Bắt đầu bằng cách
-                        <a asp-action="Create">tạo BDS đầu tiên</a>.
+                        <a asp-action="Create">đăng tin cho thuê</a>.
                     </p>
-                    <a asp-action="Create" class="btn btn-success">Tạo BDS mới</a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-action="Create" class="btn btn-success">Đăng tin cho thuê</a>
+                    }
                 </div>
             }
         </div>
@@ -303,47 +358,36 @@
 </div>
 
 @Html.AntiForgeryToken()
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
-            // Auto-hide alerts after 5 seconds
+            // Auto-hide alerts
             setTimeout(() => {
                 $('.alert').fadeOut('slow', function() {
                     $(this).remove();
                 });
             }, 5000);
 
-            // Toggle favorite functionality
+            // Toggle favorite
             $('.favorite-btn').on('click', function(e) {
                 e.preventDefault();
-
                 var btn = $(this);
                 var propertyId = btn.data('property-id');
                 var icon = btn.find('i');
-
-                // Disable button
                 btn.prop('disabled', true);
-
-                // Get token
-                var token = $('input[name="__RequestVerificationToken"]').val();
-
-                console.log('PropertyId:', propertyId);
-                console.log('Token:', token);
 
                 $.ajax({
                     url: '@Url.Action("ToggleFavorite", "Property")',
                     type: 'POST',
                     data: {
                         propertyId: propertyId,
-                        __RequestVerificationToken: token
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                     },
                     success: function(response) {
                         btn.prop('disabled', false);
-                        console.log('Response:', response);
-
                         if (response.success) {
-                            // Toggle icon
                             if (response.isFavorited) {
                                 icon.removeClass('far text-muted').addClass('fas text-danger');
                                 btn.attr('title', 'Bỏ yêu thích');
@@ -351,8 +395,6 @@
                                 icon.removeClass('fas text-danger').addClass('far text-muted');
                                 btn.attr('title', 'Thêm yêu thích');
                             }
-
-                            // Show toast
                             Swal.fire({
                                 toast: true,
                                 position: 'top-end',
@@ -363,27 +405,26 @@
                                 timerProgressBar: true
                             });
                         } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Lỗi',
-                                text: response.message || 'Có lỗi xảy ra',
-                                confirmButtonText: 'OK'
-                            });
+                            Swal.fire('Lỗi', response.message, 'error');
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function() {
                         btn.prop('disabled', false);
-                        console.error('AJAX Error:', error);
-                        console.error('Status:', status);
-                        console.error('Response:', xhr.responseText);
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Lỗi',
-                            text: 'Có lỗi xảy ra khi xử lý yêu thích: ' + error,
-                            confirmButtonText: 'OK'
-                        });
+                        Swal.fire('Lỗi', 'Có lỗi xảy ra khi xử lý yêu thích', 'error');
                     }
+                });
+            });
+
+            // ✅ Nút "Thuê ngay" - chỉ alert, logic sẽ làm sau
+            $('.rent-now-btn').on('click', function() {
+                var propertyId = $(this).data('property-id');
+
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Thuê ngay',
+                    text: 'Chức năng thuê BDS đang được phát triển',
+                    footer: `Property ID: ${propertyId}`,
+                    confirmButtonText: 'OK'
                 });
             });
         });

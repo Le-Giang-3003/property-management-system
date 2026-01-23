@@ -9,41 +9,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@title</title>
 
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <!-- Bootstrap 4.6.2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
     @await RenderSectionAsync("Styles", required: false)
-    
 </head>
 <body class="auth-body">
     @RenderBody()
 
+    <!-- jQuery PHẢI load trước Bootstrap -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+
+    <!-- Bootstrap 4.6.2 JS Bundle (bao gồm Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
+
     <script>
-        /
         window.antiForgeryToken = '@Antiforgery.GetAndStoreTokens(Context).RequestToken';
     </script>
-    <li class="nav-item">
-        <a class="nav-link" asp-controller="Document" asp-action="MyDocuments">
-            <i class="bi bi-folder2-open"></i> Tài liệu của tôi
-        </a>
-    </li>
-    @if (User.IsInRole("Admin"))
-    {
-        <li class="nav-item">
-            <a class="nav-link" asp-controller="Document" asp-action="DeletedDocuments">
-                <i class="bi bi-trash"></i> Thùng rác
-            </a>
-        </li>
-    }
 </body>
 </html>
-

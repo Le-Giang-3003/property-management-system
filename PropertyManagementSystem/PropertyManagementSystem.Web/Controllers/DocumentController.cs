@@ -33,17 +33,23 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upload(
-            IFormFile file,
-            string documentType,
-            string entityType,
-            int entityId,
-            string? description,
-            string? returnUrl)
+    IFormFile file,
+    string documentType,
+    string entityType,
+    int entityId,
+    string? description,
+    string? returnUrl)
         {
             try
             {
+                bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                              Request.ContentType?.Contains("multipart/form-data") == true;
+
                 if (file == null || file.Length == 0)
                 {
+                    if (isAjax)
+                        return Json(new { success = false, message = "Vui lòng chọn file" });
+
                     TempData["Error"] = "❌ Vui lòng chọn file";
                     return RedirectToAction(nameof(Upload), new { entityType, entityId });
                 }
@@ -51,9 +57,11 @@ namespace PropertyManagementSystem.Web.Controllers
                 var userId = GetCurrentUserId();
                 var isAdmin = User.IsInRole("Admin");
 
-                // Validate file type
                 if (!_documentService.IsValidFileType(file.FileName, documentType, isAdmin))
                 {
+                    if (isAjax)
+                        return Json(new { success = false, message = $"Loại file không được phép cho {documentType}" });
+
                     TempData["Error"] = $"❌ Loại file không được phép cho {documentType}";
                     return RedirectToAction(nameof(Upload), new { entityType, entityId });
                 }
@@ -61,15 +69,16 @@ namespace PropertyManagementSystem.Web.Controllers
                 var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 var fileType = _documentService.GetFileType(extension);
 
-                // Validate file size
                 if (!_documentService.ValidateFileSize(file.Length, fileType))
                 {
                     var maxSize = GetMaxSizeForFileType(fileType);
+                    if (isAjax)
+                        return Json(new { success = false, message = $"File vượt quá dung lượng cho phép ({maxSize})" });
+
                     TempData["Error"] = $"❌ File vượt quá dung lượng cho phép ({maxSize})";
                     return RedirectToAction(nameof(Upload), new { entityType, entityId });
                 }
 
-                // Convert IFormFile to DTO
                 var fileDto = new FileUploadDto
                 {
                     FileStream = file.OpenReadStream(),
@@ -78,12 +87,18 @@ namespace PropertyManagementSystem.Web.Controllers
                     ContentType = file.ContentType
                 };
 
-                // Upload document
                 var document = await _documentService.UploadDocumentAsync(
                     fileDto, documentType, entityType, entityId, userId, description);
 
                 if (document != null)
                 {
+                    if (isAjax)
+                        return Json(new
+                        {
+                            success = true,
+                            message = $"Upload '{file.FileName}' thành công! ({FormatFileSize(file.Length)})"
+                        });
+
                     TempData["Success"] = $"✅ Upload '{file.FileName}' thành công! ({FormatFileSize(file.Length)})";
 
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -92,17 +107,30 @@ namespace PropertyManagementSystem.Web.Controllers
                     return RedirectToAction(nameof(ListByEntity), new { entityType, entityId });
                 }
 
+                if (isAjax)
+                    return Json(new { success = false, message = "Không thể upload file" });
+
                 TempData["Error"] = "❌ Không thể upload file";
                 return RedirectToAction(nameof(Upload), new { entityType, entityId });
             }
             catch (ArgumentException ex)
             {
+                bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
+                if (isAjax)
+                    return Json(new { success = false, message = ex.Message });
+
                 TempData["Error"] = "❌ " + ex.Message;
                 return RedirectToAction(nameof(Upload), new { entityType, entityId });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error uploading document");
+                bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
+                if (isAjax)
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi upload file" });
+
                 TempData["Error"] = "❌ Có lỗi xảy ra khi upload file";
                 return RedirectToAction(nameof(Upload), new { entityType, entityId });
             }
@@ -168,6 +196,11 @@ namespace PropertyManagementSystem.Web.Controllers
                 else
                 {
                     TempData["Error"] = "❌ Không thể xóa tài liệu";
+                }
+
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
                 }
 
                 return RedirectToUrl(returnUrl, nameof(MyDocuments));

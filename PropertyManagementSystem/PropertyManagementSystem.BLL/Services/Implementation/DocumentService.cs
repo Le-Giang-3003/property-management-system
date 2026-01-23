@@ -8,7 +8,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 {
     public class DocumentService : IDocumentService
     {
-        private readonly IDocumentRepository _documentRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly string _uploadBasePath;
 
         // Allowed extensions by document type
@@ -33,10 +33,10 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         private const long MaxDocumentSize = 10 * 1024 * 1024; // 10MB
         private const long MaxArchiveSize = 20 * 1024 * 1024; // 20MB
 
-        public DocumentService(IDocumentRepository documentRepository, IConfiguration configuration)
+        public DocumentService(IUnitOfWork unitOfWork, IConfiguration configuration)
         {
-            _documentRepository = documentRepository;
-            
+            _unitOfWork = unitOfWork;
+
             _uploadBasePath = configuration["FileStorage:UploadPath"] ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
         }
 
@@ -44,7 +44,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 
         public async Task<bool> DeleteDocumentAsync(int documentId, int userId, bool isAdmin)
         {
-            var document = await _documentRepository.GetDocumentByIdAsync(documentId);
+            var document = await _unitOfWork.Documents.GetDocumentByIdAsync(documentId);
             if (document == null || document.IsDeleted)
                 return false;
 
@@ -53,12 +53,12 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 throw new UnauthorizedAccessException("You don't have permission to delete this document");
 
             // Soft delete
-            return await _documentRepository.SoftDeleteAsync(documentId, userId);
+            return await _unitOfWork.Documents.SoftDeleteAsync(documentId, userId);
         }
 
         public async Task<bool> PermanentDeleteAsync(int documentId, int userId, bool isAdmin)
         {
-            var document = await _documentRepository.GetDocumentByIdAsync(documentId);
+            var document = await _unitOfWork.Documents.GetDocumentByIdAsync(documentId);
             if (document == null)
                 return false;
 
@@ -81,13 +81,13 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             }
 
             // Delete from database
-            await _documentRepository.DeleteByIdAsync(document.DocumentId);
+            await _unitOfWork.Documents.DeleteByIdAsync(document.DocumentId);
             return true;
         }
 
         public async Task<bool> RestoreDocumentAsync(int documentId)
         {
-            return await _documentRepository.RestoreDocumentAsync(documentId);
+            return await _unitOfWork.Documents.RestoreDocumentAsync(documentId);
         }
 
         #endregion
@@ -96,7 +96,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 
         public async Task<(byte[] fileBytes, string contentType, string fileName)?> DownloadDocumentAsync(int documentId)
         {
-            var document = await _documentRepository.GetDocumentByIdAsync(documentId);
+            var document = await _unitOfWork.Documents.GetDocumentByIdAsync(documentId);
             if (document == null || document.IsDeleted)
                 return null;
 
@@ -132,27 +132,27 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         #region Query
         public async Task<IEnumerable<Document>> GetDeletedDocumentsAsync()
         {
-            return await _documentRepository.GetDeletedDocumentsAsync();
+            return await _unitOfWork.Documents.GetDeletedDocumentsAsync();
         }
 
         public async Task<Document?> GetDocumentByIdAsync(int documentId)
         {
-            return await _documentRepository.GetDocumentByIdAsync(documentId);
+            return await _unitOfWork.Documents.GetDocumentByIdAsync(documentId);
         }
 
         public async Task<IEnumerable<Document>> GetDocumentsByEntityAsync(string entityType, int entityId)
         {
-            return await _documentRepository.GetDocumentsByEntityAsync(entityType, entityId);
+            return await _unitOfWork.Documents.GetDocumentsByEntityAsync(entityType, entityId);
         }
 
         public async Task<IEnumerable<Document>> GetDocumentsByTypeAsync(string documentType)
         {
-            return await _documentRepository.GetDocumentsByTypeAsync(documentType);
+            return await _unitOfWork.Documents.GetDocumentsByTypeAsync(documentType);
         }
 
         public async Task<IEnumerable<Document>> GetDocumentsByUserAsync(int userId)
         {
-            return await _documentRepository.GetDocumentsByUserAsync(userId);
+            return await _unitOfWork.Documents.GetDocumentsByUserAsync(userId);
         }
 
         #endregion
@@ -266,7 +266,8 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 IsDeleted = false
             };
 
-            await _documentRepository.AddAsync(document);
+            await _unitOfWork.Documents.AddAsync(document);
+            await _unitOfWork.SaveChangesAsync();
             return document;
         }
 
