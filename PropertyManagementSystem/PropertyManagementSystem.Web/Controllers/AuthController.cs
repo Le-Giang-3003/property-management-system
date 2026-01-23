@@ -31,17 +31,6 @@ namespace PropertyManagementSystem.Web.Controllers
             return View();
         }
 
-        [HttpGet]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            HttpContext.Session.Clear();
-            TempData["SuccessMessage"] = "Đăng xuất thành công!";
-            return RedirectToAction("Login", "Auth");
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginRequestDto model, string? returnUrl = null)
@@ -242,23 +231,7 @@ namespace PropertyManagementSystem.Web.Controllers
             TempData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
             return RedirectToAction("Login");
         }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
-            return RedirectToAction("Login");
-        }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
-            return RedirectToAction("Login");
-        }
 
         public IActionResult AccessDenied() => View();
     }
