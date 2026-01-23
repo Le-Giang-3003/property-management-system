@@ -34,16 +34,6 @@
 
             <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
-            <div class="mb-3">
-                <div class="fw-semibold small mb-2 text-uppercase auth-muted">Login as</div>
-                <div class="role-grid" id="roleGrid" aria-label="Login role selector">
-                    <button type="button" class="role-btn" data-role="Tenant">Tenant</button>
-                    <button type="button" class="role-btn" data-role="Landlord">Landlord</button>
-                    <button type="button" class="role-btn" data-role="Technician">Technician</button>
-                    <button type="button" class="role-btn is-active" data-role="Admin">Admin</button>
-                </div>
-            </div>
-
             <form asp-action="Login" method="post" class="mt-3">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
@@ -66,17 +56,10 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
                         <input asp-for="Password"
-                               id="passwordInput"
                                type="password"
-                               class="form-control form-control-lg shadow-sm password-input"
+                               class="form-control form-control-lg shadow-sm"
                                placeholder="Enter your password"
                                autocomplete="current-password" />
-                        <button class="btn password-toggle-btn"
-                                type="button"
-                                id="togglePassword"
-                                aria-label="Hiện/ẩn mật khẩu">
-                            <i class="bi bi-eye-fill" id="passwordIcon"></i>
-                        </button>
                     </div>
                     <span asp-validation-for="Password" class="text-danger small d-block mt-1"></span>
                 </div>
@@ -86,7 +69,7 @@
                         <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
                         <label asp-for="RememberMe" class="form-check-label small auth-muted">Remember me</label>
                     </div>
-                    <a asp-controller="Auth" asp-action="ForgotPassword" class="auth-link small">Forgot password?</a>
+                    <a href="#" class="auth-link small">Forgot password?</a>
                 </div>
 
 
@@ -105,41 +88,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
-    <script>
-        // UI-only role selector (not submitted; just matches the mock)
-        (function() {
-            const grid = document.getElementById('roleGrid');
-            if (!grid) return;
-
-            grid.addEventListener('click', function(e) {
-                const btn = e.target.closest('button[data-role]');
-                if (!btn) return;
-                grid.querySelectorAll('button[data-role]').forEach(b => b.classList.remove('is-active'));
-                btn.classList.add('is-active');
-            });
-        })();
-
-        // Toggle show/hide password
-        (function() {
-            const btn = document.getElementById('togglePassword');
-            const input = document.getElementById('passwordInput');
-            const icon = document.getElementById('passwordIcon');
-            if (!btn || !input || !icon) return;
-
-            btn.addEventListener('click', function() {
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.classList.remove('bi-eye-fill');
-                    icon.classList.add('bi-eye-slash-fill');
-                    btn.setAttribute('aria-label', 'Ẩn mật khẩu');
-                } else {
-                    input.type = 'password';
-                    icon.classList.remove('bi-eye-slash-fill');
-                    icon.classList.add('bi-eye-fill');
-                    btn.setAttribute('aria-label', 'Hiện mật khẩu');
-                }
-            });
-        })();
-    </script>
 }

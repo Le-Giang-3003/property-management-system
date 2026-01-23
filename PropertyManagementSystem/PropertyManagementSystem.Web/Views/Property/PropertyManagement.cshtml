@@ -9,6 +9,7 @@
     var maxRent = ViewBag.MaxRent as decimal?;
     var propertyTypes = ViewBag.PropertyTypes as List<SelectListItem> ?? new();
     var hasFilters = !string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(propertyType) || minRent.HasValue || maxRent.HasValue;
+    var favoritePropertyIds = ViewBag.FavoritePropertyIds as HashSet<int> ?? new HashSet<int>();
 }
 
 <div class="container mt-4">
@@ -34,7 +35,15 @@
                 }
             </p>
         </div>
-        <a asp-action="Create" class="btn btn-success">Tạo BDS mới</a>
+        <div>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-action="MyFavorites" class="btn btn-outline-danger mr-2">
+                    <i class="fas fa-heart"></i> Yêu thích của tôi
+                </a>
+            }
+            <a asp-action="Create" class="btn btn-success">Tạo BDS mới</a>
+        </div>
     </div>
 
     <!-- Notifications -->
@@ -175,6 +184,7 @@
                     <table class="table table-striped table-hover mb-0">
                         <thead>
                             <tr>
+                                <th style="width: 60px;">Yêu thích</th>
                                 <th>Tên BDS</th>
                                 <th>Địa chỉ</th>
                                 <th>Loại</th>
@@ -190,6 +200,15 @@
                             @foreach (var item in Model)
                             {
                                 <tr>
+                                    <td class="text-center">
+                                        <button type="button"
+                                                class="btn btn-link p-0 favorite-btn"
+                                                data-property-id="@item.PropertyId"
+                                                title="@(favoritePropertyIds.Contains(item.PropertyId) ? "Bỏ yêu thích" : "Thêm yêu thích")">
+                                            <i class="@(favoritePropertyIds.Contains(item.PropertyId) ? "fas fa-heart text-danger" : "far fa-heart text-muted")"
+                                               style="font-size: 1.3rem;"></i>
+                                        </button>
+                                    </td>
                                     <td>
                                         <a asp-action="Details" asp-route-id="@item.PropertyId">
                                             <strong>@item.Name</strong>
@@ -283,14 +302,91 @@
     </div>
 </div>
 
+@Html.AntiForgeryToken()
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Auto-hide alerts after 5 seconds
-        setTimeout(() => {
-            document.querySelectorAll('.alert').forEach(alert => {
-                $(alert).alert('close');
+        $(document).ready(function() {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(() => {
+                $('.alert').fadeOut('slow', function() {
+                    $(this).remove();
+                });
+            }, 5000);
+
+            // Toggle favorite functionality
+            $('.favorite-btn').on('click', function(e) {
+                e.preventDefault();
+
+                var btn = $(this);
+                var propertyId = btn.data('property-id');
+                var icon = btn.find('i');
+
+                // Disable button
+                btn.prop('disabled', true);
+
+                // Get token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                console.log('PropertyId:', propertyId);
+                console.log('Token:', token);
+
+                $.ajax({
+                    url: '@Url.Action("ToggleFavorite", "Property")',
+                    type: 'POST',
+                    data: {
+                        propertyId: propertyId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function(response) {
+                        btn.prop('disabled', false);
+                        console.log('Response:', response);
+
+                        if (response.success) {
+                            // Toggle icon
+                            if (response.isFavorited) {
+                                icon.removeClass('far text-muted').addClass('fas text-danger');
+                                btn.attr('title', 'Bỏ yêu thích');
+                            } else {
+                                icon.removeClass('fas text-danger').addClass('far text-muted');
+                                btn.attr('title', 'Thêm yêu thích');
+                            }
+
+                            // Show toast
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: response.message,
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: response.message || 'Có lỗi xảy ra',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        btn.prop('disabled', false);
+                        console.error('AJAX Error:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Có lỗi xảy ra khi xử lý yêu thích: ' + error,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
             });
-        }, 5000);
+        });
     </script>
 }
 
