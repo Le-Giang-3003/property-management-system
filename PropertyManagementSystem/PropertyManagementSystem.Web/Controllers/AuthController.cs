@@ -31,6 +31,17 @@ namespace PropertyManagementSystem.Web.Controllers
             return View();
         }
 
+        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            HttpContext.Session.Clear();
+            TempData["SuccessMessage"] = "Đăng xuất thành công!";
+            return RedirectToAction("Login", "Auth");
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginRequestDto model, string? returnUrl = null)
@@ -78,12 +89,16 @@ namespace PropertyManagementSystem.Web.Controllers
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
+            // Redirect based on primary role
             if (result.User.Roles.Contains("Admin"))
                 return RedirectToAction("Index", "Admin");
-            if (result.User.Roles.Contains("Landlord"))
-                return RedirectToAction("Index", "Landlord");
             if (result.User.Roles.Contains("Technician"))
-                return RedirectToAction("Index", "Technician");
+                return RedirectToAction("TechnicianIndex", "Maintenance");
+            if (result.User.Roles.Contains("Member"))
+            {
+                // Member can be both Tenant and Landlord - default to Tenant view
+                return RedirectToAction("TenantIndex", "Maintenance");
+            }
 
             return RedirectToAction("Index", "Home");
         }

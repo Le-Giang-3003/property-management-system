@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(powershell -Command \"\\(Get-Content Login.cshtml -Raw\\) -replace ''_AuthLayout'', ''_LoginLayout'' | Set-Content Login.cshtml\")"
+    ]
+  }
+}
