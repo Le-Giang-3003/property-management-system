@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Auth;
 using PropertyManagementSystem.BLL.Services.Interface;
+using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.Web.ViewModels.Auth;
 using System.Security.Claims;
 
@@ -56,6 +57,8 @@ namespace PropertyManagementSystem.Web.Controllers
             var claimsIdentity = new ClaimsIdentity(
                 claims,
                 CookieAuthenticationDefaults.AuthenticationScheme);
+
+            Console.WriteLine($"LOGIN UserId = {result.User.UserId}");
 
             var authProperties = new AuthenticationProperties
             {
@@ -233,6 +236,14 @@ namespace PropertyManagementSystem.Web.Controllers
             return RedirectToAction("Login");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
+            return RedirectToAction("Login");
+        }
 
         public IActionResult AccessDenied() => View();
     }
