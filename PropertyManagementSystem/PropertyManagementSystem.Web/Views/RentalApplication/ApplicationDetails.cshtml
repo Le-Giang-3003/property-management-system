@@ -1,8 +1,11 @@
 ﻿@model PropertyManagementSystem.DAL.Entities.RentalApplication
 @{
     ViewData["Title"] = "Chi tiết đơn xin thuê";
-    // ✅ BỎ PHÂN QUYỀN - CHỈ CHECK STATUS
-    var canUpdate = Model.Status == "Pending";
+
+    // ✅ VALIDATE: Chỉ cho approve/reject nếu Property thuộc về user này
+    var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+    var isPropertyOwner = Model.Property?.LandlordId == userId;
+    var canUpdate = isPropertyOwner && Model.Status == "Pending";
 }
 
 <div class="container mt-4">
@@ -167,7 +170,7 @@
                         </div>
                     }
 
-                    <!-- ✅ FORM XÉT DUYỆT - CHỈ CHECK STATUS, BỎ PHÂN QUYỀN -->
+                    <!-- ✅ FORM XÉT DUYỆT - CHỈ CHO PROPERTY OWNER -->
                     @if (canUpdate)
                     {
                         <div class="card bg-light mt-4">
@@ -196,12 +199,39 @@
                             </div>
                         </div>
                     }
+                    @* ✅ THÔNG BÁO NẾU KHÔNG PHẢI PROPERTY OWNER *@
+                    else if (!isPropertyOwner && Model.Status == "Pending")
+                    {
+                        <div class="alert alert-warning mt-4">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Lưu ý:</strong> Chỉ chủ nhà của bất động sản này mới có thể xét duyệt đơn.
+                        </div>
+                    }
 
                     <!-- NAVIGATION BUTTONS -->
                     <div class="mt-4 d-flex gap-2">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Danh sách đơn
-                        </a>
+                        @* ✅ NẾU LÀ PROPERTY OWNER → Xem danh sách đơn *@
+                        @if (isPropertyOwner)
+                        {
+                            <a asp-action="ByProperty" asp-route-propertyId="@Model.PropertyId" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Đơn của BĐS này
+                            </a>
+                        }
+                        @* ✅ NẾU LÀ APPLICANT → Về đơn của tôi *@
+                        else if (Model.ApplicantId == userId)
+                        {
+                            <a asp-action="MyApplications" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Đơn của tôi
+                            </a>
+                        }
+                        @* ✅ USER KHÁC → Về danh sách *@
+                        else
+                        {
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Danh sách đơn
+                            </a>
+                        }
+
                         <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-outline-primary">
                             <i class="fas fa-home"></i> Xem BĐS
                         </a>

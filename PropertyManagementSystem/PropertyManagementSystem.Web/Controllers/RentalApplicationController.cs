@@ -27,9 +27,14 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(int? propertyId)
         {
+            // ✅ LẤY USER ID HIỆN TẠI
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
             var availableProperties = await _propertyService.GetAllPropertiesAsync();
+
+            // ✅ FILTER: Bỏ property của chính user + chỉ lấy Available
             var propertyList = availableProperties
-                .Where(p => p.Status == "Available")
+                .Where(p => p.Status == "Available" && p.LandlordId != userId) // ← THÊM FILTER
                 .Select(p => new SelectListItem
                 {
                     Value = p.PropertyId.ToString(),
@@ -50,15 +55,22 @@ namespace PropertyManagementSystem.Web.Controllers
                 NumberOfOccupants = 1
             };
 
+            // ✅ NẾU CÓ PROPERTY ID, VALIDATE KHÔNG PHẢI CỦA MÌNH
             if (propertyId.HasValue && propertyId.Value > 0)
             {
                 var property = await _propertyService.GetPropertyByIdAsync(propertyId.Value);
-                if (property != null && property.Status == "Available")
+
+                // ✅ KIỂM TRA: Property phải Available VÀ không phải của mình
+                if (property != null && property.Status == "Available" && property.LandlordId != userId)
                 {
                     viewModel.PropertyId = propertyId.Value;
                     viewModel.PropertyName = property.Name;
                     viewModel.PropertyAddress = property.Address;
                     viewModel.MonthlyRent = property.RentAmount;
+                }
+                else if (property?.LandlordId == userId)
+                {
+                    TempData["Warning"] = "Bạn không thể gửi đơn xin thuê bất động sản của chính mình";
                 }
             }
 
@@ -174,13 +186,27 @@ namespace PropertyManagementSystem.Web.Controllers
             return View("ApplicationDetails", application); // ✅ ĐÚNG TÊN FILE
         }
 
-        // POST: /RentalApplication/Approve
         [HttpPost]
-        //[Authorize(Roles = "Landlord")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(int id)
         {
+            var application = await _applicationService.GetApplicationByIdAsync(id);
+            if (application == null)
+            {
+                TempData["Error"] = "Không tìm thấy đơn xin thuê";
+                return RedirectToAction("Index");
+            }
+
+            // ✅ VALIDATE: Chỉ Property Owner mới approve được
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var property = await _propertyService.GetPropertyByIdAsync(application.PropertyId);
+
+            if (property == null || property.LandlordId != userId)
+            {
+                TempData["Error"] = "Bạn không có quyền duyệt đơn này";
+                return RedirectToAction("Details", new { id });
+            }
+
             var success = await _applicationService.ApproveApplicationAsync(id, userId);
 
             if (success)
@@ -195,9 +221,7 @@ namespace PropertyManagementSystem.Web.Controllers
             return RedirectToAction("Details", new { id });
         }
 
-        // POST: /RentalApplication/Reject
         [HttpPost]
-        //[Authorize(Roles = "Landlord")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int id, string rejectionReason)
         {
@@ -207,7 +231,23 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction("Details", new { id });
             }
 
+            var application = await _applicationService.GetApplicationByIdAsync(id);
+            if (application == null)
+            {
+                TempData["Error"] = "Không tìm thấy đơn xin thuê";
+                return RedirectToAction("Index");
+            }
+
+            // ✅ VALIDATE: Chỉ Property Owner mới reject được
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var property = await _propertyService.GetPropertyByIdAsync(application.PropertyId);
+
+            if (property == null || property.LandlordId != userId)
+            {
+                TempData["Error"] = "Bạn không có quyền từ chối đơn này";
+                return RedirectToAction("Details", new { id });
+            }
+
             var success = await _applicationService.RejectApplicationAsync(id, rejectionReason, userId);
 
             if (success)
