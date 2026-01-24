@@ -44,11 +44,15 @@ namespace PropertyManagementSystem.Web.Controllers
                 return View(model);
             }
 
+            //userid = ternanid
+            var tenantId = result.User.UserId;
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, result.User!.UserId.ToString()),
                 new Claim(ClaimTypes.Email, result.User.Email),
                 new Claim(ClaimTypes.Name, result.User.FullName),
+                new Claim("TenantId", tenantId.ToString()) //add tenantId claim
             };
             foreach (var role in result.User.Roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));

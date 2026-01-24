@@ -19,10 +19,17 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            int tenantId = 1; // tạm cứng, sau lấy từ user login
+            var tenantClaim = User.FindFirst("TenantId");
+            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
             var invoices = await _invoiceService.GetAvailableInvoicesByTenantAsync(tenantId);
-            return View(invoices);   // => View: Views/Invoice/Index.cshtml
+            return View(invoices);
         }
+
+
 
         [HttpGet]
         public async Task<IActionResult> ExportPdf(int id)

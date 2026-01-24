@@ -128,7 +128,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         public async Task<User?> UpdateUserAsync(User user)
         {
             user.UpdatedAt = DateTime.Now;
-            _context.Users.Update(user);
+            _context.Users.Update(user);    
             await _context.SaveChangesAsync();
             return user;
         }
