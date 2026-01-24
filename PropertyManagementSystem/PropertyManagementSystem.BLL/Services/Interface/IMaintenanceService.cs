@@ -13,7 +13,9 @@ namespace PropertyManagementSystem.BLL.Services.Interface
 
         // Landlord Operations
         Task<List<MaintenanceRequestDto>> GetLandlordRequestsAsync(int landlordId, string status = null);
+        Task<bool> RejectRequestAsync(RejectMaintenanceRequestDto dto, int landlordId);
         Task<bool> AssignTechnicianAsync(AssignTechnicianDto dto, int landlordId);
+        Task<bool> CloseRequestAsync(int requestId, int landlordId);
         Task<bool> ConfirmCompletionAsync(int requestId, int landlordId);
         Task<MaintenanceStatsDto> GetLandlordStatsAsync(int landlordId);
         Task<List<UserDto>> GetAvailableTechniciansAsync();

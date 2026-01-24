@@ -36,7 +36,7 @@ namespace PropertyManagementSystem.DAL.Entities
         public string Location { get; set; }
 
         [Required, MaxLength(20)]
-        public string Status { get; set; } = "Pending"; // Pending, Assigned, InProgress, Completed, Cancelled, OnHold, Closed
+        public string Status { get; set; } = "Pending"; // Pending, InProgress, Completed, Cancelled/Rejected
 
         public DateTime RequestDate { get; set; } = DateTime.UtcNow; // When the request was created
 
@@ -66,7 +66,7 @@ namespace PropertyManagementSystem.DAL.Entities
         public string TenantFeedback { get; set; }
 
         [MaxLength(20)]
-        public string TechnicianStatus { get; set; } // Accepted, Rejected, null (pending)
+        public string TechnicianStatus { get; set; } // "", Accepted, Rejected, Finished
 
         // Navigation
         public Property Property { get; set; }

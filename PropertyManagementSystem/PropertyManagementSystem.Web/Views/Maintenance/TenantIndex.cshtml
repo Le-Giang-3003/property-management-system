@@ -1,4 +1,4 @@
-@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
+﻿@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
 @{
     ViewData["Title"] = "Maintenance Requests";
     Layout = "_AuthLayout";
@@ -548,6 +548,20 @@
         .form-row {
             grid-template-columns: 1fr;
         }
+
+        .estimated-cost {
+            background-color: #fef3c7;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-left: 64px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #92400e;
+        }
+
+            .estimated-cost strong {
+                color: #78350f;
+            }
     }
 </style>
 
@@ -642,11 +656,20 @@
                             <span>Assigned to: <strong>@request.TechnicianName</strong></span>
                         </div>
                     }
+                    @if (request.EstimatedCost.HasValue)
+                    {
+                        <div class="estimated-cost">
+                            <strong>Estimated Cost:</strong> $@request.EstimatedCost.Value.ToString("N2")
+                            <br />
+                            <strong>Ghi chú của thợ:</strong> cho tôi xin thêm tiền uống cf
+                        </div>
+                    }
+                    
                     <div class="request-actions">
                         <a href="@Url.Action("Details", "Maintenance", new { id = request.RequestId })" class="btn-action btn-view">
                             <i class="bi bi-eye"></i> View Details
                         </a>
-                        @if (request.Status == "Pending" || request.Status == "Assigned")
+                        @if ((request.Status == "Pending" || request.Status == "InProgress") && request.TechnicianStatus != "Completed")
                         {
                             <button class="btn-action btn-cancel" onclick="confirmCancel(@request.RequestId)">
                                 <i class="bi bi-x-circle"></i> Cancel

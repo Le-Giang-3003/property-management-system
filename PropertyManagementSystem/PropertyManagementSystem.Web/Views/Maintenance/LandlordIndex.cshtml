@@ -1,4 +1,4 @@
-@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
+﻿@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
 @{
     ViewData["Title"] = "Maintenance Requests - Landlord";
     Layout = "_AuthLayout";
@@ -588,16 +588,33 @@
                             <strong>Phone:</strong> @request.TechnicianPhone
                         </div>
                     }
+                    @if (request.EstimatedCost.HasValue)
+                    {
+                        <div class="estimated-cost">
+                            <strong>Estimated Cost:</strong> $@request.EstimatedCost.Value.ToString("N2")
+                            <br />
+                            <strong>Ghi chú của thợ:</strong> cho tôi xin thêm tiền uống cf
+                        </div>
+                    }
                     <div class="request-actions">
                         <a href="@Url.Action("Details", "Maintenance", new { id = request.RequestId })" class="btn-action btn-view">
                             <i class="bi bi-eye"></i> View Details
                         </a>
-                        @if (request.Status == "Pending")
+                        @if ((request.Status == "Pending" || request.Status == "InProgress") && request.AssignedTo == null )
                         {
                             <button class="btn-action btn-assign" onclick="openAssignModal(@request.RequestId)">
                                 <i class="bi bi-person-plus"></i> Assigned
                             </button>
                         }
+
+                        @if (request.Status == "Pending")
+                        {
+                            <button class="btn btn-danger btn-sm" onclick="openAssignModal(@request.RequestId)">
+                                <i class="bi bi-x-circle"></i> Reject
+                            </button>
+                        }
+
+                        
                         @if (request.Status == "Completed")
                         {
                             <button class="btn-action btn-confirm" onclick="confirmCompletion(@request.RequestId)">

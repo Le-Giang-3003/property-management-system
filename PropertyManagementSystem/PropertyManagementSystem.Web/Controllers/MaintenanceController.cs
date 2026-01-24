@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PropertyManagementSystem.BLL.DTOs.Maintenance;
-using PropertyManagementSystem.BLL.Services.Implementation;
 using PropertyManagementSystem.BLL.Services.Interface;
-using PropertyManagementSystem.DAL;
-using PropertyManagementSystem.DAL.Data;
 using System.Security.Claims;
 
 namespace PropertyManagementSystem.Web.Controllers
@@ -14,14 +10,12 @@ namespace PropertyManagementSystem.Web.Controllers
     public class MaintenanceController : Controller
     {
         private readonly IMaintenanceService _maintenanceService;
-        private readonly AppDbContext _context;
+        private readonly ILeaseService _leaseService;
 
-
-
-        public MaintenanceController(IMaintenanceService maintenanceService, AppDbContext context)
+        public MaintenanceController(IMaintenanceService maintenanceService, ILeaseService leaseService)
         {
             _maintenanceService = maintenanceService;
-            _context = context;
+            _leaseService = leaseService;
         }
 
         private int GetCurrentUserId()
@@ -157,6 +151,39 @@ namespace PropertyManagementSystem.Web.Controllers
             return View(requests);
         }
 
+        // POST: /Maintenance/RejectRequest
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectRequest(RejectMaintenanceRequestDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Invalid rejection data.";
+                return RedirectToAction(nameof(LandlordIndex));
+            }
+
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _maintenanceService.RejectRequestAsync(dto, userId);
+
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "Request rejected successfully!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Unable to reject request.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error rejecting request: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(LandlordIndex));
+        }
+
         // POST: /Maintenance/AssignTechnician
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -185,6 +212,33 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"Error assigning technician: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(LandlordIndex));
+        }
+
+        // POST: /Maintenance/CloseRequest
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseRequest(int requestId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _maintenanceService.CloseRequestAsync(requestId, userId);
+
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "Request closed successfully!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Unable to close request.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error closing request: {ex.Message}";
             }
 
             return RedirectToAction(nameof(LandlordIndex));
@@ -401,18 +455,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
         private async Task<List<PropertySelectDto>> GetUserPropertiesAsync(int userId)
         {
-            var properties = await _context.Leases
-                .Include(l => l.Property)
-                .Where(l => l.TenantId == userId && l.Status == "Active")
-                .Select(l => new PropertySelectDto
-                {
-                    PropertyId = l.PropertyId,
-                    Name = l.Property.Name,
-                    Address = l.Property.Address
-                })
-                .ToListAsync();
-
-            return properties;
+            return await _leaseService.GetTenantActivePropertiesAsync(userId);
         }
 
         #endregion

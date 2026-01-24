@@ -45,7 +45,10 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 TimeFrom = dto.TimeFrom,
                 TimeTo = dto.TimeTo,
                 Status = "Pending",
-                RequestDate = DateTime.UtcNow
+                RequestDate = DateTime.UtcNow,
+                ResolutionNotes = "",
+                TechnicianStatus = "",
+                TenantFeedback = ""
             };
 
             var createdRequest = await _maintenanceRepo.CreateAsync(request);
@@ -61,6 +64,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                         RequestId = createdRequest.RequestId,
                         ImageUrl = imagePath,
                         ImagePath = imagePath,
+                        Caption = "",
                         ImageType = "Before",
                         UploadedBy = tenantId,
                         UploadedAt = DateTime.UtcNow
@@ -78,7 +82,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (request == null || request.RequestedBy != tenantId)
                 return false;
 
-            if (request.Status != "Pending" && request.Status != "Assigned")
+            if (request.Status == "Completed")
                 return false;
 
             return await _maintenanceRepo.CancelRequestAsync(requestId);
@@ -134,13 +138,58 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return MapToDto(requests);
         }
 
+        public async Task<bool> RejectRequestAsync(RejectMaintenanceRequestDto dto, int landlordId)
+        {
+            var request = await _maintenanceRepo.GetByIdAsync(dto.RequestId);
+            if (request == null || request.Property.LandlordId != landlordId)
+                return false;
+
+            if (request.Status != "Pending")
+                return false;
+
+            request.Status = "Rejected";
+            request.ResolutionNotes = dto.Reason;
+            request.ClosedBy = landlordId;
+            request.ClosedDate = DateTime.UtcNow;
+
+            await _maintenanceRepo.UpdateAsync(request);
+
+            // Add comment with rejection reason
+            await AddCommentAsync(dto.RequestId, landlordId, $"Request rejected. Reason: {dto.Reason}");
+
+            return true;
+        }
+
         public async Task<bool> AssignTechnicianAsync(AssignTechnicianDto dto, int landlordId)
         {
             var request = await _maintenanceRepo.GetByIdAsync(dto.RequestId);
             if (request == null || request.Property.LandlordId != landlordId)
                 return false;
 
-            return await _maintenanceRepo.AssignTechnicianAsync(dto.RequestId, dto.TechnicianId);
+            if ((request.Status != "Pending" || request.Status != "InProgress") == false)
+                return false;
+
+            request.AssignedTo = dto.TechnicianId;
+            request.AssignedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            request.Status = "InProgress";
+            request.TechnicianStatus = "Pending";
+
+            await _maintenanceRepo.UpdateAsync(request);
+            return true;
+        }
+
+        public async Task<bool> CloseRequestAsync(int requestId, int landlordId)
+        {
+            var request = await _maintenanceRepo.GetByIdAsync(requestId);
+            if (request == null || request.Property.LandlordId != landlordId)
+                return false;
+
+            request.Status = "Closed";
+            request.ClosedBy = landlordId;
+            request.ClosedDate = DateTime.UtcNow;
+
+            await _maintenanceRepo.UpdateAsync(request);
+            return true;
         }
 
         public async Task<bool> ConfirmCompletionAsync(int requestId, int landlordId)
@@ -215,11 +264,11 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 
             if (dto.Status == "Accepted")
             {
-                request.Status = "InProgress";
+                request.TechnicianStatus = "Accepted";
             }
             else if (dto.Status == "Rejected")
             {
-                request.Status = "Pending";
+                request.TechnicianStatus = "Rejected";
                 request.AssignedTo = null;
                 request.AssignedDate = null;
             }

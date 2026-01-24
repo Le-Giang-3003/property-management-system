@@ -175,7 +175,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             request.ActualCost = actualCost;
             request.ResolutionNotes = resolutionNotes;
             request.CompletedDate = DateTime.UtcNow;
-            request.Status = "Completed";
+            request.TechnicianStatus = "Completed";
 
             await _context.SaveChangesAsync();
             return true;
@@ -198,7 +198,16 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             var request = await _context.MaintenanceRequests.FindAsync(requestId);
             if (request == null) return false;
 
-            request.Status = "Cancelled";
+            if(request.AssignedTo != null)
+            {
+                request.Status = "Cancelled";
+                request.TechnicianStatus = "TenantCancelled";
+            }
+            else
+            {
+                request.Status = "Cancelled";
+            }
+
             await _context.SaveChangesAsync();
             return true;
         }
