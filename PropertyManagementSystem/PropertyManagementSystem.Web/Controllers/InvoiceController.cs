@@ -1,27 +1,42 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.Services.Interface;
 
-public class InvoiceController : Controller
+namespace PropertyManagementSystem.Web.Controllers
 {
-    private readonly IInvoiceExportService _invoiceExportService;
-
-    public InvoiceController(IInvoiceExportService invoiceExportService)
+    public class InvoiceController : Controller
     {
-        _invoiceExportService = invoiceExportService;
-    }
+        private readonly IInvoiceService _invoiceService;
+        private readonly IInvoiceExportService _invoiceExportService;
 
-    [HttpGet]
-    public async Task<IActionResult> ExportPdf(int id)
-    {
-        try
+        public InvoiceController(
+            IInvoiceService invoiceService,
+            IInvoiceExportService invoiceExportService)
         {
-            var bytes = await _invoiceExportService.ExportToPdfAsync(id);
-            return File(bytes, "text/plain", $"Invoice-{id}.txt");
+            _invoiceService = invoiceService;
+            _invoiceExportService = invoiceExportService;
         }
-        catch (KeyNotFoundException)
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            return NotFound();
+            int tenantId = 1; // tạm cứng, sau lấy từ user login
+            var invoices = await _invoiceService.GetAvailableInvoicesByTenantAsync(tenantId);
+            return View(invoices);   // => View: Views/Invoice/Index.cshtml
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportPdf(int id)
+        {
+            try
+            {
+                var bytes = await _invoiceExportService.ExportToPdfAsync(id);
+                var fileName = $"Invoice-{id}.pdf";
+                return File(bytes, "application/pdf", fileName);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
     }
-
 }

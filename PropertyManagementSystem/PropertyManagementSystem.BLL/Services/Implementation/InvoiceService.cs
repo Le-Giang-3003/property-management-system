@@ -98,15 +98,24 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 InvoiceId = i.InvoiceId,
                 LeaseId = i.LeaseId,
                 InvoiceNumber = i.InvoiceNumber,
+                InvoiceType = i.InvoiceType,
                 IssueDate = i.IssueDate,
                 DueDate = i.DueDate,
+
+                Amount = i.Amount,
+                TaxAmount = i.TaxAmount,
+                DiscountAmount = i.DiscountAmount,
                 TotalAmount = i.TotalAmount,
                 PaidAmount = i.PaidAmount,
                 RemainingAmount = i.RemainingAmount,
+
                 Status = i.Status,
                 IsOverdue = i.Status == "Pending"
                             && i.RemainingAmount > 0
-                            && i.DueDate.Date < DateTime.Today
+                            && i.DueDate.Date < DateTime.Today,
+
+                Description = i.Description,
+                CreatedAt = i.CreatedAt
             };
         }
     }
