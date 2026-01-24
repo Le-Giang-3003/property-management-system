@@ -617,6 +617,19 @@
                             <strong>Ghi chú của thợ:</strong> @request.TechnicianNote
                         </div>
                     }
+                    @if (request.ActualCost.HasValue)
+                    {
+                        <div class="estimated-cost">
+                            <strong>Actual Cost:</strong> $@request.ActualCost.Value.ToString("N2")
+                            @if (!string.IsNullOrEmpty(request.ResolutionNotes))
+                            {
+                                <br />
+                                <strong>Ghi chú của thợ:</strong>
+
+                                @request.ResolutionNotes
+                            }
+                        </div>
+                    }
                     <div class="request-actions">
                         <a href="@Url.Action("Details", "Maintenance", new { id = request.RequestId })" class="btn-action btn-view">
                             <i class="bi bi-eye"></i> View Details
