@@ -210,7 +210,7 @@
                         <tbody>
                             @foreach (var item in Model)
                             {
-                                // ✅ Kiểm tra quyền sở hữu
+                                // Kiểm tra quyền sở hữu
                                 var isOwner = (item.LandlordId == currentUserId) || User.IsInRole("Admin");
 
                                 <tr>

@@ -1,4 +1,5 @@
-﻿@model PropertyManagementSystem.DAL.Entities.Property
+﻿@using System.Security.Claims
+@model PropertyManagementSystem.DAL.Entities.Property
 
 @{
     ViewData["Title"] = Model.Name;
@@ -6,6 +7,7 @@
     var isFavorited = ViewBag.IsFavorited as bool? ?? false;
     var documents = ViewBag.Documents as IEnumerable<PropertyManagementSystem.DAL.Entities.Document> ?? new List<PropertyManagementSystem.DAL.Entities.Document>();
     var images = documents.Where(d => d.FileType.ToLower() is "jpg" or "jpeg" or "png" or "webp").ToList();
+    
 }
 
 <div class="container mt-4">
@@ -268,15 +270,15 @@
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        var currentUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+                        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
                         if (Model.LandlordId == currentUserId || User.IsInRole("Admin"))
                         {
                             <a asp-action="Edit" asp-route-id="@Model.PropertyId" class="btn btn-warning btn-block mb-2">
                                 <i class="fas fa-edit"></i> Chỉnh sửa
                             </a>
-                            <a asp-action="ChangeStatus" asp-route-id="@Model.PropertyId" class="btn btn-info btn-block mb-2">
+                            <button type="button" class="btn btn-info btn-block mb-2" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
                                 <i class="fas fa-toggle-on"></i> Đổi trạng thái
-                            </a>
+                            </button>
                             <a asp-action="Delete" asp-route-id="@Model.PropertyId" class="btn btn-danger btn-block">
                                 <i class="fas fa-trash"></i> Xóa BDS
                             </a>
@@ -340,6 +342,67 @@
     </div>
 }
 
+<!-- Change Status Modal -->
+<div class="modal fade" id="changeStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-toggle-on"></i> Thay đổi trạng thái BDS
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="ChangeStatus" method="post" id="changeStatusForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="PropertyId" value="@Model.PropertyId" />
+
+                <div class="modal-body">
+                    <div class="alert alert-info modal-alert">
+                        <strong>Bất động sản:</strong> @Model.Name
+                        <br>
+                        <strong>Trạng thái hiện tại:</strong>
+                        <span class="badge @GetStatusBadgeClass(Model.Status)">@GetStatusDisplay(Model.Status)</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="statusSelect" class="form-label">Trạng thái mới <span class="text-danger">*</span></label>
+                        <select name="NewStatus" id="statusSelect" class="form-select" required>
+                            <option value="">-- Chọn trạng thái mới --</option>
+                            <option value="Available" data-color="success" data-label="Có sẵn">Available</option>
+                            <option value="Rented" data-color="primary" data-label="Đã cho thuê">Rented</option>
+                            <option value="Maintenance" data-color="warning" data-label="Bảo trì">Maintenance</option>
+                            <option value="Unavailable" data-color="secondary" data-label="Không khả dụng">Unavailable</option>
+                        </select>
+                        <div class="invalid-feedback" id="statusError"></div>
+                    </div>
+
+                    <div id="statusPreview" class="alert alert-light border modal-alert">
+                        <p class="text-muted mb-0">Chọn trạng thái để xem trước</p>
+                    </div>
+
+                    <div class="alert alert-warning modal-alert">
+                        <small>
+                            <i class="fas fa-info-circle"></i>
+                            Vui lòng chọn trạng thái khác với hiện tại để cập nhật
+                        </small>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-check"></i>
+                        <span id="submitText">Cập nhật trạng thái</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 @Html.AntiForgeryToken()
 
 @section Styles {
@@ -362,22 +425,25 @@
     <script>
         $(document).ready(function() {
             // Auto-hide alerts
-            setTimeout(() => $('.alert').fadeOut('slow'), 5000);
+            setTimeout(() => 
+            {
+                $('.alert:not(.modal-alert)').fadeOut('slow');
+            }, 5000);
 
-            // ✅ Initialize carousel
+            // Initialize carousel
             $('#propertyCarousel').carousel({
                 interval: 3000,
                 wrap: true
             });
 
-            // ✅ Highlight active thumbnail
+            // Highlight active thumbnail
             $('#propertyCarousel').on('slid.bs.carousel', function() {
                 var currentIndex = $('.carousel-item.active').index();
                 $('.thumbnail-img').removeClass('active-thumb');
                 $('.thumbnail-img').eq(currentIndex).addClass('active-thumb');
             });
 
-            // ✅ Click thumbnail to go to slide
+            // Click thumbnail to go to slide
             $('.thumbnail-img').on('click', function() {
                 var slideTo = $(this).data('slide-to');
                 $('#propertyCarousel').carousel(slideTo);
@@ -443,6 +509,101 @@
             $('body').append(toast);
             setTimeout(() => toast.alert('close'), 3000);
         }
+
+        // Change Status Modal Logic
+        (function() {
+            const currentStatus = '@Model.Status';
+            const changeStatusModal = document.getElementById('changeStatusModal');
+
+            if (!changeStatusModal) return;
+
+            // Reset modal khi mở
+            changeStatusModal.addEventListener('shown.bs.modal', function () {
+                const select = document.getElementById('statusSelect');
+                if (select) {
+                    select.value = '';
+                    updateStatusUI();
+                }
+            });
+
+            // Listen to select change
+            const statusSelect = document.getElementById('statusSelect');
+            if (statusSelect) {
+                statusSelect.addEventListener('change', updateStatusUI);
+            }
+
+            function updateStatusUI() {
+                const select = document.getElementById('statusSelect');
+                const value = select.value;
+                const preview = document.getElementById('statusPreview');
+                const submitBtn = document.getElementById('submitBtn');
+                const submitText = document.getElementById('submitText');
+                const statusError = document.getElementById('statusError');
+
+                // Reset validation
+                select.classList.remove('is-invalid', 'is-valid');
+                if (statusError) statusError.textContent = '';
+
+                if (!value) {
+                    // Chưa chọn
+                    preview.className = 'alert alert-light border modal-alert';
+                    preview.innerHTML = '<p class="text-muted mb-0">Chọn trạng thái để xem trước</p>';
+                    submitBtn.disabled = true;
+                    submitBtn.className = 'btn btn-primary';
+                    submitText.innerHTML = 'Cập nhật trạng thái';
+                }
+                else if (value === currentStatus) {
+                    // Giống hiện tại
+                    preview.className = 'alert alert-warning modal-alert';
+                    preview.innerHTML = `
+                        <strong>Giữ nguyên trạng thái:</strong> ${value}
+                        <br>
+                        <small>Vui lòng chọn trạng thái khác với hiện tại</small>
+                    `;
+                    submitBtn.disabled = true;
+                    submitBtn.className = 'btn btn-warning';
+                    submitText.innerHTML = 'Không cần cập nhật';
+                }
+                else {
+                    // Valid new status
+                    const option = select.options[select.selectedIndex];
+                    const color = option.dataset.color;
+                    const label = option.dataset.label;
+
+                    preview.className = 'alert alert-' + color + ' modal-alert';
+                    preview.innerHTML = `
+                        <strong>Trạng thái mới:</strong> ${value} (${label})
+                        <br>
+                        <small>Sẵn sàng cập nhật</small>
+                    `;
+                    submitBtn.disabled = false;
+                    submitBtn.className = 'btn btn-success';
+                    submitText.innerHTML = `<i class="fas fa-check"></i> Cập nhật thành ${value}`;
+                }
+            }
+
+            // Form submit validation
+            const changeStatusForm = document.getElementById('changeStatusForm');
+            if (changeStatusForm) {
+                changeStatusForm.addEventListener('submit', function(e) {
+                    const submitBtn = document.getElementById('submitBtn');
+                    const statusSelect = document.getElementById('statusSelect');
+                    const statusError = document.getElementById('statusError');
+
+                    if (submitBtn.disabled) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        statusSelect.classList.add('is-invalid');
+                        if (statusError) {
+                            statusError.textContent = 'Vui lòng chọn trạng thái khác với hiện tại.';
+                        }
+                        return false;
+                    }
+                });
+            }
+        })();
+
+
     </script>
 }
 

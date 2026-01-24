@@ -38,7 +38,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             {
                 return false;
             }
-            property.Status = "Deleted";
+            property.Status = "Unavailable";
             _context.Properties.Update(property);
             var result = await _context.SaveChangesAsync();
             return result > 0;
@@ -52,7 +52,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         public async Task<IEnumerable<Property>> GetAllPropertiesAsync()
         {
             return await _context.Properties
-                .Where(p => p.Status != "Deleted")
+                .Where(p => p.Status != "Unavailable")
                 .Include(p => p.Landlord)
                 .Include(p => p.Images)
                 .ToListAsync();
@@ -85,7 +85,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         public async Task<IEnumerable<Property>> GetPropertiesByLandlordIdAsync(int landlordId)
         {
             return await _context.Properties
-                .Where(p => p.LandlordId == landlordId && p.Status != "Deleted")
+                .Where(p => p.LandlordId == landlordId && p.Status != "Unavailable")
                 .Include(p => p.Images)
                 .ToListAsync();
         }
@@ -100,7 +100,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             return await _context.Properties
                 .Include(p => p.Landlord)
                 .Include(p => p.Images)
-                .FirstOrDefaultAsync(p => p.PropertyId == id && p.Status != "Deleted");
+                .FirstOrDefaultAsync(p => p.PropertyId == id && p.Status != "Unavailable");
         }
 
         public async Task<Property?> GetPropertyWithDetailsAsync(int propertyId)

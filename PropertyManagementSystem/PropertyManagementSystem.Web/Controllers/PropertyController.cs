@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PropertyManagementSystem.BLL.DTOs.Property;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.Web.ViewModels.Property;
@@ -25,27 +26,28 @@ namespace PropertyManagementSystem.Web.Controllers
 
         #region Index & Search
 
-        public async Task<IActionResult> Index(string? city = null, string? propertyType = null,
-            decimal? minRent = null, decimal? maxRent = null)
+        public async Task<IActionResult> Index([FromQuery] PropertySearchDto searchDto)
         {
             IEnumerable<Property> properties;
 
             try
             {
-                if (string.IsNullOrWhiteSpace(city) && string.IsNullOrWhiteSpace(propertyType))
+                // ✅ Validate DTO
+                if (!searchDto.IsValid(out string errorMessage))
+                {
+                    TempData["Warning"] = errorMessage;
+                    properties = await _propertyService.GetAllPropertiesAsync();
+                }
+                // ✅ Nếu không có filter, lấy tất cả
+                else if (!searchDto.HasFilters())
                 {
                     properties = await _propertyService.GetAllPropertiesAsync();
                 }
+                // ✅ Nếu có filter, gọi search
                 else
                 {
-                    properties = await _propertyService.SearchPropertiesAsync(
-                        city ?? "", propertyType ?? "", minRent, maxRent);
+                    properties = await _propertyService.SearchPropertiesAsync(searchDto);
                 }
-            }
-            catch (ArgumentException ex) when (ex.Message.Contains("City is required"))
-            {
-                properties = await _propertyService.GetAllPropertiesAsync();
-                TempData["Warning"] = "Bộ lọc không hợp lệ, hiển thị tất cả BDS.";
             }
             catch (Exception ex)
             {
@@ -53,7 +55,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 properties = new List<Property>();
             }
 
-            // Load favorite status nếu user đã đăng nhập
+            // Load favorite status
             var userId = GetCurrentUserId();
             if (userId > 0)
             {
@@ -65,10 +67,11 @@ namespace PropertyManagementSystem.Web.Controllers
                 ViewBag.FavoritePropertyIds = new HashSet<int>();
             }
 
-            ViewBag.City = city;
-            ViewBag.PropertyType = propertyType;
-            ViewBag.MinRent = minRent;
-            ViewBag.MaxRent = maxRent;
+            // values to ViewBag for form retention
+            ViewBag.City = searchDto.City;
+            ViewBag.PropertyType = searchDto.PropertyType;
+            ViewBag.MinRent = searchDto.MinRent;
+            ViewBag.MaxRent = searchDto.MaxRent;
             ViewBag.PropertyTypes = GetPropertyTypesSelectList();
 
             return View("PropertyManagement", properties);

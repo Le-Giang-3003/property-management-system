@@ -1,4 +1,5 @@
-﻿using PropertyManagementSystem.DAL.Entities;
+﻿using PropertyManagementSystem.BLL.DTOs.Property;
+using PropertyManagementSystem.DAL.Entities;
 
 namespace PropertyManagementSystem.BLL.Services.Interface
 {
@@ -10,6 +11,6 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         public Task<bool> UpdatePropertyAsync(Property property);
         public Task<bool> DeletePropertyAsync(int id);
         public Task<IEnumerable<Property>> GetPropertiesByLandlordIdAsync(int landlordId);
-        public Task<IEnumerable<Property>> SearchPropertiesAsync(string city, string? propertyType, decimal? minRent, decimal? maxRent);
+        public Task<IEnumerable<Property>> SearchPropertiesAsync(PropertySearchDto property);
     }
 }
