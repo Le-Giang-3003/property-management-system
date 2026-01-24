@@ -614,7 +614,7 @@
                         <div class="estimated-cost">
                             <strong>Estimated Cost:</strong> $@request.EstimatedCost.Value.ToString("N2") 
                             <br />
-                            <strong>Ghi chú của thợ:</strong> cho tôi xin thêm tiền uống cf
+                            <strong>Ghi chú của thợ:</strong> @request.TechnicianNote
                         </div>
                     }
                     <div class="request-actions">
@@ -668,7 +668,7 @@
             </div>
             <div class="form-group">
                 <label>Notes (Optional)</label>
-                <textarea name="Notes" placeholder="Add any notes about the work..."></textarea>
+                <textarea name="Notes" placeholder="Add any notes about the work..." required></textarea>
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn-modal-cancel" onclick="closeAcceptModal()">Cancel</button>
