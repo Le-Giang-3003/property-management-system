@@ -81,5 +81,18 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .OrderByDescending(d => d.DeletedAt)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Document>> GetDocumentsByEntityIdsAsync(
+            string entityType,
+            IEnumerable<int> entityIds)
+        {
+            return await _dbSet
+                .Include(d => d.UploadedByUser)
+                .Where(d => !d.IsDeleted &&
+                           d.EntityType == entityType &&
+                           entityIds.Contains(d.EntityId))
+                .OrderByDescending(d => d.UploadedAt)
+                .ToListAsync();
+        }
     }
 }

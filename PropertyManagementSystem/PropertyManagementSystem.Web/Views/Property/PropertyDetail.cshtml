@@ -7,332 +7,304 @@
     var isFavorited = ViewBag.IsFavorited as bool? ?? false;
     var documents = ViewBag.Documents as IEnumerable<PropertyManagementSystem.DAL.Entities.Document> ?? new List<PropertyManagementSystem.DAL.Entities.Document>();
     var images = documents.Where(d => d.FileType.ToLower() is "jpg" or "jpeg" or "png" or "webp").ToList();
-    
+    var currentUserId = User.Identity?.IsAuthenticated == true ? int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0") : 0;
+    var isOwner = Model.LandlordId == currentUserId || User.IsInRole("Admin");
 }
 
-<div class="container mt-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Quay lại
+<div class="property-details-container">
+    <!-- Header Actions -->
+    <div class="details-header">
+        <a asp-action="Index" class="btn-back">
+            <i class="bi bi-arrow-left"></i>
+            Quay lại danh sách
         </a>
         @if (User.Identity?.IsAuthenticated == true)
         {
-            <button type="button" class="btn @(isFavorited ? "btn-danger" : "btn-outline-danger") favorite-detail-btn"
+            <button type="button" class="btn-favorite @(isFavorited ? "active" : "")"
                     data-property-id="@Model.PropertyId"
                     data-is-favorited="@isFavorited.ToString().ToLower()">
-                <i class="@(isFavorited ? "fas" : "far") fa-heart"></i>
-                <span class="favorite-text">@(isFavorited ? "Đã yêu thích" : "Thêm yêu thích")</span>
+                <i class="@(isFavorited ? "bi bi-heart-fill" : "bi bi-heart")"></i>
+                <span>@(isFavorited ? "Đã yêu thích" : "Yêu thích")</span>
             </button>
         }
     </div>
 
-    <!-- Alerts -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">
-            <strong>Thành công!</strong> @TempData["Success"]
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-            <strong>Lỗi!</strong> @TempData["Error"]
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-        </div>
-    }
-
     <!-- Image Gallery -->
     @if (images.Any())
     {
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">
-                    <i class="fas fa-images"></i> Hình ảnh BDS
-                    <span class="badge badge-info">@images.Count</span>
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                @if (images.Count == 1)
-                {
-                    <img src="@images.First().FileUrl" class="img-fluid w-100" alt="@Model.Name"
-                         onclick="showImageModal('@images.First().FileUrl', '@Model.Name')"
-                         style="max-height: 500px; object-fit: cover; cursor: pointer;">
-                }
-                else
-                {
-                    <!-- Carousel -->
-                    <div id="propertyCarousel" class="carousel slide" data-ride="carousel">
-                        <!-- Indicators -->
-                        <ol class="carousel-indicators">
-                            @for (int i = 0; i < images.Count; i++)
-                            {
-                                <li data-target="#propertyCarousel" data-slide-to="@i" class="@(i == 0 ? "active" : "")"></li>
-                            }
-                        </ol>
-
-                        <!-- Slides -->
-                        <div class="carousel-inner">
-                            @for (int i = 0; i < images.Count; i++)
-                            {
-                                var image = images[i];
-                                <div class="carousel-item @(i == 0 ? "active" : "")">
-                                    <img src="@image.FileUrl" class="d-block w-100" alt="@Model.Name"
-                                         onclick="showImageModal('@image.FileUrl', '@Model.Name - Ảnh @(i + 1)')"
-                                         style="height: 500px; object-fit: cover; cursor: pointer;">
-                                    @if (!string.IsNullOrEmpty(image.Description))
-                                    {
-                                        <div class="carousel-caption d-none d-md-block">
-                                            <div class="bg-dark rounded p-2" style="background-color: rgba(0,0,0,0.7) !important;">
-                                                <p class="mb-0">@image.Description</p>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                        </div>
-
-                        <!-- Controls -->
-                        <a class="carousel-control-prev" href="#propertyCarousel" role="button" data-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="sr-only">Previous</span>
-                        </a>
-                        <a class="carousel-control-next" href="#propertyCarousel" role="button" data-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="sr-only">Next</span>
-                        </a>
+        <div class="gallery-section">
+            @if (images.Count == 1)
+            {
+                <div class="single-image">
+                    <img src="@images.First().FileUrl" alt="@Model.Name"
+                         onclick="showImageModal('@images.First().FileUrl', '@Model.Name')">
+                </div>
+            }
+            else
+            {
+                <div class="gallery-grid">
+                    <div class="gallery-main">
+                        <img src="@images[0].FileUrl" alt="@Model.Name"
+                             onclick="showImageModal('@images[0].FileUrl', '@Model.Name - Ảnh 1')">
                     </div>
-
-                    <!-- Thumbnails -->
-                    <div class="p-3">
-                        <div class="row">
-                            @for (int i = 0; i < Math.Min(images.Count, 6); i++)
-                            {
-                                var image = images[i];
-                                var index = i;
-                                <div class="col-2 mb-2">
-                                    <img src="@image.FileUrl" class="img-thumbnail thumbnail-img @(i == 0 ? "active-thumb" : "")"
-                                         data-slide-to="@i" data-target="#propertyCarousel"
-                                         alt="@image.FileName"
-                                         style="height: 80px; object-fit: cover; cursor: pointer;">
-                                </div>
-                            }
-                            @if (images.Count > 6)
-                            {
-                                <div class="col-2 mb-2">
-                                    <div class="img-thumbnail d-flex align-items-center justify-content-center bg-light"
-                                         data-toggle="modal" data-target="#allImagesModal"
-                                         style="height: 80px; cursor: pointer;">
-                                        <strong class="text-muted">+@(images.Count - 6)</strong>
+                    <div class="gallery-side">
+                        @for (int i = 1; i < Math.Min(images.Count, 5); i++)
+                        {
+                            <div class="gallery-item @(i == 4 && images.Count > 5 ? "has-more" : "")">
+                                <img src="@images[i].FileUrl" alt="@Model.Name"
+                                     onclick="showImageModal('@images[i].FileUrl', '@Model.Name - Ảnh @(i + 1)')">
+                                @if (i == 4 && images.Count > 5)
+                                {
+                                    <div class="more-overlay" data-bs-toggle="modal" data-bs-target="#allImagesModal">
+                                        <span>+@(images.Count - 5) ảnh</span>
                                     </div>
-                                </div>
-                            }
-                        </div>
+                                }
+                            </div>
+                        }
                     </div>
-                }
-            </div>
+                </div>
+            }
         </div>
     }
 
-    <!-- Main Property Card -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">@Model.Name</h2>
-            <div class="mt-2">
-                <span class="badge badge-light mr-2">@Model.PropertyType</span>
-                <span class="badge @GetStatusBadgeClass(Model.Status)">@GetStatusDisplay(Model.Status)</span>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <!-- Left: Info -->
-                <div class="col-md-8">
-                    <div class="mb-4">
-                        <h5><i class="fas fa-map-marker-alt text-danger"></i> Địa chỉ</h5>
-                        <p class="lead mb-1">@Model.Address</p>
-                        <p class="text-muted">
-                            @if (!string.IsNullOrEmpty(Model.District))
-                            {
-                                <span>@Model.District, </span>
-                            }
-                            @Model.City
-                            @if (!string.IsNullOrEmpty(Model.ZipCode))
-                            {
-                                <span> - @Model.ZipCode</span>
-                            }
-                        </p>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(Model.Description))
-                    {
-                        <div class="mb-4">
-                            <h5><i class="fas fa-info-circle text-info"></i> Mô tả</h5>
-                            <p>@Model.Description</p>
-                        </div>
-                    }
-
-                    <div class="mb-4">
-                        <h5><i class="fas fa-home text-primary"></i> Thông số</h5>
-                        <div class="row">
-                            <div class="col-sm-4 mb-3">
-                                <div class="border rounded p-3 text-center">
-                                    <i class="fas fa-bed fa-2x text-primary mb-2"></i>
-                                    <h4 class="mb-0">@Model.Bedrooms</h4>
-                                    <small class="text-muted">Phòng ngủ</small>
-                                </div>
-                            </div>
-                            <div class="col-sm-4 mb-3">
-                                <div class="border rounded p-3 text-center">
-                                    <i class="fas fa-bath fa-2x text-info mb-2"></i>
-                                    <h4 class="mb-0">@Model.Bathrooms</h4>
-                                    <small class="text-muted">Phòng tắm</small>
-                                </div>
-                            </div>
-                            <div class="col-sm-4 mb-3">
-                                <div class="border rounded p-3 text-center">
-                                    <i class="fas fa-ruler-combined fa-2x text-success mb-2"></i>
-                                    <h4 class="mb-0">@Model.SquareFeet</h4>
-                                    <small class="text-muted">ft²</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h5><i class="fas fa-star text-warning"></i> Tiện nghi</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <ul class="list-unstyled">
-                                    <li class="mb-2">
-                                        <i class="fas @(Model.IsFurnished ? "fa-check-circle text-success" : "fa-times-circle text-danger")"></i>
-                                        @(Model.IsFurnished ? "Có nội thất" : "Không nội thất")
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="fas @(Model.PetsAllowed ? "fa-check-circle text-success" : "fa-times-circle text-danger")"></i>
-                                        @(Model.PetsAllowed ? "Cho phép thú cưng" : "Không cho phép thú cưng")
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                @if (!string.IsNullOrEmpty(Model.Amenities))
-                                {
-                                    <strong>Tiện ích:</strong>
-                                    <p>@Model.Amenities</p>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.UtilitiesIncluded))
-                                {
-                                    <strong>Dịch vụ:</strong>
-                                    <p>@Model.UtilitiesIncluded</p>
-                                }
-                            </div>
-                        </div>
+    <!-- Main Content -->
+    <div class="details-grid">
+        <!-- Left Column: Property Info -->
+        <div class="details-main">
+            <!-- Title & Status -->
+            <div class="property-header">
+                <div class="property-title-section">
+                    <h1>@Model.Name</h1>
+                    <div class="property-meta">
+                        <span class="property-type">@Model.PropertyType</span>
+                        <span class="status-badge @GetStatusClass(Model.Status)">
+                            @GetStatusDisplay(Model.Status)
+                        </span>
                     </div>
                 </div>
+            </div>
 
-                <!-- Right: Pricing & Actions -->
-                <div class="col-md-4">
-                    <div class="card bg-light mb-4">
-                        <div class="card-body">
-                            <h5>Giá thuê</h5>
-                            <h2 class="text-success">@Model.RentAmount.ToString("N0") ₫</h2>
-                            <p class="text-muted mb-3">/tháng</p>
-                            @if (Model.DepositAmount.HasValue)
-                            {
-                                <hr />
-                                <div class="d-flex justify-content-between">
-                                    <span>Tiền cọc:</span>
-                                    <strong>@Model.DepositAmount.Value.ToString("N0") ₫</strong>
-                                </div>
-                            }
-                            <hr />
-                            <div class="d-flex justify-content-between">
-                                <span>Có sẵn từ:</span>
-                                <strong>@Model.AvailableFrom?.ToString("dd/MM/yyyy")</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if (Model.Landlord != null)
-                    {
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <h5><i class="fas fa-user"></i> Chủ nhà</h5>
-                                <p class="mb-1"><strong>@Model.Landlord.FullName</strong></p>
-                                <p class="mb-1 text-muted"><i class="fas fa-envelope"></i> @Model.Landlord.Email</p>
-                                @if (!string.IsNullOrEmpty(Model.Landlord.PhoneNumber))
-                                {
-                                    <p class="mb-0 text-muted"><i class="fas fa-phone"></i> @Model.Landlord.PhoneNumber</p>
-                                }
-                            </div>
-                        </div>
-                    }
-
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-                        if (Model.LandlordId == currentUserId || User.IsInRole("Admin"))
+            <!-- Location -->
+            <div class="info-section">
+                <div class="section-icon">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="section-content">
+                    <h3>Địa chỉ</h3>
+                    <p class="address-main">@Model.Address</p>
+                    <p class="address-sub">
+                        @if (!string.IsNullOrEmpty(Model.District))
                         {
-                            <a asp-action="Edit" asp-route-id="@Model.PropertyId" class="btn btn-warning btn-block mb-2">
-                                <i class="fas fa-edit"></i> Chỉnh sửa
-                            </a>
-                            <button type="button" class="btn btn-info btn-block mb-2" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
-                                <i class="fas fa-toggle-on"></i> Đổi trạng thái
-                            </button>
-                            <a asp-action="Delete" asp-route-id="@Model.PropertyId" class="btn btn-danger btn-block">
-                                <i class="fas fa-trash"></i> Xóa BDS
-                            </a>
+                            <span>@Model.District, </span>
                         }
+                        @Model.City
+                        @if (!string.IsNullOrEmpty(Model.ZipCode))
+                        {
+                            <span> - @Model.ZipCode</span>
+                        }
+                    </p>
+                </div>
+            </div>
+
+            <!-- Specs -->
+            <div class="info-section">
+                <div class="section-icon">
+                    <i class="bi bi-house-door"></i>
+                </div>
+                <div class="section-content">
+                    <h3>Thông số</h3>
+                    <div class="specs-grid">
+                        <div class="spec-card">
+                            <i class="bi bi-door-closed"></i>
+                            <div>
+                                <strong>@Model.Bedrooms</strong>
+                                <span>Phòng ngủ</span>
+                            </div>
+                        </div>
+                        <div class="spec-card">
+                            <i class="bi bi-droplet"></i>
+                            <div>
+                                <strong>@Model.Bathrooms</strong>
+                                <span>Phòng tắm</span>
+                            </div>
+                        </div>
+                        <div class="spec-card">
+                            <i class="bi bi-rulers"></i>
+                            <div>
+                                <strong>@Model.SquareFeet.ToString("N0")</strong>
+                                <span>ft²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="info-section">
+                    <div class="section-icon">
+                        <i class="bi bi-card-text"></i>
+                    </div>
+                    <div class="section-content">
+                        <h3>Mô tả</h3>
+                        <p class="description-text">@Model.Description</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Amenities -->
+            <div class="info-section">
+                <div class="section-icon">
+                    <i class="bi bi-star"></i>
+                </div>
+                <div class="section-content">
+                    <h3>Tiện nghi</h3>
+                    <div class="amenities-grid">
+                        <div class="amenity-item @(Model.IsFurnished ? "available" : "unavailable")">
+                            <i class="bi @(Model.IsFurnished ? "bi-check-circle-fill" : "bi-x-circle-fill")"></i>
+                            <span>@(Model.IsFurnished ? "Có nội thất" : "Không nội thất")</span>
+                        </div>
+                        <div class="amenity-item @(Model.PetsAllowed ? "available" : "unavailable")">
+                            <i class="bi @(Model.PetsAllowed ? "bi-check-circle-fill" : "bi-x-circle-fill")"></i>
+                            <span>@(Model.PetsAllowed ? "Cho phép thú cưng" : "Không cho phép thú cưng")</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Amenities))
+                    {
+                        <div class="amenity-list">
+                            <strong>Tiện ích:</strong>
+                            <p>@Model.Amenities</p>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.UtilitiesIncluded))
+                    {
+                        <div class="amenity-list">
+                            <strong>Dịch vụ đi kèm:</strong>
+                            <p>@Model.UtilitiesIncluded</p>
+                        </div>
                     }
                 </div>
             </div>
+
+            <!-- Timestamps -->
+            <div class="timestamps">
+                <span>
+                    <i class="bi bi-calendar-plus"></i>
+                    Tạo: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                </span>
+                @if (Model.UpdatedAt.HasValue)
+                {
+                    <span>
+                        <i class="bi bi-clock-history"></i>
+                        Cập nhật: @Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                    </span>
+                }
+            </div>
         </div>
-        <div class="card-footer text-muted">
-            <div class="row">
-                <div class="col-md-6">
-                    <small><i class="fas fa-calendar-plus"></i> Tạo: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+
+        <!-- Right Column: Sidebar -->
+        <div class="details-sidebar">
+            <!-- Pricing Card -->
+            <div class="sidebar-card pricing-card">
+                <div class="price-main">
+                    <span class="price-amount">@Model.RentAmount.ToString("N0") ₫</span>
+                    <span class="price-period">/tháng</span>
                 </div>
-                <div class="col-md-6 text-right">
-                    <small><i class="fas fa-sync-alt"></i> Cập nhật: @Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm")</small>
+
+                @if (Model.DepositAmount.HasValue)
+                {
+                    <div class="price-item">
+                        <span>Tiền cọc</span>
+                        <strong>@Model.DepositAmount.Value.ToString("N0") ₫</strong>
+                    </div>
+                }
+
+                <div class="price-item">
+                    <span>Có sẵn từ</span>
+                    <strong>@Model.AvailableFrom?.ToString("dd/MM/yyyy")</strong>
                 </div>
             </div>
+
+            <!-- Landlord Card -->
+            @if (Model.Landlord != null)
+            {
+                <div class="sidebar-card landlord-card">
+                    <h4>Chủ nhà</h4>
+                    <div class="landlord-info">
+                        <div class="landlord-avatar">
+                            @Model.Landlord.FullName.Substring(0, 1).ToUpper()
+                        </div>
+                        <div class="landlord-details">
+                            <strong>@Model.Landlord.FullName</strong>
+                            <span><i class="bi bi-envelope"></i> @Model.Landlord.Email</span>
+                            @if (!string.IsNullOrEmpty(Model.Landlord.PhoneNumber))
+                            {
+                                <span><i class="bi bi-telephone"></i> @Model.Landlord.PhoneNumber</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Actions Card (Owner Only) -->
+            @if (isOwner)
+            {
+                <div class="sidebar-card actions-card">
+                    <h4>Quản lý</h4>
+                    <div class="action-buttons">
+                        <a asp-action="Edit" asp-route-id="@Model.PropertyId" class="btn-action edit">
+                            <i class="bi bi-pencil"></i>
+                            Chỉnh sửa
+                        </a>
+                        <button type="button" class="btn-action status" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
+                            <i class="bi bi-arrow-repeat"></i>
+                            Đổi trạng thái
+                        </button>
+                        <a asp-action="Delete" asp-route-id="@Model.PropertyId" class="btn-action delete">
+                            <i class="bi bi-trash3"></i>
+                            Xóa bất động sản
+                        </a>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
 
 <!-- Image Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 id="imageModalTitle"></h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center p-0">
-                <img id="imageModalImg" src="" class="img-fluid" alt="">
+            <div class="modal-body p-0">
+                <img id="imageModalImg" src="" class="w-100" alt="">
             </div>
         </div>
     </div>
 </div>
 
 <!-- All Images Modal -->
-@if (images.Count > 6)
+@if (images.Count > 5)
 {
     <div class="modal fade" id="allImagesModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5>Tất cả hình ảnh (@images.Count)</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
+                    <div class="all-images-grid">
                         @foreach (var image in images)
                         {
-                            <div class="col-md-4 col-sm-6 mb-3">
-                                <img src="@image.FileUrl" class="img-thumbnail" alt="@image.FileName"
-                                     onclick="showImageModal('@image.FileUrl', '@image.FileName')"
-                                     style="height: 200px; width: 100%; object-fit: cover; cursor: pointer;">
+                            <div class="image-item">
+                                <img src="@image.FileUrl" alt="@image.FileName"
+                                     onclick="showImageModal('@image.FileUrl', '@image.FileName')">
                             </div>
                         }
                     </div>
@@ -344,56 +316,45 @@
 
 <!-- Change Status Modal -->
 <div class="modal fade" id="changeStatusModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-toggle-on"></i> Thay đổi trạng thái BDS
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5><i class="bi bi-arrow-repeat"></i> Thay đổi trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="ChangeStatus" method="post" id="changeStatusForm">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="PropertyId" value="@Model.PropertyId" />
 
                 <div class="modal-body">
-                    <div class="alert alert-info modal-alert">
-                        <strong>Bất động sản:</strong> @Model.Name
-                        <br>
+                    <div class="current-status-info">
+                        <strong>Bất động sản:</strong> @Model.Name<br>
                         <strong>Trạng thái hiện tại:</strong>
-                        <span class="badge @GetStatusBadgeClass(Model.Status)">@GetStatusDisplay(Model.Status)</span>
+                        <span class="status-badge @GetStatusClass(Model.Status)">
+                            @GetStatusDisplay(Model.Status)
+                        </span>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="statusSelect" class="form-label">Trạng thái mới <span class="text-danger">*</span></label>
+                    <div class="form-group">
+                        <label for="statusSelect">Trạng thái mới <span class="text-danger">*</span></label>
                         <select name="NewStatus" id="statusSelect" class="form-select" required>
-                            <option value="">-- Chọn trạng thái mới --</option>
-                            <option value="Available" data-color="success" data-label="Có sẵn">Available</option>
-                            <option value="Rented" data-color="primary" data-label="Đã cho thuê">Rented</option>
-                            <option value="Maintenance" data-color="warning" data-label="Bảo trì">Maintenance</option>
-                            <option value="Unavailable" data-color="secondary" data-label="Không khả dụng">Unavailable</option>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="Available">Available - Có sẵn</option>
+                            <option value="Rented">Rented - Đã cho thuê</option>
+                            <option value="Maintenance">Maintenance - Bảo trì</option>
+                            <option value="Unavailable">Unavailable - Không khả dụng</option>
                         </select>
                         <div class="invalid-feedback" id="statusError"></div>
                     </div>
 
-                    <div id="statusPreview" class="alert alert-light border modal-alert">
-                        <p class="text-muted mb-0">Chọn trạng thái để xem trước</p>
-                    </div>
-
-                    <div class="alert alert-warning modal-alert">
-                        <small>
-                            <i class="fas fa-info-circle"></i>
-                            Vui lòng chọn trạng thái khác với hiện tại để cập nhật
-                        </small>
+                    <div id="statusPreview" class="status-preview">
+                        <p class="text-muted">Chọn trạng thái để xem trước</p>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Hủy
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" id="submitBtn" class="btn btn-primary" disabled>
-                        <i class="fas fa-check"></i>
                         <span id="submitText">Cập nhật trạng thái</span>
                     </button>
                 </div>
@@ -402,67 +363,636 @@
     </div>
 </div>
 
-
 @Html.AntiForgeryToken()
 
 @section Styles {
     <style>
-        .thumbnail-img {
-            transition: all 0.3s;
+        .property-details-container {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-            .thumbnail-img:hover {
+        /* Header */
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .btn-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-back:hover {
+                background: #e2e8f0;
+                color: #1e293b;
+            }
+
+        .btn-favorite {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-favorite:hover {
+                border-color: #ef4444;
+                color: #ef4444;
+            }
+
+            .btn-favorite.active {
+                background: #ef4444;
+                border-color: #ef4444;
+                color: white;
+            }
+
+        /* Gallery */
+        .gallery-section {
+            margin-bottom: 32px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .single-image img {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 8px;
+            height: 500px;
+        }
+
+        .gallery-main img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .gallery-side {
+            display: grid;
+            grid-template-rows: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+        }
+
+            .gallery-item:first-child img {
+                border-radius: 0 12px 0 0;
+            }
+
+            .gallery-item:last-child img {
+                border-radius: 0 0 12px 0;
+            }
+
+            .gallery-item img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                cursor: pointer;
+                transition: transform 0.3s;
+            }
+
+            .gallery-item:hover img {
                 transform: scale(1.05);
             }
 
-        .active-thumb {
-            border: 3px solid #007bff !important;
+        .more-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Details Grid */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 32px;
+        }
+
+        /* Main Content */
+        .details-main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .property-header {
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .property-title-section h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 12px 0;
+        }
+
+        .property-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .property-type {
+            padding: 6px 16px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+            .status-badge.available {
+                background: #dcfce7;
+                color: #166534;
+            }
+
+            .status-badge.rented {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .status-badge.maintenance {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .status-badge.unavailable {
+                background: #f1f5f9;
+                color: #475569;
+            }
+
+        /* Info Section */
+        .info-section {
+            display: flex;
+            gap: 16px;
+            padding: 24px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            background: #f1f5f9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3b82f6;
+            font-size: 24px;
+        }
+
+        .section-content {
+            flex: 1;
+        }
+
+            .section-content h3 {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0 0 12px 0;
+            }
+
+        .address-main {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1e293b;
+            margin: 0 0 6px 0;
+        }
+
+        .address-sub {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .description-text {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #475569;
+            margin: 0;
+        }
+
+        /* Specs Grid */
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .spec-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+            .spec-card i {
+                font-size: 24px;
+                color: #3b82f6;
+            }
+
+            .spec-card strong {
+                display: block;
+                font-size: 20px;
+                color: #1e293b;
+            }
+
+            .spec-card span {
+                display: block;
+                font-size: 12px;
+                color: #64748b;
+            }
+
+        /* Amenities */
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .amenity-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+            .amenity-item.available {
+                color: #166534;
+            }
+
+                .amenity-item.available i {
+                    color: #16a34a;
+                }
+
+            .amenity-item.unavailable {
+                color: #64748b;
+            }
+
+                .amenity-item.unavailable i {
+                    color: #94a3b8;
+                }
+
+        .amenity-list {
+            padding: 12px 0;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 12px;
+        }
+
+            .amenity-list strong {
+                display: block;
+                font-size: 14px;
+                color: #1e293b;
+                margin-bottom: 6px;
+            }
+
+            .amenity-list p {
+                font-size: 14px;
+                color: #64748b;
+                margin: 0;
+            }
+
+        /* Timestamps */
+        .timestamps {
+            display: flex;
+            gap: 24px;
+            padding: 16px 24px;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+            .timestamps i {
+                margin-right: 6px;
+            }
+
+        /* Sidebar */
+        .details-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+            .sidebar-card h4 {
+                font-size: 16px;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0 0 16px 0;
+            }
+
+        /* Pricing Card */
+        .pricing-card {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .price-main {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .price-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: #15803d;
+        }
+
+        .price-period {
+            font-size: 16px;
+            color: #16a34a;
+        }
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-top: 1px solid #bbf7d0;
+            font-size: 14px;
+        }
+
+            .price-item span {
+                color: #166534;
+            }
+
+            .price-item strong {
+                color: #15803d;
+            }
+
+        /* Landlord Card */
+        .landlord-info {
+            display: flex;
+            gap: 16px;
+        }
+
+        .landlord-avatar {
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .landlord-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+            .landlord-details strong {
+                font-size: 16px;
+                color: #1e293b;
+            }
+
+            .landlord-details span {
+                font-size: 13px;
+                color: #64748b;
+            }
+
+            .landlord-details i {
+                margin-right: 6px;
+            }
+
+        /* Actions Card */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-action.edit {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+                .btn-action.edit:hover {
+                    background: #fde68a;
+                }
+
+            .btn-action.status {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+                .btn-action.status:hover {
+                    background: #bfdbfe;
+                }
+
+            .btn-action.delete {
+                background: #fef2f2;
+                color: #991b1b;
+            }
+
+                .btn-action.delete:hover {
+                    background: #fecaca;
+                }
+
+        /* Modal Styles */
+        .all-images-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+            .image-item img:hover {
+                transform: scale(1.05);
+            }
+
+        .current-status-info {
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .status-preview {
+            padding: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 14px;
+                font-weight: 500;
+                color: #334155;
+                margin-bottom: 8px;
+            }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+            .form-select:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+
+        /* Responsive */
+        @@media (max-width: 1024px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .gallery-side {
+                grid-template-columns: repeat(4, 1fr);
+                grid-template-rows: auto;
+            }
+
+            .specs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .property-details-container {
+                padding: 20px;
+            }
+
+            .details-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .btn-back, .btn-favorite {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .all-images-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 }
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Auto-hide alerts
-            setTimeout(() => 
-            {
-                $('.alert:not(.modal-alert)').fadeOut('slow');
-            }, 5000);
-
-            // Initialize carousel
-            $('#propertyCarousel').carousel({
-                interval: 3000,
-                wrap: true
-            });
-
-            // Highlight active thumbnail
-            $('#propertyCarousel').on('slid.bs.carousel', function() {
-                var currentIndex = $('.carousel-item.active').index();
-                $('.thumbnail-img').removeClass('active-thumb');
-                $('.thumbnail-img').eq(currentIndex).addClass('active-thumb');
-            });
-
-            // Click thumbnail to go to slide
-            $('.thumbnail-img').on('click', function() {
-                var slideTo = $(this).data('slide-to');
-                $('#propertyCarousel').carousel(slideTo);
-            });
-        });
-
         // Show image modal
         function showImageModal(url, title) {
             $('#imageModalTitle').text(title);
             $('#imageModalImg').attr('src', url);
             $('#allImagesModal').modal('hide');
-            $('#imageModal').modal('show');
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
         }
 
-        // Favorite
-        $('.favorite-detail-btn').on('click', async function() {
+        // Favorite toggle
+        $('.btn-favorite').on('click', async function() {
             const propertyId = $(this).data('property-id');
-            const icon = $(this).find('i');
-            const text = $(this).find('.favorite-text');
             const btn = $(this);
 
             try {
@@ -479,141 +1009,52 @@
 
                 if (result.success) {
                     if (result.isFavorited) {
-                        icon.removeClass('far').addClass('fas');
-                        text.text('Đã yêu thích');
-                        btn.removeClass('btn-outline-danger').addClass('btn-danger');
+                        btn.addClass('active');
+                        btn.find('i').removeClass('bi-heart').addClass('bi-heart-fill');
+                        btn.find('span').text('Đã yêu thích');
                     } else {
-                        icon.removeClass('fas').addClass('far');
-                        text.text('Thêm yêu thích');
-                        btn.removeClass('btn-danger').addClass('btn-outline-danger');
+                        btn.removeClass('active');
+                        btn.find('i').removeClass('bi-heart-fill').addClass('bi-heart');
+                        btn.find('span').text('Yêu thích');
                     }
-                    showToast(result.message, 'success');
-                } else {
-                    showToast(result.message || 'Có lỗi xảy ra', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Có lỗi xảy ra', 'error');
             }
         });
 
-        function showToast(message, type) {
-            const toastClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            const toast = $(`
-                <div class="alert ${toastClass} alert-dismissible fade show position-fixed"
-                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-                    ${message}
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                </div>
-            `);
-            $('body').append(toast);
-            setTimeout(() => toast.alert('close'), 3000);
-        }
+        // Change status modal
+        const currentStatus = '@Model.Status';
+        const statusSelect = document.getElementById('statusSelect');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusPreview = document.getElementById('statusPreview');
 
-        // Change Status Modal Logic
-        (function() {
-            const currentStatus = '@Model.Status';
-            const changeStatusModal = document.getElementById('changeStatusModal');
-
-            if (!changeStatusModal) return;
-
-            // Reset modal khi mở
-            changeStatusModal.addEventListener('shown.bs.modal', function () {
-                const select = document.getElementById('statusSelect');
-                if (select) {
-                    select.value = '';
-                    updateStatusUI();
-                }
-            });
-
-            // Listen to select change
-            const statusSelect = document.getElementById('statusSelect');
-            if (statusSelect) {
-                statusSelect.addEventListener('change', updateStatusUI);
-            }
-
-            function updateStatusUI() {
-                const select = document.getElementById('statusSelect');
-                const value = select.value;
-                const preview = document.getElementById('statusPreview');
-                const submitBtn = document.getElementById('submitBtn');
-                const submitText = document.getElementById('submitText');
-                const statusError = document.getElementById('statusError');
-
-                // Reset validation
-                select.classList.remove('is-invalid', 'is-valid');
-                if (statusError) statusError.textContent = '';
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+                const value = this.value;
 
                 if (!value) {
-                    // Chưa chọn
-                    preview.className = 'alert alert-light border modal-alert';
-                    preview.innerHTML = '<p class="text-muted mb-0">Chọn trạng thái để xem trước</p>';
+                    statusPreview.innerHTML = '<p class="text-muted">Chọn trạng thái để xem trước</p>';
                     submitBtn.disabled = true;
-                    submitBtn.className = 'btn btn-primary';
-                    submitText.innerHTML = 'Cập nhật trạng thái';
-                }
-                else if (value === currentStatus) {
-                    // Giống hiện tại
-                    preview.className = 'alert alert-warning modal-alert';
-                    preview.innerHTML = `
-                        <strong>Giữ nguyên trạng thái:</strong> ${value}
-                        <br>
-                        <small>Vui lòng chọn trạng thái khác với hiện tại</small>
-                    `;
+                } else if (value === currentStatus) {
+                    statusPreview.innerHTML = '<p class="text-warning">Trạng thái giống hiện tại</p>';
                     submitBtn.disabled = true;
-                    submitBtn.className = 'btn btn-warning';
-                    submitText.innerHTML = 'Không cần cập nhật';
-                }
-                else {
-                    // Valid new status
-                    const option = select.options[select.selectedIndex];
-                    const color = option.dataset.color;
-                    const label = option.dataset.label;
-
-                    preview.className = 'alert alert-' + color + ' modal-alert';
-                    preview.innerHTML = `
-                        <strong>Trạng thái mới:</strong> ${value} (${label})
-                        <br>
-                        <small>Sẵn sàng cập nhật</small>
-                    `;
+                } else {
+                    statusPreview.innerHTML = `<p class="text-success">Sẵn sàng cập nhật sang: <strong>${value}</strong></p>`;
                     submitBtn.disabled = false;
-                    submitBtn.className = 'btn btn-success';
-                    submitText.innerHTML = `<i class="fas fa-check"></i> Cập nhật thành ${value}`;
                 }
-            }
-
-            // Form submit validation
-            const changeStatusForm = document.getElementById('changeStatusForm');
-            if (changeStatusForm) {
-                changeStatusForm.addEventListener('submit', function(e) {
-                    const submitBtn = document.getElementById('submitBtn');
-                    const statusSelect = document.getElementById('statusSelect');
-                    const statusError = document.getElementById('statusError');
-
-                    if (submitBtn.disabled) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        statusSelect.classList.add('is-invalid');
-                        if (statusError) {
-                            statusError.textContent = 'Vui lòng chọn trạng thái khác với hiện tại.';
-                        }
-                        return false;
-                    }
-                });
-            }
-        })();
-
-
+            });
+        }
     </script>
 }
 
 @functions {
-    string GetStatusBadgeClass(string status) => status switch
+    string GetStatusClass(string status) => status switch
     {
-        "Available" => "badge-success",
-        "Rented" => "badge-warning",
-        "Maintenance" => "badge-info",
-        _ => "badge-secondary"
+        "Available" => "available",
+        "Rented" => "rented",
+        "Maintenance" => "maintenance",
+        _ => "unavailable"
     };
 
     string GetStatusDisplay(string status) => status switch

@@ -379,6 +379,26 @@ namespace PropertyManagementSystem.Web.Controllers
 
         #endregion
 
+        [HttpGet]
+        public async Task<IActionResult> ViewLeaseDocuments()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var leaseDocuments = await _documentService.GetLeaseDocumentsByTenantUserIdAsync(userId);
+
+                ViewBag.PageTitle = "Tài liệu hợp đồng thuê";
+
+                return View(leaseDocuments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading lease documents for tenant user {UserId}", GetCurrentUserId());
+                TempData["Error"] = "❌ Có lỗi xảy ra khi tải tài liệu hợp đồng";
+                return View(new List<DAL.Entities.Document>());
+            }
+        }
+
         #region Helper Methods
 
         private int GetCurrentUserId()

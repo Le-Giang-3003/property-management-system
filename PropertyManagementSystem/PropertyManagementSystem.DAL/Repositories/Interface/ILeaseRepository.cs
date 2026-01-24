@@ -28,5 +28,6 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         /// Checks if a tenant has an active lease for a property
         /// </summary>
         Task<bool> HasActiveLease(int tenantId, int propertyId);
+        Task<IEnumerable<Lease>> GetLeasesByTenantUserIdAsync(int tenantUserId);
     }
 }

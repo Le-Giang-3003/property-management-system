@@ -5,132 +5,135 @@
     Layout = "_AuthLayout";
 }
 
-<div class="container mt-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1><i class="fas fa-heart text-danger"></i> Bất động sản yêu thích</h1>
-            <p class="text-muted">
+<div class="favorites-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">
+                <i class="bi bi-heart-fill"></i>
+                Bất động sản yêu thích
+            </h1>
+            <p class="page-subtitle">
                 @if (Model.Any())
                 {
-                    <span>Bạn có @Model.Count() BDS yêu thích</span>
+                    <span>Bạn có <strong>@Model.Count()</strong> bất động sản yêu thích</span>
                 }
                 else
                 {
-                    <span>Bạn chưa có BDS yêu thích nào</span>
+                    <span>Bạn chưa có bất động sản yêu thích nào</span>
                 }
             </p>
         </div>
-        <a asp-action="Index" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left"></i> Quay lại danh sách
-        </a>
+        <div class="header-actions">
+            <a asp-action="Index" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Quay lại danh sách
+            </a>
+        </div>
     </div>
 
-    <!-- Notifications -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>Thành công!</strong> @TempData["Success"]
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Lỗi!</strong> @TempData["Error"]
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-        </div>
-    }
-
-    <!-- Favorites List -->
+    <!-- Properties Grid -->
     @if (Model != null && Model.Any())
     {
-        <div class="row">
+        <div class="properties-grid">
             @foreach (var favorite in Model)
             {
                 var property = favorite.Property;
                 if (property != null)
                 {
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <h5 class="card-title mb-0">
-                                        <a asp-action="Details" asp-route-id="@property.PropertyId" class="text-dark">
-                                            @property.Name
-                                        </a>
-                                    </h5>
-                                    <form asp-action="RemoveFavorite" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="propertyId" value="@property.PropertyId" />
-                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                                        <button type="submit" class="btn btn-link p-0 text-danger"
-                                                title="Xóa khỏi yêu thích"
-                                                onclick="return confirm('Bạn có chắc muốn xóa BDS này khỏi danh sách yêu thích?');">
-                                            <i class="fas fa-heart" style="font-size: 1.3rem;"></i>
-                                        </button>
-                                    </form>
-                                </div>
+                    <div class="property-card">
+                        <!-- Card Header -->
+                        <div class="card-header">
+                            <h3 class="property-name">
+                                <a asp-action="Details" asp-route-id="@property.PropertyId">
+                                    @property.Name
+                                </a>
+                            </h3>
+                            <form asp-action="RemoveFavorite" method="post" class="remove-favorite-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="propertyId" value="@property.PropertyId" />
+                                <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                <button type="button" class="btn-favorite active"
+                                        onclick="confirmRemove(this)"
+                                        title="Xóa khỏi yêu thích">
+                                    <i class="bi bi-heart-fill"></i>
+                                </button>
+                            </form>
+                        </div>
 
-                                <div class="mb-2">
-                                    <span class="badge badge-info">@property.PropertyType</span>
-                                    <span class="badge @GetStatusBadgeClass(property.Status)">
-                                        @GetStatusDisplay(property.Status)
-                                    </span>
-                                </div>
+                        <!-- Card Badges -->
+                        <div class="card-badges">
+                            <span class="badge type">@property.PropertyType</span>
+                            <span class="badge status @GetStatusClass(property.Status)">
+                                @GetStatusDisplay(property.Status)
+                            </span>
+                        </div>
 
-                                <p class="card-text">
-                                    <i class="fas fa-map-marker-alt text-muted"></i>
-                                    @property.Address<br />
-                                    @if (!string.IsNullOrEmpty(property.City))
-                                    {
-                                        <small class="text-muted">
-                                            @(property.District != null ? $"{property.District}, " : "")@property.City
-                                        </small>
-                                    }
-                                </p>
-
-                                <div class="row text-center mb-3">
-                                    <div class="col-4">
-                                        <small class="text-muted">Phòng ngủ</small><br />
-                                        <strong>@property.Bedrooms</strong>
-                                    </div>
-                                    <div class="col-4">
-                                        <small class="text-muted">Phòng tắm</small><br />
-                                        <strong>@property.Bathrooms</strong>
-                                    </div>
-                                    <div class="col-4">
-                                        <small class="text-muted">Diện tích</small><br />
-                                        <strong>@property.SquareFeet ft²</strong>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h4 class="text-success mb-0">@property.RentAmount.ToString("N0") ₫</h4>
-                                        <small class="text-muted">/tháng</small>
-                                    </div>
-                                    <a asp-action="Details" asp-route-id="@property.PropertyId"
-                                       class="btn btn-primary btn-sm">
-                                        Xem chi tiết
-                                    </a>
-                                </div>
-
-                                @if (!string.IsNullOrEmpty(property.Description))
+                        <!-- Location -->
+                        <div class="property-location">
+                            <i class="bi bi-geo-alt"></i>
+                            <div>
+                                <p class="address">@property.Address</p>
+                                @if (!string.IsNullOrEmpty(property.City))
                                 {
-                                    <hr />
-                                    <p class="card-text small text-muted mb-0">
-                                        @(property.Description.Length > 100
-                                                                ? property.Description.Substring(0, 100) + "..."
-                                                                : property.Description)
+                                    <p class="city">
+                                        @(property.District != null ? $"{property.District}, " : "")@property.City
                                     </p>
                                 }
-
-                                <hr />
-                                <small class="text-muted">
-                                    <i class="far fa-clock"></i> Đã thêm vào yêu thích: @favorite.CreatedAt.ToString("dd/MM/yyyy HH:mm")
-                                </small>
                             </div>
+                        </div>
+
+                        <!-- Specs -->
+                        <div class="property-specs">
+                            <div class="spec-item">
+                                <i class="bi bi-door-closed"></i>
+                                <div>
+                                    <strong>@property.Bedrooms</strong>
+                                    <span>Phòng ngủ</span>
+                                </div>
+                            </div>
+                            <div class="spec-item">
+                                <i class="bi bi-droplet"></i>
+                                <div>
+                                    <strong>@property.Bathrooms</strong>
+                                    <span>Phòng tắm</span>
+                                </div>
+                            </div>
+                            <div class="spec-item">
+                                <i class="bi bi-rulers"></i>
+                                <div>
+                                    <strong>@property.SquareFeet</strong>
+                                    <span>ft²</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        @if (!string.IsNullOrEmpty(property.Description))
+                        {
+                            <div class="property-description">
+                                @(property.Description.Length > 100
+                                                ? property.Description.Substring(0, 100) + "..."
+                                                : property.Description)
+                            </div>
+                        }
+
+                        <!-- Card Footer -->
+                        <div class="card-footer">
+                            <div class="price-info">
+                                <span class="price">@property.RentAmount.ToString("N0") ₫</span>
+                                <span class="period">/tháng</span>
+                            </div>
+                            <a asp-action="Details" asp-route-id="@property.PropertyId" class="btn-view-detail">
+                                Xem chi tiết
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+
+                        <!-- Added Date -->
+                        <div class="card-meta">
+                            <i class="bi bi-clock"></i>
+                            <span>Đã thêm: @favorite.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                         </div>
                     </div>
                 }
@@ -139,54 +142,515 @@
     }
     else
     {
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="far fa-heart text-muted" style="font-size: 5rem;"></i>
-                <h3 class="mt-3 text-muted">Bạn chưa có BDS yêu thích nào</h3>
-                <p class="text-muted">
-                    Hãy khám phá và thêm các bất động sản yêu thích của bạn!
-                </p>
-                <a asp-action="Index" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Tìm kiếm BDS
-                </a>
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-heart"></i>
             </div>
+            <h3>Bạn chưa có bất động sản yêu thích nào</h3>
+            <p>Hãy khám phá và thêm các bất động sản yêu thích của bạn!</p>
+            <a asp-action="Index" class="btn-explore">
+                <i class="bi bi-search"></i>
+                Tìm kiếm bất động sản
+            </a>
         </div>
     }
 </div>
 
+@section Styles {
+    <style>
+        .favorites-container {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-title i {
+                color: #ef4444;
+            }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .btn-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-back:hover {
+                background: #e2e8f0;
+                color: #1e293b;
+            }
+
+        /* Properties Grid */
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        /* Property Card */
+        .property-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+            .property-card:hover {
+                box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+                transform: translateY(-4px);
+            }
+
+        /* Card Header */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .property-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+            flex: 1;
+        }
+
+            .property-name a {
+                color: #1e293b;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+
+                .property-name a:hover {
+                    color: #3b82f6;
+                }
+
+        .btn-favorite {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            border: none;
+            background: #fef2f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-favorite i {
+                font-size: 18px;
+                color: #ef4444;
+            }
+
+            .btn-favorite:hover {
+                background: #fee2e2;
+                transform: scale(1.1);
+            }
+
+        /* Card Badges */
+        .card-badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+            .badge.type {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .badge.status.available {
+                background: #dcfce7;
+                color: #166534;
+            }
+
+            .badge.status.rented {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .badge.status.maintenance {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .badge.status.unavailable {
+                background: #f1f5f9;
+                color: #475569;
+            }
+
+        /* Location */
+        .property-location {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+            .property-location i {
+                font-size: 18px;
+                color: #ef4444;
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+
+            .property-location .address {
+                font-size: 14px;
+                font-weight: 500;
+                color: #1e293b;
+                margin: 0 0 4px 0;
+            }
+
+            .property-location .city {
+                font-size: 13px;
+                color: #64748b;
+                margin: 0;
+            }
+
+        /* Specs */
+        .property-specs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .spec-item i {
+                font-size: 20px;
+                color: #3b82f6;
+            }
+
+            .spec-item strong {
+                display: block;
+                font-size: 16px;
+                color: #1e293b;
+                line-height: 1.2;
+            }
+
+            .spec-item span {
+                display: block;
+                font-size: 11px;
+                color: #64748b;
+                line-height: 1.2;
+            }
+
+        /* Description */
+        .property-description {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        /* Card Footer */
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .price-info {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #16a34a;
+        }
+
+        .period {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .btn-view-detail {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-view-detail:hover {
+                background: #2563eb;
+                transform: translateX(2px);
+                color: white;
+            }
+
+        /* Card Meta */
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+            .card-meta i {
+                font-size: 13px;
+            }
+
+        /* Empty State */
+        .empty-state {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 80px 40px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+            background: #fef2f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .empty-icon i {
+                font-size: 60px;
+                color: #fca5a5;
+            }
+
+        .empty-state h3 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 12px 0;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: #64748b;
+            margin: 0 0 24px 0;
+        }
+
+        .btn-explore {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-explore:hover {
+                background: #2563eb;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+                color: white;
+            }
+
+        /* Responsive */
+        @@media (max-width: 1024px) {
+            .properties-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .favorites-container {
+                padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .btn-back {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .properties-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .property-specs {
+                grid-template-columns: 1fr;
+            }
+
+            .card-footer {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .btn-view-detail {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .empty-state {
+                padding: 60px 20px;
+            }
+
+            .empty-icon {
+                width: 100px;
+                height: 100px;
+            }
+
+                .empty-icon i {
+                    font-size: 48px;
+                }
+        }
+    </style>
+}
+
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Auto-hide alerts after 5 seconds
-        setTimeout(() => {
-            document.querySelectorAll('.alert').forEach(alert => {
-                $(alert).alert('close');
+        function confirmRemove(button) {
+            Swal.fire({
+                title: 'Xóa khỏi yêu thích?',
+                text: 'Bạn có chắc muốn xóa bất động sản này khỏi danh sách yêu thích?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy',
+                customClass: {
+                    confirmButton: 'btn-confirm',
+                    cancelButton: 'btn-cancel'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    button.closest('form').submit();
+                }
             });
-        }, 5000);
+        }
+
+        // Success/Error messages
+        @if (TempData["Success"] != null)
+        {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: '@TempData["Success"]',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+                <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: '@TempData["Error"]',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                </text>
+        }
     </script>
 }
 
 @functions {
-    string GetStatusBadgeClass(string status)
+    string GetStatusClass(string status) => status switch
     {
-        return status switch
-        {
-            "Available" => "badge-success",
-            "Rented" => "badge-warning",
-            "Maintenance" => "badge-info",
-            "Unavailable" => "badge-secondary",
-            _ => "badge-secondary"
-        };
-    }
+        "Available" => "available",
+        "Rented" => "rented",
+        "Maintenance" => "maintenance",
+        _ => "unavailable"
+    };
 
-    string GetStatusDisplay(string status)
+    string GetStatusDisplay(string status) => status switch
     {
-        return status switch
-        {
-            "Available" => "Có sẵn",
-            "Rented" => "Đã thuê",
-            "Maintenance" => "Bảo trì",
-            "Unavailable" => "Không khả dụng",
-            _ => status
-        };
-    }
+        "Available" => "Có sẵn",
+        "Rented" => "Đã thuê",
+        "Maintenance" => "Bảo trì",
+        "Unavailable" => "Không khả dụng",
+        _ => status
+    };
 }

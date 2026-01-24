@@ -9,6 +9,7 @@
         IPropertyViewingRepository PropertyViewings { get; }
         IDocumentRepository Documents { get; }
         IRentalApplicationRepository RentalApplications { get; }
+        ILeaseRepository Leases { get; }
         Task<int> SaveChangesAsync();
         int SaveChanges();
     }

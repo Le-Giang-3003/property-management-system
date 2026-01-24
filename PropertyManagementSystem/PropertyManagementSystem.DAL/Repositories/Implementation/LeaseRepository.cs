@@ -55,5 +55,15 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                             && l.PropertyId == propertyId
                             && l.Status == "Active");
         }
+
+        public async Task<IEnumerable<Lease>> GetLeasesByTenantUserIdAsync(int tenantUserId)
+        {
+            return await _dbSet
+                .Include(l => l.Property)
+                .Include(l => l.Tenant)
+                .Where(l => l.Tenant.UserId == tenantUserId)
+                .OrderByDescending(l => l.StartDate)
+                .ToListAsync();
+        }
     }
 }

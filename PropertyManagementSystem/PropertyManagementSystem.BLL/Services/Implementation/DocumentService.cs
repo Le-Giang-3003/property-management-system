@@ -2,6 +2,7 @@
 using PropertyManagementSystem.BLL.DTOs;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
+using PropertyManagementSystem.DAL.Repositories.Implementation;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
 namespace PropertyManagementSystem.BLL.Services.Implementation
@@ -271,7 +272,39 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return document;
         }
 
+
         #endregion
 
+        public async Task<IEnumerable<Document>> GetLeaseDocumentsByTenantUserIdAsync(int tenantUserId)
+        {
+            try
+            {
+                // 1. Get all leases for tenant
+                var leases = await _unitOfWork.Leases.GetLeasesByTenantUserIdAsync(tenantUserId);
+
+                if (!leases.Any())
+                {
+                    return new List<Document>();
+                }
+
+                // 2. Extract lease IDs
+                var leaseIds = leases.Select(l => l.LeaseId).ToList();
+
+                // 3. Get documents for those leases
+                var documents = await _unitOfWork.Documents.GetDocumentsByEntityIdsAsync("Lease", leaseIds);
+
+                // 4. Filter only contract-related documents
+                var leaseDocuments = documents
+                    .Where(d => d.DocumentType == "Contract" || d.DocumentType == "Other")
+                    .ToList();
+
+                return leaseDocuments;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: {ex} -> getting lease documents for tenant user {UserId}", ex,tenantUserId);
+                throw;
+            }
+        }
     }
 }

@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PropertyManagementSystem.BLL.DTOs.Application;
 using PropertyManagementSystem.BLL.Services.Interface;
-using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.Web.ViewModels.Application;
 using System.Security.Claims;
 

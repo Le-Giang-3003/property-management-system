@@ -33,5 +33,7 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         bool IsValidFileType(string fileName, string documentType, bool isAdmin);
         bool ValidateFileSize(long fileSize, string fileType);
         string GetFileType(string extension);
+
+        Task<IEnumerable<Document>> GetLeaseDocumentsByTenantUserIdAsync(int tenantUserId);
     }
 }
