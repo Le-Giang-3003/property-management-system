@@ -101,5 +101,141 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
 
             return await query.AnyAsync();
         }
+
+        public async Task<(IEnumerable<PropertyViewing> Items, int TotalCount)> GetViewingHistoryAsync(
+    int? userId,
+    string? role,
+    string? status,
+    int? propertyId,
+    DateTime? fromDate,
+    DateTime? toDate,
+    string? searchTerm,
+    int pageNumber,
+    int pageSize)
+        {
+            var query = _dbSet
+                .Include(v => v.Property)
+                    .ThenInclude(p => p.Landlord)
+                .Include(v => v.Tenant)
+                .AsQueryable();
+
+            // Chỉ lấy các viewing đã kết thúc (history)
+            var historyStatuses = new[] { "Completed", "Cancelled", "Rejected" };
+            query = query.Where(v => historyStatuses.Contains(v.Status));
+
+            // Filter theo role
+            if (role == "Tenant" && userId.HasValue)
+            {
+                query = query.Where(v => v.RequestedBy == userId.Value);
+            }
+            else if (role == "Landlord" && userId.HasValue)
+            {
+                query = query.Where(v => v.Property.LandlordId == userId.Value);
+            }
+            // Admin không filter theo userId
+
+            // Filter theo status cụ thể
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(v => v.Status == status);
+            }
+
+            // Filter theo property
+            if (propertyId.HasValue)
+            {
+                query = query.Where(v => v.PropertyId == propertyId.Value);
+            }
+
+            // Filter theo ngày
+            if (fromDate.HasValue)
+            {
+                query = query.Where(v => v.CreatedAt >= fromDate.Value);
+            }
+            if (toDate.HasValue)
+            {
+                query = query.Where(v => v.CreatedAt <= toDate.Value.AddDays(1));
+            }
+
+            // Search theo tên property hoặc tên người yêu cầu
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                query = query.Where(v =>
+                    v.Property.Name.ToLower().Contains(searchTerm) ||
+                    (v.Tenant != null && v.Tenant.FullName.ToLower().Contains(searchTerm)) ||
+                    (v.GuestName != null && v.GuestName.ToLower().Contains(searchTerm)));
+            }
+
+            // Đếm tổng
+            var totalCount = await query.CountAsync();
+
+            // Phân trang
+            var items = await query
+                .OrderByDescending(v => v.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        public async Task<(IEnumerable<PropertyViewing> Items, int TotalCount)> GetAllViewingsAsync(
+    string? status,
+    int? propertyId,
+    DateTime? fromDate,
+    DateTime? toDate,
+    string? searchTerm,
+    int pageNumber,
+    int pageSize)
+        {
+            var query = _dbSet
+                .Include(v => v.Property)
+                    .ThenInclude(p => p.Landlord)
+                .Include(v => v.Tenant)
+                .AsQueryable();
+
+            // Filter theo status
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(v => v.Status == status);
+            }
+
+            // Filter theo property
+            if (propertyId.HasValue)
+            {
+                query = query.Where(v => v.PropertyId == propertyId.Value);
+            }
+
+            // Filter theo ngày
+            if (fromDate.HasValue)
+            {
+                query = query.Where(v => v.CreatedAt >= fromDate.Value);
+            }
+            if (toDate.HasValue)
+            {
+                query = query.Where(v => v.CreatedAt <= toDate.Value.AddDays(1));
+            }
+
+            // Search
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                query = query.Where(v =>
+                    v.Property.Name.ToLower().Contains(searchTerm) ||
+                    (v.Tenant != null && v.Tenant.FullName.ToLower().Contains(searchTerm)) ||
+                    (v.GuestName != null && v.GuestName.ToLower().Contains(searchTerm)) ||
+                    (v.Property.Landlord != null && v.Property.Landlord.FullName.ToLower().Contains(searchTerm)));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(v => v.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }
