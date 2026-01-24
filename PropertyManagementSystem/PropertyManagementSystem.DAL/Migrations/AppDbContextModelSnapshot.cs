@@ -1842,21 +1842,21 @@ namespace PropertyManagementSystem.DAL.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedAt = new DateTime(2026, 1, 24, 8, 2, 25, 639, DateTimeKind.Utc).AddTicks(6764),
+                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3157),
                             Description = "System Administrator",
                             RoleName = "Admin"
                         },
                         new
                         {
                             RoleId = 2,
-                            CreatedAt = new DateTime(2026, 1, 24, 8, 2, 25, 639, DateTimeKind.Utc).AddTicks(6767),
+                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3160),
                             Description = "Landlord and Tenant",
                             RoleName = "Member"
                         },
                         new
                         {
                             RoleId = 3,
-                            CreatedAt = new DateTime(2026, 1, 24, 8, 2, 25, 639, DateTimeKind.Utc).AddTicks(6768),
+                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3161),
                             Description = "Maintenance Technician",
                             RoleName = "Technician"
                         });
