@@ -1,0 +1,201 @@
+﻿@model PropertyManagementSystem.Web.ViewModels.Application.CreateRentalApplicationViewModel
+@{
+    ViewData["Title"] = "Gửi đơn xin thuê";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-file-alt"></i> Gửi đơn xin thuê</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="applicationForm">
+
+                        <!-- CHỌN BẤT ĐỘNG SẢN -->
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-home"></i> Chọn bất động sản</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="PropertyId" class="form-label"></label>
+                            <select asp-for="PropertyId"
+                                    asp-items="Model.AvailableProperties"
+                                    class="form-select"
+                                    id="propertySelect">
+                                <option value="">--Chọn bất động sản--</option>
+                            </select>
+                            <span asp-validation-for="PropertyId" class="text-danger"></span>
+                        </div>
+
+                        <!-- Thông tin BĐS đã chọn -->
+                        <div id="propertyInfo" class="alert alert-info" style="display: none;">
+                            <h6 class="mb-2">Thông tin bất động sản đã chọn:</h6>
+                            <p class="mb-1" id="selectedPropertyName"></p>
+                        </div>
+
+                        <!-- THÔNG TIN VIỆC LÀM -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-briefcase"></i> Thông tin việc làm</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="EmploymentStatus" class="form-label"></label>
+                                <select asp-for="EmploymentStatus" class="form-select">
+                                    <option value="">--Chọn tình trạng--</option>
+                                    <option value="Toàn thời gian">Toàn thời gian</option>
+                                    <option value="Bán thời gian">Bán thời gian</option>
+                                    <option value="Tự kinh doanh">Tự kinh doanh</option>
+                                    <option value="Hợp đồng">Hợp đồng</option>
+                                    <option value="Hưu trí">Hưu trí</option>
+                                    <option value="Sinh viên">Sinh viên</option>
+                                    <option value="Thất nghiệp">Thất nghiệp</option>
+                                </select>
+                                <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Employer" class="form-label"></label>
+                                <input asp-for="Employer" class="form-control" placeholder="VD: Công ty ABC" />
+                                <span asp-validation-for="Employer" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MonthlyIncome" class="form-label"></label>
+                            <div class="input-group">
+                                <input asp-for="MonthlyIncome" type="number" class="form-control" placeholder="VD: 15000000" />
+                                <span class="input-group-text">VNĐ</span>
+                            </div>
+                            <small class="text-muted">Thu nhập hàng tháng giúp chủ nhà đánh giá khả năng thanh toán</small>
+                            <span asp-validation-for="MonthlyIncome" class="text-danger d-block"></span>
+                        </div>
+
+                        <!-- NƠI Ở TRƯỚC ĐÂY -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-map-marker-alt"></i> Thông tin nơi ở trước đây</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="PreviousAddress" class="form-label"></label>
+                            <input asp-for="PreviousAddress" class="form-control" placeholder="VD: 123 Đường ABC, Quận 1, TP.HCM" />
+                            <span asp-validation-for="PreviousAddress" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PreviousLandlord" class="form-label"></label>
+                                <input asp-for="PreviousLandlord" class="form-control" placeholder="VD: Nguyễn Văn A" />
+                                <span asp-validation-for="PreviousLandlord" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PreviousLandlordPhone" class="form-label"></label>
+                                <input asp-for="PreviousLandlordPhone" class="form-control" placeholder="VD: 0901234567" />
+                                <span asp-validation-for="PreviousLandlordPhone" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- THÔNG TIN NGƯỜI THUÊ -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-users"></i> Thông tin người thuê</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NumberOfOccupants" class="form-label"></label>
+                                <input asp-for="NumberOfOccupants" type="number" min="1" max="20" class="form-control" />
+                                <small class="text-muted">Tổng số người sẽ ở trong nhà</small>
+                                <span asp-validation-for="NumberOfOccupants" class="text-danger d-block"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DesiredMoveInDate" class="form-label"></label>
+                                <input asp-for="DesiredMoveInDate" type="date" class="form-control" />
+                                <span asp-validation-for="DesiredMoveInDate" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="HasPets" class="form-check-input" type="checkbox" id="hasPetsSwitch" />
+                                <label asp-for="HasPets" class="form-check-label" for="hasPetsSwitch"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="petDetailsDiv" style="display: none;">
+                            <label asp-for="PetDetails" class="form-label"></label>
+                            <textarea asp-for="PetDetails" class="form-control" rows="2"
+                                      placeholder="VD: 1 chó Corgi (3 tuổi), 2 mèo Ba Tư"></textarea>
+                            <small class="text-muted">Vui lòng cung cấp thông tin chi tiết về loại, giống, tuổi và số lượng thú cưng</small>
+                            <span asp-validation-for="PetDetails" class="text-danger d-block"></span>
+                        </div>
+
+                        <!-- THÔNG TIN BỔ SUNG -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-sticky-note"></i> Thông tin bổ sung</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="AdditionalNotes" class="form-label"></label>
+                            <textarea asp-for="AdditionalNotes" class="form-control" rows="4"
+                                      placeholder="Ví dụ: Tôi làm việc ca đêm, yêu cầu chỗ đậu xe riêng, muốn thuê dài hạn..."></textarea>
+                            <small class="text-muted">Thông tin bổ sung giúp chủ nhà hiểu rõ hơn về nhu cầu của bạn</small>
+                            <span asp-validation-for="AdditionalNotes" class="text-danger d-block"></span>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle"></i> <strong>Lưu ý:</strong>
+                            Thông tin bạn cung cấp sẽ được gửi đến chủ nhà để xem xét.
+                            Vui lòng đảm bảo thông tin chính xác và trung thực.
+                        </div>
+
+                        <!-- BUTTONS -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a asp-action="MyApplications" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Gửi đơn xin thuê
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function() {
+            // Show/hide pet details
+            function togglePetDetails() {
+                if ($('#hasPetsSwitch').is(':checked')) {
+                    $('#petDetailsDiv').slideDown();
+                } else {
+                    $('#petDetailsDiv').slideUp();
+                    $('#PetDetails').val('');
+                }
+            }
+
+            $('#hasPetsSwitch').change(togglePetDetails);
+            togglePetDetails();
+
+            // Set minimum date to today
+            var today = new Date().toISOString().split('T')[0];
+            $('#DesiredMoveInDate').attr('min', today);
+
+            // Hiển thị thông tin property khi chọn
+            $('#propertySelect').change(function() {
+                var selectedText = $(this).find('option:selected').text();
+                if ($(this).val()) {
+                    $('#selectedPropertyName').text(selectedText);
+                    $('#propertyInfo').slideDown();
+                } else {
+                    $('#propertyInfo').slideUp();
+                }
+            });
+
+            // Trigger if property already selected
+            if ($('#propertySelect').val()) {
+                $('#propertySelect').trigger('change');
+            }
+        });
+    </script>
+}

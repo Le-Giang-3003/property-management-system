@@ -1,0 +1,246 @@
+﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.Document>
+
+@{
+    ViewData["Title"] = "Tài liệu của tôi";
+    Layout = "_AuthLayout";
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-folder2-open"></i> Tài liệu của tôi</h2>
+            <p class="text-muted">
+                @if (Model.Any())
+                {
+                    <span>Tổng cộng: <strong>@Model.Count()</strong> tài liệu</span>
+                }
+                else
+                {
+                    <span>Chưa có tài liệu nào</span>
+                }
+            </p>
+        </div>
+        <div>
+            <a asp-action="Upload" class="btn btn-primary">
+                <i class="bi bi-cloud-upload"></i> Upload tài liệu
+            </a>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Statistics -->
+    @if (Model.Any())
+    {
+        var totalSize = Model.Sum(d => d.FileSize);
+        var imageCount = Model.Count(d => d.FileType.ToLower().Contains("jpg") || d.FileType.ToLower().Contains("png"));
+        var docCount = Model.Count(d => d.FileType.ToLower().Contains("pdf") || d.FileType.ToLower().Contains("docx"));
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-files text-primary" style="font-size: 2rem;"></i>
+                        <h3>@Model.Count()</h3>
+                        <p class="mb-0 text-muted">Tổng tài liệu</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-image text-success" style="font-size: 2rem;"></i>
+                        <h3>@imageCount</h3>
+                        <p class="mb-0 text-muted">Hình ảnh</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-file-earmark-text text-info" style="font-size: 2rem;"></i>
+                        <h3>@docCount</h3>
+                        <p class="mb-0 text-muted">Tài liệu</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-hdd text-warning" style="font-size: 2rem;"></i>
+                        <h4>@FormatFileSize(totalSize)</h4>
+                        <p class="mb-0 text-muted">Tổng dung lượng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Documents List -->
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sách tài liệu</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;"></th>
+                                <th>Tên file</th>
+                                <th>Loại tài liệu</th>
+                                <th>Liên quan</th>
+                                <th>Kích thước</th>
+                                <th>Ngày upload</th>
+                                <th style="width: 200px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in Model)
+                            {
+                                <tr>
+                                    <td class="text-center">
+                                        @{
+                                            var iconClass = GetFileIconClass(doc.FileType);
+                                        }
+                                        <i class="@iconClass" style="font-size: 1.5rem;"></i>
+                                    </td>
+                                    <td>
+                                        <strong>@doc.FileName</strong>
+                                        @if (!string.IsNullOrEmpty(doc.Description))
+                                        {
+                                            <br>
+                                
+                                            <small class="text-muted">@doc.Description</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@doc.DocumentType</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@doc.EntityType</span>
+                                        <small class="text-muted">#@doc.EntityId</small>
+                                    </td>
+                                    <td>@FormatFileSize(doc.FileSize)</td>
+                                    <td>
+                                        <small>@doc.UploadedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Download" asp-route-id="@doc.DocumentId"
+                                               class="btn btn-outline-primary" title="Tải xuống">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@doc.DocumentId"
+                                               class="btn btn-outline-info" title="Chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal@(doc.DocumentId)"
+                                                    title="Xóa">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Modal -->
+                                        <div class="modal fade" id="deleteModal@(doc.DocumentId)" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Xác nhận xóa</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Bạn có chắc chắn muốn xóa tài liệu <strong>@doc.FileName</strong>?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                        <form asp-action="Delete" asp-route-id="@doc.DocumentId" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-danger">Xóa</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                    <h4 class="text-muted mt-3">Chưa có tài liệu nào</h4>
+                    <p class="text-muted">Bắt đầu bằng cách upload tài liệu đầu tiên</p>
+                    <a asp-action="Upload" class="btn btn-primary mt-2">
+                        <i class="bi bi-cloud-upload"></i> Upload ngay
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetFileIconClass(string fileType)
+    {
+        return fileType.ToLower() switch
+        {
+            "jpg" or "jpeg" or "png" or "webp" => "bi bi-file-image text-success",
+            "pdf" => "bi bi-file-pdf text-danger",
+            "docx" => "bi bi-file-word text-primary",
+            "xlsx" => "bi bi-file-excel text-success",
+            "pptx" => "bi bi-file-ppt text-warning",
+            "mp4" => "bi bi-file-play text-info",
+            "zip" => "bi bi-file-zip text-secondary",
+            _ => "bi bi-file-earmark text-muted"
+        };
+    }
+
+    string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
+
+@section Scripts {
+    <script>
+        // Auto-hide alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}

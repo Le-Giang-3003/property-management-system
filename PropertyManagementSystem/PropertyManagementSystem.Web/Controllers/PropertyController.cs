@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PropertyManagementSystem.BLL.DTOs.Property;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.Web.ViewModels.Property;
@@ -12,37 +13,41 @@ namespace PropertyManagementSystem.Web.Controllers
         private readonly IPropertyService _propertyService;
         private readonly IUserService _userService;
         private readonly IFavoritePropertyService _favoritePropertyService;
+        private readonly IDocumentService _documentService;
 
-        public PropertyController(IPropertyService propertyService, IUserService userService, IFavoritePropertyService favoritePropertyService)
+        public PropertyController(IPropertyService propertyService, 
+            IUserService userService, IFavoritePropertyService favoritePropertyService, IDocumentService documentService)
         {
             _propertyService = propertyService;
             _userService = userService;
             _favoritePropertyService = favoritePropertyService;
+            _documentService = documentService;
         }
 
         #region Index & Search
 
-        public async Task<IActionResult> Index(string? city = null, string? propertyType = null,
-            decimal? minRent = null, decimal? maxRent = null)
+        public async Task<IActionResult> Index([FromQuery] PropertySearchDto searchDto)
         {
             IEnumerable<Property> properties;
 
             try
             {
-                if (string.IsNullOrWhiteSpace(city) && string.IsNullOrWhiteSpace(propertyType))
+                // ✅ Validate DTO
+                if (!searchDto.IsValid(out string errorMessage))
+                {
+                    TempData["Warning"] = errorMessage;
+                    properties = await _propertyService.GetAllPropertiesAsync();
+                }
+                // ✅ Nếu không có filter, lấy tất cả
+                else if (!searchDto.HasFilters())
                 {
                     properties = await _propertyService.GetAllPropertiesAsync();
                 }
+                // ✅ Nếu có filter, gọi search
                 else
                 {
-                    properties = await _propertyService.SearchPropertiesAsync(
-                        city ?? "", propertyType ?? "", minRent, maxRent);
+                    properties = await _propertyService.SearchPropertiesAsync(searchDto);
                 }
-            }
-            catch (ArgumentException ex) when (ex.Message.Contains("City is required"))
-            {
-                properties = await _propertyService.GetAllPropertiesAsync();
-                TempData["Warning"] = "Bộ lọc không hợp lệ, hiển thị tất cả BDS.";
             }
             catch (Exception ex)
             {
@@ -50,7 +55,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 properties = new List<Property>();
             }
 
-            // Load favorite status nếu user đã đăng nhập
+            // Load favorite status
             var userId = GetCurrentUserId();
             if (userId > 0)
             {
@@ -62,10 +67,11 @@ namespace PropertyManagementSystem.Web.Controllers
                 ViewBag.FavoritePropertyIds = new HashSet<int>();
             }
 
-            ViewBag.City = city;
-            ViewBag.PropertyType = propertyType;
-            ViewBag.MinRent = minRent;
-            ViewBag.MaxRent = maxRent;
+            // values to ViewBag for form retention
+            ViewBag.City = searchDto.City;
+            ViewBag.PropertyType = searchDto.PropertyType;
+            ViewBag.MinRent = searchDto.MinRent;
+            ViewBag.MaxRent = searchDto.MaxRent;
             ViewBag.PropertyTypes = GetPropertyTypesSelectList();
 
             return View("PropertyManagement", properties);
@@ -94,6 +100,8 @@ namespace PropertyManagementSystem.Web.Controllers
             {
                 ViewBag.IsFavorited = false;
             }
+            var documents = await _documentService.GetDocumentsByEntityAsync("Property", id);
+            ViewBag.Documents = documents;
 
             return View("PropertyDetail", property);
         }
@@ -202,6 +210,8 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            var documents = await _documentService.GetDocumentsByEntityAsync("Property", id);
+            ViewBag.Documents = documents;
             ViewBag.PropertyTypes = GetPropertyTypesSelectList();
             return View("PropertyEdit", property);
         }
@@ -216,33 +226,78 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                // Authorization
+                var currentUserId = GetCurrentUserId();
+                if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
                 {
-                    // Authorization
-                    var currentUserId = GetCurrentUserId();
-                    if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
-                    {
-                        TempData["Error"] = "Bạn không có quyền sửa BDS này.";
-                        return RedirectToAction(nameof(Index));
-                    }
+                    TempData["Error"] = "Bạn không có quyền sửa BDS này.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-                    property.UpdatedAt = DateTime.UtcNow;
-                    await _propertyService.UpdatePropertyAsync(property);
+                // Lấy property từ DB
+                var existingProperty = await _propertyService.GetPropertyByIdAsync(id);
+                if (existingProperty == null)
+                {
+                    TempData["Error"] = "Không tìm thấy BDS.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-                    TempData["Success"] = $"✅ Cập nhật '{property.Name}' thành công!";
+                // Kiểm tra có thay đổi
+                if (!HasPropertyChanges(existingProperty, property))
+                {
+                    TempData["Warning"] = "⚠️ Không có thay đổi nào được thực hiện.";
                     return RedirectToAction(nameof(Details), new { id = property.PropertyId });
                 }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"❌ Lỗi cập nhật: {ex.Message}");
-                }
-            }
 
-            ViewBag.PropertyTypes = GetPropertyTypesSelectList();
-            return View("PropertyEdit", property);
+                // Validate chỉ khi có thay đổi
+                if (!ModelState.IsValid)
+                {
+                    ViewBag.PropertyTypes = GetPropertyTypesSelectList();
+                    return View("PropertyEdit", property);
+                }
+
+                // Update
+                property.UpdatedAt = DateTime.UtcNow;
+                await _propertyService.UpdatePropertyAsync(property);
+
+                TempData["Success"] = $"✅ Cập nhật '{property.Name}' thành công!";
+                return RedirectToAction(nameof(Details), new { id = property.PropertyId });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"❌ Lỗi cập nhật: {ex.Message}");
+                ViewBag.PropertyTypes = GetPropertyTypesSelectList();
+                return View("PropertyEdit", property);
+            }
         }
+
+        // Helper Method
+        private bool HasPropertyChanges(Property existing, Property updated)
+        {
+            return existing.Name != updated.Name ||
+                   existing.Address != updated.Address ||
+                   existing.City != updated.City ||
+                   existing.District != updated.District ||
+                   existing.ZipCode != updated.ZipCode ||
+                   existing.PropertyType != updated.PropertyType ||
+                   existing.Bedrooms != updated.Bedrooms ||
+                   existing.Bathrooms != updated.Bathrooms ||
+                   existing.SquareFeet != updated.SquareFeet ||
+                   existing.RentAmount != updated.RentAmount ||
+                   existing.DepositAmount != updated.DepositAmount ||
+                   existing.Description != updated.Description ||
+                   existing.Amenities != updated.Amenities ||
+                   existing.UtilitiesIncluded != updated.UtilitiesIncluded ||
+                   existing.IsFurnished != updated.IsFurnished ||
+                   existing.PetsAllowed != updated.PetsAllowed ||
+                   existing.AvailableFrom != updated.AvailableFrom ||
+                   existing.Status != updated.Status ||
+                   existing.Latitude != updated.Latitude ||
+                   existing.Longitude != updated.Longitude;
+        }
+
 
         #endregion
 
