@@ -294,7 +294,7 @@
                             </a>
                         }
 
-                        @if (Model.Status == "Active")
+                        @if (Model.Status == "Draft" || Model.Status == "Active")
                         {
                             <a asp-action="DownloadPdf" asp-route-id="@Model.LeaseId" class="btn btn-info">
                                 <i class="fas fa-file-pdf"></i> Tải PDF

@@ -18,19 +18,21 @@ namespace PropertyManagementSystem.Web.Controllers
         private readonly IPropertyService _propertyService;
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
-
+        private readonly IPdfService _pdfService;
         public LeaseController(
             ILeaseService leaseService,
             IRentalApplicationService applicationService,
             IPropertyService propertyService,
             IUserService userService,
-            IEmailService emailService)
+            IEmailService emailService,
+            IPdfService pdfService)
         {
             _leaseService = leaseService;
             _applicationService = applicationService;
             _propertyService = propertyService;
             _userService = userService;
             _emailService = emailService;
+            _pdfService = pdfService;
         }
 
         // GET: /Lease/Index
@@ -670,5 +672,51 @@ namespace PropertyManagementSystem.Web.Controllers
                 });
             }
         }
+
+        // GET: /Lease/DownloadPdf/5
+        [HttpGet]
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            var lease = await _leaseService.GetLeaseByIdAsync(id);
+            if (lease == null)
+            {
+                TempData["Error"] = "Không tìm thấy hợp đồng";
+                return RedirectToAction("Index");
+            }
+
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var property = await _propertyService.GetPropertyByIdAsync(lease.PropertyId);
+            var isLandlord = property.LandlordId == userId;
+            var isTenant = lease.TenantId == userId;
+
+            if (!isLandlord && !isTenant)
+            {
+                TempData["Error"] = "Bạn không có quyền tải hợp đồng này";
+                return RedirectToAction("Index");
+            }
+
+            // ✅ SỬA: Cho phép tải cả Draft và Active
+            if (lease.Status != "Draft" && lease.Status != "Active")
+            {
+                TempData["Error"] = "Không thể tải PDF cho hợp đồng đã hết hạn hoặc bị chấm dứt";
+                return RedirectToAction("Details", new { id });
+            }
+
+            try
+            {
+                var pdfBytes = await _pdfService.GenerateLeasePdfAsync(lease);
+                var fileName = $"HopDong_{lease.LeaseNumber}_{DateTime.Now:yyyyMMdd}.pdf";
+
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating PDF: {ex.Message}");
+                TempData["Error"] = "Không thể tạo file PDF. Vui lòng thử lại sau.";
+                return RedirectToAction("Details", new { id });
+            }
+        }
+
+
     }
 }

@@ -29,7 +29,7 @@ namespace PropertyManagementSystem.BLL
             services.AddScoped<IFavoritePropertyService, FavoritePropertyService>();
             services.AddScoped<IRentalApplicationService, RentalApplicationService>();
             services.AddScoped<ILeaseService, LeaseService>();
-            
+            services.AddScoped<IPdfService, PdfService>();
 
             return services;
         }
