@@ -983,6 +983,16 @@ namespace PropertyManagementSystem.DAL.Migrations
                     b.Property<int?>("Rating")
                         .HasColumnType("int");
 
+                    b.Property<string>("ReasonRejectLandlord")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("nvarchar(3000)");
+
+                    b.Property<string>("ReasonRejectTechnician")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("nvarchar(3000)");
+
                     b.Property<DateTime?>("RepairDate")
                         .HasColumnType("datetime2");
 
@@ -1006,6 +1016,11 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TechnicianNote")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("nvarchar(3000)");
 
                     b.Property<string>("TechnicianStatus")
                         .IsRequired()
@@ -1706,7 +1721,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApplicationId"));
 
                     b.Property<string>("AdditionalNotes")
-                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
@@ -1744,7 +1758,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PetDetails")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -1767,7 +1780,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("RejectionReason")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -1830,21 +1842,21 @@ namespace PropertyManagementSystem.DAL.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedAt = new DateTime(2026, 1, 23, 0, 30, 14, 137, DateTimeKind.Utc).AddTicks(5130),
+                            CreatedAt = new DateTime(2026, 1, 24, 8, 2, 25, 639, DateTimeKind.Utc).AddTicks(6764),
                             Description = "System Administrator",
                             RoleName = "Admin"
                         },
                         new
                         {
                             RoleId = 2,
-                            CreatedAt = new DateTime(2026, 1, 23, 0, 30, 14, 137, DateTimeKind.Utc).AddTicks(5134),
+                            CreatedAt = new DateTime(2026, 1, 24, 8, 2, 25, 639, DateTimeKind.Utc).AddTicks(6767),
                             Description = "Landlord and Tenant",
                             RoleName = "Member"
                         },
                         new
                         {
                             RoleId = 3,
-                            CreatedAt = new DateTime(2026, 1, 23, 0, 30, 14, 137, DateTimeKind.Utc).AddTicks(5135),
+                            CreatedAt = new DateTime(2026, 1, 24, 8, 2, 25, 639, DateTimeKind.Utc).AddTicks(6768),
                             Description = "Maintenance Technician",
                             RoleName = "Technician"
                         });

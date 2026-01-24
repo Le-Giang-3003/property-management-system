@@ -225,6 +225,16 @@
         color: #047857;
     }
 
+    .request-status.cancelled {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .request-status.rejected {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
     .request-meta {
         display: flex;
         gap: 24px;
@@ -277,6 +287,20 @@
 
     .tenant-info strong {
         color: #1e293b;
+    }
+
+    .estimated-cost {
+        background-color: #fef3c7;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-left: 64px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #92400e;
+    }
+
+    .estimated-cost strong {
+        color: #78350f;
     }
 
     .request-actions {
@@ -465,6 +489,7 @@
         .request-meta,
         .request-description,
         .tenant-info,
+        .estimated-cost,
         .request-actions {
             margin-left: 0;
             margin-top: 12px;
@@ -533,6 +558,8 @@
         <button class="filter-tab" onclick="filterRequests(this, 'Pending')">Pending</button>
         <button class="filter-tab" onclick="filterRequests(this, 'InProgress')">In Progress</button>
         <button class="filter-tab" onclick="filterRequests(this, 'Completed')">Completed</button>
+        <button class="filter-tab" onclick="filterRequests(this, 'Cancelled')">Cancelled</button>
+        <button class="filter-tab" onclick="filterRequests(this, 'Rejected')">Rejected</button>
     </div>
 
     <div class="requests-container">
@@ -592,8 +619,24 @@
                     {
                         <div class="estimated-cost">
                             <strong>Estimated Cost:</strong> $@request.EstimatedCost.Value.ToString("N2")
-                            <br />
-                            <strong>Ghi chú của thợ:</strong> cho tôi xin thêm tiền uống cf
+                            @if (!string.IsNullOrEmpty(request.TechnicianNote))
+                            {
+                                <br />
+                                <strong>Ghi chú của thợ:</strong> @request.TechnicianNote
+                            }
+                        </div>
+                    }
+                    @if (request.ActualCost.HasValue)
+                    {
+                        <div class="estimated-cost">
+                            <strong>Actual Cost:</strong> $@request.ActualCost.Value.ToString("N2")
+                            @if (!string.IsNullOrEmpty(request.ResolutionNotes))
+                            {
+                                <br />
+                                <strong>Ghi chú của thợ:</strong>
+ 
+                                @request.ResolutionNotes
+                            }
                         </div>
                     }
                     <div class="request-actions">
@@ -609,13 +652,13 @@
 
                         @if (request.Status == "Pending")
                         {
-                            <button class="btn btn-danger btn-sm" onclick="openAssignModal(@request.RequestId)">
+                            <button class="btn btn-danger btn-sm" onclick="openRejectModal(@request.RequestId)">
                                 <i class="bi bi-x-circle"></i> Reject
                             </button>
                         }
+                       
 
-                        
-                        @if (request.Status == "Completed")
+                        @if (request.Status == "InProgress" && request.TechnicianStatus == "Completed")
                         {
                             <button class="btn-action btn-confirm" onclick="confirmCompletion(@request.RequestId)">
                                 <i class="bi bi-check-circle"></i> Confirm Completion
@@ -666,6 +709,28 @@
     </div>
 </div>
 
+<!-- Reject Request Modal -->
+<div class="modal-overlay" id="rejectModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Reject Maintenance Request</h2>
+            <button class="modal-close" onclick="closeRejectModal()">&times;</button>
+        </div>
+        <form id="rejectForm" method="post" asp-action="RejectRequest" asp-controller="Maintenance">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="RequestId" id="rejectRequestId" />
+            <div class="form-group">
+                <label>Reason for Rejection</label>
+                <textarea name="Reason" placeholder="Please provide a reason for rejecting this request..." required style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; min-height: 100px; resize: vertical;"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-cancel" onclick="closeRejectModal()">Cancel</button>
+                <button type="submit" class="btn-submit" style="background: #dc2626;">Reject Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <form id="confirmForm" method="post" asp-action="ConfirmCompletion" asp-controller="Maintenance">
     @Html.AntiForgeryToken()
     <input type="hidden" name="requestId" id="confirmRequestId" />
@@ -701,6 +766,18 @@
             document.getElementById('assignForm').reset();
         }
 
+        function openRejectModal(requestId) {
+            document.getElementById('rejectRequestId').value = requestId;
+            document.getElementById('rejectModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('rejectForm').reset();
+        }
+
         function confirmCompletion(requestId) {
             if (confirm('Confirm that the maintenance work has been completed satisfactorily?')) {
                 document.getElementById('confirmRequestId').value = requestId;
@@ -708,17 +785,24 @@
             }
         }
 
-        // Close modal when clicking outside
+        // Close modals when clicking outside
         document.getElementById('assignModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeAssignModal();
             }
         });
 
-        // Close modal with Escape key
+        document.getElementById('rejectModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRejectModal();
+            }
+        });
+
+        // Close modals with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeAssignModal();
+                closeRejectModal();
             }
         });
     </script>

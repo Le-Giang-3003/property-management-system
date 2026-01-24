@@ -230,6 +230,11 @@
         color: #dc2626;
     }
 
+    .request-status.rejected {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
     .request-meta {
         display: flex;
         gap: 24px;
@@ -285,6 +290,20 @@
 
     .assigned-box strong {
         color: #166534;
+    }
+
+    .estimated-cost {
+        background-color: #fef3c7;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-left: 64px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #92400e;
+    }
+
+    .estimated-cost strong {
+        color: #78350f;
     }
 
     .request-actions {
@@ -537,6 +556,7 @@
 
         .request-description,
         .assigned-box,
+        .estimated-cost,
         .request-actions {
             margin-left: 0;
         }
@@ -548,20 +568,6 @@
         .form-row {
             grid-template-columns: 1fr;
         }
-
-        .estimated-cost {
-            background-color: #fef3c7;
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-left: 64px;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: #92400e;
-        }
-
-            .estimated-cost strong {
-                color: #78350f;
-            }
     }
 </style>
 
@@ -622,6 +628,8 @@
         <button class="filter-tab" onclick="filterRequests(this, 'Pending')">Pending</button>
         <button class="filter-tab" onclick="filterRequests(this, 'InProgress')">In Progress</button>
         <button class="filter-tab" onclick="filterRequests(this, 'Completed')">Completed</button>
+        <button class="filter-tab" onclick="filterRequests(this, 'Cancelled')">Cancelled</button>
+        <button class="filter-tab" onclick="filterRequests(this, 'Rejected')">Rejected</button>
     </div>
 
     <div class="requests-container">
@@ -660,8 +668,25 @@
                     {
                         <div class="estimated-cost">
                             <strong>Estimated Cost:</strong> $@request.EstimatedCost.Value.ToString("N2")
-                            <br />
-                            <strong>Ghi chú của thợ:</strong> cho tôi xin thêm tiền uống cf
+                            @if (!string.IsNullOrEmpty(request.TechnicianNote))
+                            {
+                                <br />
+                                <strong>Ghi chú của thợ:</strong> @request.TechnicianNote
+                            }
+                        </div>
+                    }
+
+                    @if (request.ActualCost.HasValue)
+                    {
+                        <div class="estimated-cost">
+                            <strong>Actual Cost:</strong> $@request.ActualCost.Value.ToString("N2")
+                            @if (!string.IsNullOrEmpty(request.ResolutionNotes))
+                            {
+                                <br />
+                                <strong>Ghi chú của thợ:</strong>
+
+                                @request.ResolutionNotes
+                            }
                         </div>
                     }
                     

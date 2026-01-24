@@ -68,6 +68,15 @@ namespace PropertyManagementSystem.DAL.Entities
         [MaxLength(20)]
         public string TechnicianStatus { get; set; } // "", Accepted, Rejected, Finished
 
+        [MaxLength(3000)]
+        public string ReasonRejectTechnician { get; set; }
+
+        [MaxLength(3000)]
+        public string ReasonRejectLandlord { get; set; }
+
+        [MaxLength(3000)]
+        public string TechnicianNote { get; set; }
+
         // Navigation
         public Property Property { get; set; }
         public User Tenant { get; set; }
