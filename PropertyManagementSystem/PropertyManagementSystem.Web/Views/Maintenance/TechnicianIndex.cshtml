@@ -210,6 +210,16 @@
         color: #047857;
     }
 
+    .request-status.cancelled {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .request-status.rejected {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
     .request-meta {
         display: flex;
         gap: 24px;
@@ -549,6 +559,8 @@
         <button class="filter-tab" onclick="filterRequests(this, 'Assigned')">Pending</button>
         <button class="filter-tab" onclick="filterRequests(this, 'InProgress')">In Progress</button>
         <button class="filter-tab" onclick="filterRequests(this, 'Completed')">Completed</button>
+        <button class="filter-tab" onclick="filterRequests(this, 'Cancelled')">Cancelled</button>
+        <button class="filter-tab" onclick="filterRequests(this, 'Rejected')">Rejected</button>
     </div>
 
     <div class="requests-container">
@@ -649,9 +661,10 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="RequestId" id="acceptRequestId" />
             <input type="hidden" name="Status" value="Accepted" />
+            <input type="hidden" name="RejectionReason" value="" />
             <div class="form-group">
                 <label>Estimated Cost ($)</label>
-                <input type="number" name="EstimatedCost" step="0.01" min="0" placeholder="Enter estimated cost" required />
+                <input type="number" name="EstimatedCost" step="0.01" min="0.01" placeholder="Enter estimated cost" required />
             </div>
             <div class="form-group">
                 <label>Notes (Optional)</label>
@@ -676,9 +689,11 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="RequestId" id="rejectRequestId" />
             <input type="hidden" name="Status" value="Rejected" />
+            <input type="hidden" name="EstimatedCost" value="" />
+            <input type="hidden" name="Notes" value="" />
             <div class="form-group">
-                <label>Reason for Rejection</label>
-                <textarea name="Notes" placeholder="Please provide a reason..." required></textarea>
+                <label>Reason for Rejection <span style="color: #dc2626;">*</span></label>
+                <textarea name="RejectionReason" placeholder="Please provide a reason..." required></textarea>
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn-modal-cancel" onclick="closeRejectModal()">Cancel</button>

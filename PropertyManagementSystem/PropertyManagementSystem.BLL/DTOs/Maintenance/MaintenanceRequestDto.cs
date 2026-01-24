@@ -22,6 +22,9 @@ namespace PropertyManagementSystem.BLL.DTOs.Maintenance
         public string Location { get; set; }
         public string Status { get; set; }
         public string TechnicianStatus { get; set; }
+        public string ReasonRejectTechnician { get; set; }
+        public string ReasonRejectLandlord { get; set; }
+        public string TechnicianNote { get; set; }
         public DateTime RequestDate { get; set; }
         public DateOnly? AssignedDate { get; set; }
         public DateTime? RepairDate { get; set; }

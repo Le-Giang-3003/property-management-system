@@ -314,17 +314,7 @@
                             <label asp-for="Category" class="form-label">
                                 Category <span class="required">*</span>
                             </label>
-                            <select asp-for="Category" class="form-control" required>
-                                <option value="">-- Select Category --</option>
-                                <option value="Plumbing">Plumbing</option>
-                                <option value="Electrical">Electrical</option>
-                                <option value="HVAC">HVAC</option>
-                                <option value="Appliance">Appliance</option>
-                                <option value="Structural">Structural</option>
-                                <option value="Pest Control">Pest Control</option>
-                                <option value="Security">Security</option>
-                                <option value="Other">Other</option>
-                            </select>
+                            <input asp-for="Category" class="form-control" placeholder="Enter category (e.g., Plumbing, Electrical, HVAC)" required />
                             <span asp-validation-for="Category" class="text-danger"></span>
                         </div>
                     </div>

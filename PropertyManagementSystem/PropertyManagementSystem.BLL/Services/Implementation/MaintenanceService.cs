@@ -48,7 +48,10 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 RequestDate = DateTime.UtcNow,
                 ResolutionNotes = "",
                 TechnicianStatus = "",
-                TenantFeedback = ""
+                TenantFeedback = "",
+                ReasonRejectLandlord = "",
+                ReasonRejectTechnician = "",
+                TechnicianNote = ""
             };
 
             var createdRequest = await _maintenanceRepo.CreateAsync(request);
@@ -148,7 +151,8 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 return false;
 
             request.Status = "Rejected";
-            request.ResolutionNotes = dto.Reason;
+            request.ReasonRejectLandlord = dto.Reason;
+            //request.ResolutionNotes = dto.Reason;
             request.ClosedBy = landlordId;
             request.ClosedDate = DateTime.UtcNow;
 
@@ -198,12 +202,12 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (request == null || request.Property.LandlordId != landlordId)
                 return false;
 
-            if (request.Status != "Completed")
+            if (request.Status != "InProgress")
                 return false;
 
             request.ClosedDate = DateTime.UtcNow;
             request.ClosedBy = landlordId;
-            request.Status = "Closed";
+            request.Status = "Completed";
 
             await _maintenanceRepo.UpdateAsync(request);
             return true;
@@ -265,10 +269,13 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (dto.Status == "Accepted")
             {
                 request.TechnicianStatus = "Accepted";
+                request.TechnicianNote = dto.Notes;
             }
             else if (dto.Status == "Rejected")
             {
                 request.TechnicianStatus = "Rejected";
+                request.ReasonRejectTechnician = dto.RejectionReason ?? dto.Notes;
+                request.Status = "Pending";
                 request.AssignedTo = null;
                 request.AssignedDate = null;
             }
@@ -277,6 +284,11 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (!string.IsNullOrEmpty(dto.Notes))
             {
                 await AddCommentAsync(dto.RequestId, technicianId, dto.Notes);
+            }
+
+            if (!string.IsNullOrEmpty(dto.RejectionReason))
+            {
+                await AddCommentAsync(dto.RequestId, technicianId, $"Assignment rejected. Reason: {dto.RejectionReason}");
             }
 
             await _maintenanceRepo.UpdateAsync(request);
@@ -380,6 +392,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Location = r.Location,
                 Status = r.Status,
                 TechnicianStatus = r.TechnicianStatus,
+                TechnicianNote = r.TechnicianNote,
                 RequestDate = r.RequestDate,
                 AssignedDate = r.AssignedDate,
                 RepairDate = r.RepairDate,

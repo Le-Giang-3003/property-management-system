@@ -291,9 +291,21 @@ namespace PropertyManagementSystem.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RespondToAssignment(TechnicianResponseDto dto)
         {
+            // Remove validation errors for fields that are not required based on status
+            if (dto.Status == "Accepted")
+            {
+                ModelState.Remove(nameof(dto.RejectionReason));
+            }
+            else if (dto.Status == "Rejected")
+            {
+                ModelState.Remove(nameof(dto.EstimatedCost));
+                ModelState.Remove(nameof(dto.Notes));
+            }
+
             if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = "Invalid response data.";
+                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                TempData["ErrorMessage"] = $"Invalid response data: {errors}";
                 return RedirectToAction(nameof(TechnicianIndex));
             }
 
