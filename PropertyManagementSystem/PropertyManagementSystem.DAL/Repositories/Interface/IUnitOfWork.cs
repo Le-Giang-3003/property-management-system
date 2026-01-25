@@ -7,6 +7,7 @@
         IUserRoleRepository UserRoles { get; }
         IPropertyRepository Properties { get; }
         IPropertyViewingRepository PropertyViewings { get; }
+        IDocumentRepository Documents { get; }
         IRentalApplicationRepository RentalApplications { get; }
         ILeaseRepository Leases { get; }
         ILeaseSignatureRepository LeaseSignatures { get; }

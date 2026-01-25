@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Auth;
 using PropertyManagementSystem.BLL.Services.Interface;
+using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.Web.ViewModels.Auth;
 using System.Security.Claims;
 
@@ -57,6 +58,8 @@ namespace PropertyManagementSystem.Web.Controllers
                 claims,
                 CookieAuthenticationDefaults.AuthenticationScheme);
 
+            Console.WriteLine($"LOGIN UserId = {result.User.UserId}");
+
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = model.RememberMe,
@@ -75,12 +78,16 @@ namespace PropertyManagementSystem.Web.Controllers
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
+            // Redirect based on primary role
             if (result.User.Roles.Contains("Admin"))
                 return RedirectToAction("Index", "Admin");
-            if (result.User.Roles.Contains("Landlord"))
-                return RedirectToAction("Index", "Landlord");
             if (result.User.Roles.Contains("Technician"))
-                return RedirectToAction("Index", "Technician");
+                return RedirectToAction("TechnicianIndex", "Maintenance");
+            if (result.User.Roles.Contains("Member"))
+            {
+                // Member can be both Tenant and Landlord - default to Tenant view
+                return RedirectToAction("TenantIndex", "Maintenance");
+            }
 
             return RedirectToAction("Index", "Home");
         }

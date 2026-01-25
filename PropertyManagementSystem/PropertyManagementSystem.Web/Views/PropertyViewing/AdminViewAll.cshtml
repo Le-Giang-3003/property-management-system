@@ -1,0 +1,165 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.Schedule.PagedViewingResultDto
+@{
+    ViewData["Title"] = "All Viewings - Admin";
+    var filter = ViewBag.Filter as PropertyManagementSystem.BLL.DTOs.Schedule.ViewingHistoryFilterDto;
+}
+
+<h2>All Viewings (Admin)</h2>
+
+@* === FILTER FORM === *@
+<form method="get" asp-action="AdminViewAll">
+    <table cellpadding="5">
+        <tr>
+            <td>
+                <label>Status:</label><br />
+                <select name="Status">
+                    <option value="">-- All --</option>
+                    <option value="Requested" selected="@(filter?.Status == "Requested")">Requested</option>
+                    <option value="Confirmed" selected="@(filter?.Status == "Confirmed")">Confirmed</option>
+                    <option value="Completed" selected="@(filter?.Status == "Completed")">Completed</option>
+                    <option value="Cancelled" selected="@(filter?.Status == "Cancelled")">Cancelled</option>
+                    <option value="Rejected" selected="@(filter?.Status == "Rejected")">Rejected</option>
+                    <option value="Rescheduled" selected="@(filter?.Status == "Rescheduled")">Rescheduled</option>
+                </select>
+            </td>
+            <td>
+                <label>From Date:</label><br />
+                <input type="date" name="FromDate" value="@filter?.FromDate?.ToString("yyyy-MM-dd")" />
+            </td>
+            <td>
+                <label>To Date:</label><br />
+                <input type="date" name="ToDate" value="@filter?.ToDate?.ToString("yyyy-MM-dd")" />
+            </td>
+            <td>
+                <label>Search:</label><br />
+                <input type="text" name="SearchTerm" value="@filter?.SearchTerm"
+                       placeholder="Property, requester, landlord..." />
+            </td>
+            <td style="vertical-align: bottom;">
+                <button type="submit">Filter</button>
+                <a asp-action="AdminViewAll">Clear</a>
+            </td>
+        </tr>
+    </table>
+</form>
+
+<hr />
+
+@* === STATISTICS === *@
+<p>
+    Total: <strong>@Model.TotalCount</strong> records |
+    Page <strong>@Model.PageNumber</strong> of <strong>@Model.TotalPages</strong>
+</p>
+
+@* === DATA TABLE === *@
+@if (!Model.Items.Any())
+{
+    <p>No viewings found.</p>
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Property</th>
+                <th>Landlord</th>
+                <th>Requester</th>
+                <th>Requested</th>
+                <th>Scheduled</th>
+                <th>Status</th>
+                <th>Rating</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.ViewingId</td>
+                    <td>
+                        @item.PropertyName<br />
+                        <small>@item.PropertyAddress</small>
+                    </td>
+                    <td>
+                        @item.LandlordName<br />
+                        <small>@item.LandlordEmail</small>
+                    </td>
+                    <td>
+                        @item.RequesterName<br />
+                        <small>@item.RequesterEmail</small><br />
+                        <small>@item.RequesterPhone</small>
+                    </td>
+                    <td>@item.PreferredDate1?.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        @if (item.ScheduledDate.HasValue)
+                        {
+                            @item.ScheduledDate.Value.ToString("dd/MM/yyyy HH:mm")
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </td>
+                    <td>
+                        @{
+                            var statusColor = item.Status switch
+                            {
+                                "Requested" => "orange",
+                                "Confirmed" => "blue",
+                                "Completed" => "green",
+                                "Cancelled" => "gray",
+                                "Rejected" => "red",
+                                "Rescheduled" => "purple",
+                                _ => "black"
+                            };
+                        }
+                        <span style="color:@statusColor; font-weight:bold;">@item.Status</span>
+                    </td>
+                    <td>
+                        @if (item.Rating.HasValue)
+                        {
+                            <text>@item.Rating.Value / 5</text>
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.ViewingId">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* === PAGINATION === *@
+    <br />
+    <div>
+        @if (Model.HasPreviousPage)
+        {
+            <a asp-action="AdminViewAll"
+               asp-route-Status="@filter?.Status"
+               asp-route-FromDate="@filter?.FromDate?.ToString("yyyy-MM-dd")"
+               asp-route-ToDate="@filter?.ToDate?.ToString("yyyy-MM-dd")"
+               asp-route-SearchTerm="@filter?.SearchTerm"
+               asp-route-PageNumber="@(Model.PageNumber - 1)">« Previous</a>
+        }
+
+        <span> | Page @Model.PageNumber of @Model.TotalPages | </span>
+
+        @if (Model.HasNextPage)
+        {
+            <a asp-action="AdminViewAll"
+               asp-route-Status="@filter?.Status"
+               asp-route-FromDate="@filter?.FromDate?.ToString("yyyy-MM-dd")"
+               asp-route-ToDate="@filter?.ToDate?.ToString("yyyy-MM-dd")"
+               asp-route-SearchTerm="@filter?.SearchTerm"
+               asp-route-PageNumber="@(Model.PageNumber + 1)">Next »</a>
+        }
+    </div>
+}
+
+<hr />
+<p><a href="/Admin/Dashboard">← Back to Admin Dashboard</a></p>

@@ -1,7 +1,8 @@
-﻿@model PropertyManagementSystem.DAL.Entities.RentalApplication
+@model PropertyManagementSystem.DAL.Entities.RentalApplication
 @{
     ViewData["Title"] = "Chi tiết đơn xin thuê";
 
+    // ✅ VALIDATE: Chỉ cho approve/reject nếu Property thuộc về user này
     var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
     var isPropertyOwner = Model.Property?.LandlordId == userId;
     var canUpdate = isPropertyOwner && Model.Status == "Pending";

@@ -275,10 +275,10 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 response.IsFullySigned = true;
             }
             else
-            {
+        {
                 response.Message = "Ký hợp đồng thành công! Đang chờ bên còn lại ký.";
                 response.IsFullySigned = false;
-            }
+        }
 
             await _unitOfWork.SaveChangesAsync();
 
@@ -287,7 +287,7 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
             response.LeaseStatus = lease.Status;
             response.SignedDate = lease.SignedDate;
             response.NewSignature = new LeaseSignatureDto
-            {
+        {
                 SignatureId = signature.SignatureId,
                 LeaseId = signature.LeaseId,
                 UserId = signature.UserId,
@@ -302,7 +302,7 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
 
         // ✅ KIỂM TRA LEASE ĐÃ KÝ ĐẦY ĐỦ CHƯA
         public async Task<bool> IsLeaseFullySignedAsync(int leaseId)
-        {
+            {
             return await _unitOfWork.LeaseSignatures.IsFullySignedAsync(leaseId);
         }
 
@@ -524,7 +524,7 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 return response;
             }
             catch (Exception ex)
-            {
+        {
                 response.Message = $"Lỗi khi gia hạn: {ex.Message}";
                 return response;
             }

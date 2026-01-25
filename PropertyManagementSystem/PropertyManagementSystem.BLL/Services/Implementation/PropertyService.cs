@@ -1,4 +1,5 @@
-﻿using PropertyManagementSystem.BLL.Services.Interface;
+﻿using PropertyManagementSystem.BLL.DTOs.Property;
+using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
@@ -63,29 +64,25 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return await _repo.GetPropertyByIdAsync(id);
         }
 
-        public async Task<IEnumerable<Property>> SearchPropertiesAsync(string? city, string? propertyType, decimal? minRent, decimal? maxRent)
+        public async Task<IEnumerable<Property>> SearchPropertiesAsync(PropertySearchDto property)
         {
-            if (string.IsNullOrWhiteSpace(city))
-            {
-                throw new ArgumentException("City is required for search");
-            }
 
-            if (minRent.HasValue && minRent.Value < 0)
+            if (property.MinRent.HasValue && property.MinRent.Value < 0)
             {
                 throw new ArgumentException("Minimum rent cannot be negative");
             }
 
-            if (maxRent.HasValue && maxRent.Value < 0)
+            if (property.MaxRent.HasValue && property.MaxRent.Value < 0)
             {
                 throw new ArgumentException("Maximum rent cannot be negative");
             }
 
-            if (minRent.HasValue && maxRent.HasValue && minRent > maxRent)
+            if (property.MinRent.HasValue && property.MaxRent.HasValue && property.MinRent > property.MaxRent)
             {
                 throw new ArgumentException("Minimum rent cannot be greater than maximum rent");
             }
 
-            return await _repo.SearchPropertiesAsync(city, propertyType, minRent, maxRent);
+            return await _repo.SearchPropertiesAsync(property.City, property.PropertyType, property.MinRent, property.MaxRent);
         }
 
         public async Task<bool> UpdatePropertyAsync(Property property)

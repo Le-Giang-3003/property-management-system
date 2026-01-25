@@ -280,6 +280,49 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         {
             return !await _unitOfWork.PropertyViewings.HasConflictingViewingAsync(propertyId, scheduledDate, excludeViewingId);
         }
+        public async Task<PagedViewingResultDto> GetViewingHistoryAsync(
+            int? userId,
+            string? role,
+            ViewingHistoryFilterDto filter)
+        {
+            var (items, totalCount) = await _unitOfWork.PropertyViewings.GetViewingHistoryAsync(
+                userId,
+                role,
+                filter.Status,
+                filter.PropertyId,
+                filter.FromDate,
+                filter.ToDate,
+                filter.SearchTerm,
+                filter.PageNumber,
+                filter.PageSize);
+
+            return new PagedViewingResultDto
+            {
+                Items = items.Select(MapToDto),
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
+            };
+        }
+        public async Task<PagedViewingResultDto> GetAllViewingsAsync(ViewingHistoryFilterDto filter)
+        {
+            var (items, totalCount) = await _unitOfWork.PropertyViewings.GetAllViewingsAsync(
+                filter.Status,
+                filter.PropertyId,
+                filter.FromDate,
+                filter.ToDate,
+                filter.SearchTerm,
+                filter.PageNumber,
+                filter.PageSize);
+
+            return new PagedViewingResultDto
+            {
+                Items = items.Select(MapToDto),
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
+            };
+        }
 
         #endregion
 
