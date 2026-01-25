@@ -1,4 +1,5 @@
-﻿using PropertyManagementSystem.BLL.DTOs.Lease;
+﻿using Microsoft.EntityFrameworkCore;
+using PropertyManagementSystem.BLL.DTOs.Lease;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -365,5 +366,169 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
 
             await _unitOfWork.SaveChangesAsync();
         }
+        public async Task<bool> TerminateLeaseAsync(Lease lease, TerminateLeaseDto terminateDto)
+        {
+            try
+            {
+                if (lease == null || terminateDto == null)
+                    return false;
+
+                // Chỉ cho phép hủy khi đang Active
+                if (lease.Status != "Active")
+                    return false;
+
+                /// 1. Cập nhật Lease
+                lease.Status = "Terminated";
+                lease.TerminatedDate = terminateDto.TerminationDate;
+                lease.EndDate = terminateDto.TerminationDate;
+                lease.TerminationReason = terminateDto.Reason;
+
+
+                var terminationNote =
+                    $"\n\n--- HỦY HỢP ĐỒNG ---\n" +
+                    $"Ngày hủy: {terminateDto.TerminationDate:dd/MM/yyyy}\n" +
+                    $"Lý do: {terminateDto.Reason}\n" +
+                    $"Ghi nhận lúc: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+
+                lease.SpecialConditions = string.IsNullOrEmpty(lease.SpecialConditions)
+                    ? terminationNote
+                    : lease.SpecialConditions + terminationNote;
+
+                // 2. Cập nhật Property sau, qua repository riêng
+                var property = await _unitOfWork.Properties.GetPropertyByIdAsync(lease.PropertyId);
+                if (property != null)
+                {
+                    property.Status = "Available";
+                    property.UpdatedAt = DateTime.UtcNow;
+
+                    await _unitOfWork.Properties.UpdatePropertyAsync(property);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        // PropertyManagementSystem.BLL.Services.Implementation/LeaseService.cs
+        public async Task<bool> CanRenewLeaseAsync(int leaseId)
+        {
+            var lease = await _unitOfWork.Leases.GetByIdAsync(leaseId);
+
+            if (lease == null)
+                return false;
+
+            return lease.Status == "Active";
+        }
+
+        public async Task<IEnumerable<Lease>> GetRenewableLeasesAsync()
+        {
+            return await _unitOfWork.Leases.GetRenewableLeasesAsync(30);
+        }
+
+        public async Task<RenewLeaseResponseDto> RenewLeaseAsync(RenewLeaseDto dto, int renewedBy)
+        {
+            var response = new RenewLeaseResponseDto
+            {
+                Success = false,
+                Message = "Không thể gia hạn hợp đồng"
+            };
+
+            var oldLease = await _unitOfWork.Leases.GetLeaseWithDetailsAsync(dto.LeaseId);
+
+            if (oldLease == null)
+            {
+                response.Message = "Không tìm thấy hợp đồng";
+                return response;
+            }
+
+            if (oldLease.Status != "Active")
+            {
+                response.Message = "Chỉ có thể gia hạn hợp đồng đang Active";
+                return response;
+            }
+
+            if (dto.ExtensionMonths < 1 || dto.ExtensionMonths > 36)
+            {
+                response.Message = "Thời gian gia hạn phải từ 1 đến 36 tháng";
+                return response;
+            }
+
+            try
+            {
+                var newLeaseNumber = await _unitOfWork.Leases.GenerateLeaseNumberAsync();
+
+                DateTime newStartDate = oldLease.EndDate.AddDays(1);
+                DateTime newEndDate = newStartDate.AddMonths(dto.ExtensionMonths);
+                int paymentDueDay = oldLease.PaymentDueDay;
+
+                decimal monthlyRent = dto.NewMonthlyRent ?? oldLease.MonthlyRent;
+                decimal securityDeposit = dto.NewSecurityDeposit ?? oldLease.SecurityDeposit;
+
+                string renewalNote = $"\n\n--- GIA HẠN TỪ HỢP ĐỒNG {oldLease.LeaseNumber} ---\n" +
+                                   $"Hợp đồng gốc: {oldLease.LeaseNumber}\n" +
+                                   $"Kỳ hạn cũ: {oldLease.StartDate:dd/MM/yyyy} - {oldLease.EndDate:dd/MM/yyyy}\n" +
+                                   $"Gia hạn lúc: {DateTime.UtcNow:dd/MM/yyyy HH:mm:ss}\n";
+
+                if (dto.NewMonthlyRent.HasValue)
+                {
+                    renewalNote += $"Tiền thuê cũ: {oldLease.MonthlyRent:N0} VNĐ → Mới: {monthlyRent:N0} VNĐ\n";
+                }
+
+                string terms = oldLease.Terms + renewalNote;
+
+                if (!string.IsNullOrWhiteSpace(dto.AdditionalTerms))
+                {
+                    terms += $"\n--- ĐIỀU KHOẢN BỔ SUNG ---\n{dto.AdditionalTerms.Trim()}\n";
+                }
+
+                var newLease = new Lease
+                {
+                    PropertyId = oldLease.PropertyId,
+                    TenantId = oldLease.TenantId,
+                    ApplicationId = oldLease.ApplicationId,
+                    LeaseNumber = newLeaseNumber,
+                    StartDate = newStartDate,
+                    EndDate = newEndDate,
+                    MonthlyRent = monthlyRent,
+                    SecurityDeposit = securityDeposit,
+                    PaymentDueDay = paymentDueDay,
+                    PaymentFrequency = "Monthly",
+                    Terms = terms,
+                    SpecialConditions = dto.AdditionalTerms,
+                    AutoRenew = dto.AutoRenew,
+                    Status = "Draft",
+                    PreviousLeaseId = oldLease.LeaseId,  // ✅ Link với lease cũ
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var result = await _unitOfWork.Leases.CreateAsync(newLease);
+
+                // Cập nhật lease cũ
+                oldLease.Status = "Renewed";
+                oldLease.SpecialConditions = string.IsNullOrEmpty(oldLease.SpecialConditions)
+                    ? $"Đã gia hạn bằng hợp đồng {newLeaseNumber}"
+                    : oldLease.SpecialConditions + $"\n\nĐã gia hạn bằng hợp đồng {newLeaseNumber}";
+
+                await _unitOfWork.Leases.UpdateAsync(oldLease);
+                await _unitOfWork.SaveChangesAsync();
+
+                response.Success = true;
+                response.Message = "Gia hạn hợp đồng thành công! Vui lòng ký hợp đồng mới.";
+                response.NewLeaseId = result.LeaseId;
+                response.NewStartDate = newStartDate;
+                response.NewEndDate = newEndDate;
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Message = $"Lỗi khi gia hạn: {ex.Message}";
+                return response;
+            }
+        }
+
     }
 }

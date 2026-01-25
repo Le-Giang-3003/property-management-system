@@ -26,5 +26,9 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         Task<bool> CanUserSignAsync(int leaseId, int userId);
         Task<IEnumerable<LeaseSignatureDto>> GetLeaseSignaturesAsync(int leaseId);
         Task UpdateExpiredLeasesAsync();
+        Task<bool> TerminateLeaseAsync(Lease lease, TerminateLeaseDto terminateDto);
+        Task<RenewLeaseResponseDto> RenewLeaseAsync(RenewLeaseDto dto, int renewedBy);
+        Task<bool> CanRenewLeaseAsync(int leaseId);
+        Task<IEnumerable<Lease>> GetRenewableLeasesAsync();  // Lease sắp hết hạn
     }
 }

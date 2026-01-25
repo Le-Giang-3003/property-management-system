@@ -119,5 +119,41 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .OrderByDescending(l => l.StartDate)
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Lease>> GetRenewableLeasesAsync(int daysBeforeExpiry = 30)
+        {
+            var today = DateTime.UtcNow.Date;
+            var expiryDate = today.AddDays(daysBeforeExpiry);
+
+            return await _context.Leases
+                .Include(l => l.Property)
+                .Include(l => l.Tenant)
+                .Where(l => l.Status == "Active" &&
+                            l.EndDate >= today &&
+                            l.EndDate <= expiryDate)
+                .OrderBy(l => l.EndDate)
+                .ToListAsync();
+        }
+
+        public async Task<Lease?> GetLeaseWithDetailsAsync(int leaseId)
+        {
+            return await _context.Leases
+                .Include(l => l.Property)
+                    .ThenInclude(p => p.Landlord)
+                .Include(l => l.Tenant)
+                .Include(l => l.RentalApplication)
+                .Include(l => l.Signatures)
+                    .ThenInclude(s => s.User)
+                .FirstOrDefaultAsync(l => l.LeaseId == leaseId);
+        }
+
+        public async Task<IEnumerable<Lease>> GetLeasesByStatusAsync(string status)
+        {
+            return await _context.Leases
+                .Include(l => l.Property)
+                .Include(l => l.Tenant)
+                .Where(l => l.Status == status)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

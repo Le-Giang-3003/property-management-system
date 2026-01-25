@@ -19,5 +19,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<bool> UpdateAsync(Lease lease);
         Task<string> GenerateLeaseNumberAsync();
         Task<IEnumerable<Lease>> GetLeaseHistoryByPropertyIdAsync(int propertyId);
+        Task<IEnumerable<Lease>> GetRenewableLeasesAsync(int daysBeforeExpiry = 30);
+        Task<Lease?> GetLeaseWithDetailsAsync(int leaseId); 
+        Task<IEnumerable<Lease>> GetLeasesByStatusAsync(string status);
     }
 }

@@ -717,6 +717,156 @@ namespace PropertyManagementSystem.Web.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Terminate(int id)
+        {
+            var lease = await _leaseService.GetLeaseByIdAsync(id);
+
+            if (lease == null)
+                return NotFound();
+
+            if (lease.Status != "Active")
+            {
+                TempData["Error"] = "Chỉ có thể hủy hợp đồng đang Active";
+                return RedirectToAction("Details", new { id });
+            }
+
+            var viewModel = new TerminateLeaseViewModel
+            {
+                LeaseId = lease.LeaseId,
+                LeaseNumber = lease.LeaseNumber,
+                TenantName = lease.Tenant?.FullName ?? "N/A",
+                PropertyName = lease.Property?.Name ?? "N/A",
+                PropertyAddress = lease.Property?.Address ?? "N/A",
+                StartDate = lease.StartDate,
+                EndDate = lease.EndDate,
+                MonthlyRent = lease.MonthlyRent,
+
+                // default set hôm nay
+                TerminationDate = DateTime.Today
+            };
+
+            return View(viewModel);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Terminate(int id, TerminateLeaseViewModel viewModel)
+        {
+            var lease = await _leaseService.GetLeaseByIdAsync(id);
+
+            if (lease == null)
+                return NotFound();
+
+            // Map lại để chạy UI
+            viewModel.LeaseId = lease.LeaseId;
+            viewModel.LeaseNumber = lease.LeaseNumber;
+            viewModel.TenantName = lease.Tenant?.FullName ?? "N/A";
+            viewModel.PropertyName = lease.Property?.Name ?? "N/A";
+            viewModel.PropertyAddress = lease.Property?.Address ?? "N/A";
+            viewModel.StartDate = lease.StartDate;
+            viewModel.EndDate = lease.EndDate;
+            viewModel.MonthlyRent = lease.MonthlyRent;
+
+            if (!ModelState.IsValid)
+                return View(viewModel);
+
+            // Tạo DTO
+            var terminateDto = new TerminateLeaseDto
+            {
+                Reason = viewModel.Reason,
+                TerminationDate = viewModel.TerminationDate
+            };
+
+            var result = await _leaseService.TerminateLeaseAsync(lease, terminateDto);
+
+            if (result)
+            {
+                TempData["Success"] = "Hủy hợp đồng thành công";
+                return RedirectToAction("Details", new { id });
+            }
+
+            TempData["Error"] = "Không thể hủy hợp đồng";
+            return View(viewModel);
+        }
+        // Renew Lease
+        [HttpGet]
+        public async Task<IActionResult> Renew(int id)
+        {
+            var lease = await _leaseService.GetLeaseByIdAsync(id);
+
+            if (lease == null)
+                return NotFound();
+
+            if (lease.Status != "Active")
+            {
+                TempData["Error"] = "Chỉ có thể gia hạn hợp đồng đang Active";
+                return RedirectToAction("Details", new { id });
+            }
+
+            var viewModel = new RenewLeaseViewModel
+            {
+                LeaseId = lease.LeaseId,
+                LeaseNumber = lease.LeaseNumber,
+                TenantName = lease.Tenant?.FullName ?? "N/A",
+                PropertyName = lease.Property?.Name ?? "N/A",
+                PropertyAddress = lease.Property?.Address ?? "N/A",
+                StartDate = lease.StartDate,
+                EndDate = lease.EndDate,
+                CurrentMonthlyRent = lease.MonthlyRent,
+                CurrentSecurityDeposit = lease.SecurityDeposit,
+                ExtensionMonths = 12,
+                AutoRenew = lease.AutoRenew
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Renew(int id, RenewLeaseViewModel viewModel)
+        {
+            var lease = await _leaseService.GetLeaseByIdAsync(id);
+
+            if (lease == null)
+                return NotFound();
+
+            viewModel.LeaseId = lease.LeaseId;
+            viewModel.LeaseNumber = lease.LeaseNumber;
+            viewModel.TenantName = lease.Tenant?.FullName ?? "N/A";
+            viewModel.PropertyName = lease.Property?.Name ?? "N/A";
+            viewModel.PropertyAddress = lease.Property?.Address ?? "N/A";
+            viewModel.StartDate = lease.StartDate;
+            viewModel.EndDate = lease.EndDate;
+            viewModel.CurrentMonthlyRent = lease.MonthlyRent;
+            viewModel.CurrentSecurityDeposit = lease.SecurityDeposit;
+
+            if (!ModelState.IsValid)
+                return View(viewModel);
+
+            var renewDto = new RenewLeaseDto
+            {
+                LeaseId = id,
+                ExtensionMonths = viewModel.ExtensionMonths,
+                NewMonthlyRent = viewModel.NewMonthlyRent,
+                NewSecurityDeposit = viewModel.NewSecurityDeposit,
+                AdditionalTerms = viewModel.AdditionalTerms,
+                AutoRenew = viewModel.AutoRenew
+            };
+
+            var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+            var result = await _leaseService.RenewLeaseAsync(renewDto, userId);
+
+            if (result.Success)
+            {
+                TempData["Success"] = result.Message;
+                return RedirectToAction("Details", new { id = result.NewLeaseId });
+            }
+
+            TempData["Error"] = result.Message;
+            return View(viewModel);
+        }
 
     }
 }
