@@ -1,0 +1,585 @@
+@model PropertyManagementSystem.BLL.DTOs.User.UserProfileDto
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "_AuthLayout";
+}
+
+<div class="manage-profile-container">
+    <!-- Page Header -->
+    <div class="mp-header">
+        <h1 class="mp-title">My Profile</h1>
+        <p class="mp-subtitle">Manage your account settings</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="mp-alert mp-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["Success"]</span>
+            <button type="button" class="mp-alert-close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mp-alert mp-alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["Error"]</span>
+            <button type="button" class="mp-alert-close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    }
+
+    <!-- Profile Header Card -->
+    <div class="mp-profile-header-card">
+        <div class="mp-avatar-section">
+            <div class="mp-avatar">
+                @if (!string.IsNullOrEmpty(Model.Avatar))
+                {
+                    <img src="@Model.Avatar" alt="@Model.FullName" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    <span class="mp-avatar-initial" style="display: none;">
+                        @(string.IsNullOrWhiteSpace(Model.FullName) ? "U" : Model.FullName.Trim()[0].ToString().ToUpper())
+                    </span>
+                }
+                else
+                {
+                    <span class="mp-avatar-initial">
+                        @(string.IsNullOrWhiteSpace(Model.FullName) ? "U" : Model.FullName.Trim()[0].ToString().ToUpper())
+                    </span>
+                }
+            </div>
+            <div class="mp-user-info">
+                <h2 class="mp-user-name">@Model.FullName</h2>
+                <span class="mp-user-role">@(Model.Roles != null && Model.Roles.Any() ? string.Join(", ", Model.Roles) : "Tenant")</span>
+            </div>
+        </div>
+        <a href="@Url.Action("Edit", "Profile")" class="mp-btn-outline">
+            <i class="bi bi-camera"></i>
+            Change Photo
+        </a>
+    </div>
+
+    <div class="mp-content-grid">
+        <!-- Personal Information Card -->
+        <div class="mp-card mp-personal-info">
+            <div class="mp-card-header">
+                <h3 class="mp-card-title">Personal Information</h3>
+            </div>
+            <div class="mp-card-body">
+                <form id="profileForm" asp-action="UpdateProfile" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mp-form-grid">
+                        <div class="mp-form-group">
+                            <label class="mp-label">
+                                <i class="bi bi-person"></i>
+                                Full Name
+                            </label>
+                            <input type="text" name="FullName" class="mp-input"
+                                   value="@Model.FullName" placeholder="Enter your full name" />
+                        </div>
+                        <div class="mp-form-group">
+                            <label class="mp-label">
+                                <i class="bi bi-envelope"></i>
+                                Email
+                            </label>
+                            <input type="email" class="mp-input mp-input-disabled"
+                                   value="@Model.Email" disabled />
+                            <small class="mp-input-hint">Email cannot be changed</small>
+                        </div>
+                        <div class="mp-form-group">
+                            <label class="mp-label">
+                                <i class="bi bi-telephone"></i>
+                                Phone Number
+                            </label>
+                            <input type="tel" name="PhoneNumber" class="mp-input"
+                                   value="@Model.PhoneNumber" placeholder="(555) 123-4567" />
+                        </div>
+                        <div class="mp-form-group">
+                            <label class="mp-label">
+                                <i class="bi bi-geo-alt"></i>
+                                Address
+                            </label>
+                            <input type="text" name="Address" class="mp-input"
+                                   value="@Model.Address" placeholder="123 Main Street, CA 90001" />
+                        </div>
+                    </div>
+
+                    <div class="mp-form-actions">
+                        <button type="submit" class="mp-btn-primary">
+                            <i class="bi bi-check2"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password Card -->
+        <div class="mp-card mp-change-password">
+            <div class="mp-card-header">
+                <h3 class="mp-card-title">Change Password</h3>
+            </div>
+            <div class="mp-card-body">
+                <form id="passwordForm" asp-controller="Auth" asp-action="ChangePassword" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mp-form-stack">
+                        <div class="mp-form-group">
+                            <label class="mp-label">
+                                <i class="bi bi-lock"></i>
+                                Current Password
+                            </label>
+                            <div class="mp-input-password">
+                                <input type="password" name="CurrentPassword" class="mp-input"
+                                       placeholder="Enter current password" />
+                                <button type="button" class="mp-password-toggle" onclick="togglePassword(this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mp-form-group">
+                            <label class="mp-label">
+                                <i class="bi bi-lock"></i>
+                                New Password
+                            </label>
+                            <div class="mp-input-password">
+                                <input type="password" name="NewPassword" class="mp-input"
+                                       placeholder="Enter new password" />
+                                <button type="button" class="mp-password-toggle" onclick="togglePassword(this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mp-form-group">
+                            <label class="mp-label">
+                                <i class="bi bi-lock-fill"></i>
+                                Confirm New Password
+                            </label>
+                            <div class="mp-input-password">
+                                <input type="password" name="ConfirmPassword" class="mp-input"
+                                       placeholder="Confirm new password" />
+                                <button type="button" class="mp-password-toggle" onclick="togglePassword(this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mp-form-actions">
+                        <button type="submit" class="mp-btn-primary mp-btn-full">
+                            <i class="bi bi-shield-check"></i>
+                            Update Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .manage-profile-container {
+            padding: 24px 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .mp-header {
+            margin-bottom: 24px;
+        }
+
+        .mp-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .mp-subtitle {
+            font-size: 15px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Alerts */
+        .mp-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .mp-alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .mp-alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .mp-alert-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.7;
+            padding: 4px;
+        }
+
+        .mp-alert-close:hover {
+            opacity: 1;
+        }
+
+        /* Profile Header Card */
+        .mp-profile-header-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .mp-avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .mp-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .mp-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mp-avatar-initial {
+            color: white;
+            font-size: 28px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .mp-user-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .mp-user-role {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .mp-btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .mp-btn-outline:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        /* Content Grid */
+        .mp-content-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+        }
+
+        /* Cards */
+        .mp-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .mp-card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .mp-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .mp-card-body {
+            padding: 24px;
+        }
+
+        /* Forms */
+        .mp-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .mp-form-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mp-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mp-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .mp-label i {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .mp-input {
+            padding: 12px 14px;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .mp-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .mp-input-disabled {
+            background: #f8fafc;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .mp-input-hint {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* Password Input */
+        .mp-input-password {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .mp-input-password .mp-input {
+            padding-right: 44px;
+        }
+
+        .mp-password-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .mp-password-toggle:hover {
+            color: #64748b;
+        }
+
+        /* Form Actions */
+        .mp-form-actions {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .mp-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mp-btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .mp-btn-full {
+            width: 100%;
+        }
+
+        /* Responsive */
+        @@media (max-width: 1024px) {
+            .mp-content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .manage-profile-container {
+                padding: 16px;
+            }
+
+            .mp-profile-header-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+
+            .mp-avatar-section {
+                flex-direction: column;
+            }
+
+            .mp-form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Toggle password visibility
+        function togglePassword(btn) {
+            const input = btn.previousElementSibling;
+            const icon = btn.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        // Profile form submit
+        $('#profileForm').on('submit', function(e) {
+            e.preventDefault();
+
+            var form = $(this);
+            var url = '@Url.Action("UpdateProfile", "Profile")';
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: form.serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message || 'Profile updated successfully',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: response.message || 'Failed to update profile'
+                        });
+                    }
+                },
+                error: function() {
+                    // If AJAX fails, submit normally
+                    form.off('submit').submit();
+                }
+            });
+        });
+
+        // Password form validation
+        $('#passwordForm').on('submit', function(e) {
+            var newPass = $('input[name="NewPassword"]').val();
+            var confirmPass = $('input[name="ConfirmPassword"]').val();
+
+            if (newPass !== confirmPass) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'New password and confirmation do not match'
+                });
+                return false;
+            }
+
+            if (newPass.length < 6) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Password must be at least 6 characters'
+                });
+                return false;
+            }
+        });
+    </script>
+}

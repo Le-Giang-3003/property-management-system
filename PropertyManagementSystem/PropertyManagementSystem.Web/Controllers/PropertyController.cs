@@ -80,6 +80,58 @@ namespace PropertyManagementSystem.Web.Controllers
             return View("PropertyManagement", properties);
         }
 
+        /// <summary>
+        /// Search Properties with card-based UI for tenants
+        /// </summary>
+        public async Task<IActionResult> SearchProperties([FromQuery] PropertySearchDto searchDto)
+        {
+            IEnumerable<Property> properties;
+
+            try
+            {
+                if (!searchDto.IsValid(out string errorMessage))
+                {
+                    TempData["Warning"] = errorMessage;
+                    properties = await _propertyService.GetAllPropertiesAsync();
+                }
+                else if (!searchDto.HasFilters())
+                {
+                    properties = await _propertyService.GetAllPropertiesAsync();
+                }
+                else
+                {
+                    properties = await _propertyService.SearchPropertiesAsync(searchDto);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error loading properties: " + ex.Message;
+                properties = new List<Property>();
+            }
+
+            // Load favorite status
+            var userId = GetCurrentUserId();
+            if (userId > 0)
+            {
+                var favorites = await _favoritePropertyService.GetFavoritesByUserIdAsync(userId);
+                ViewBag.FavoritePropertyIds = favorites.Select(f => f.PropertyId).ToHashSet();
+            }
+            else
+            {
+                ViewBag.FavoritePropertyIds = new HashSet<int>();
+            }
+
+            // ViewBag values for form retention
+            ViewBag.City = searchDto.City;
+            ViewBag.PropertyType = searchDto.PropertyType;
+            ViewBag.MinRent = searchDto.MinRent;
+            ViewBag.MaxRent = searchDto.MaxRent;
+            ViewBag.MinBedrooms = searchDto.MinBedrooms;
+            ViewBag.PropertyTypes = GetPropertyTypesSelectList();
+
+            return View("SearchProperties", properties);
+        }
+
         #endregion
 
         #region Details

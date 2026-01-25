@@ -30,6 +30,49 @@ namespace PropertyManagementSystem.Web.Controllers
             return View(profile);
         }
 
+        // GET: /Profile/ManageProfile - Modern UI version
+        public async Task<IActionResult> ManageProfile()
+        {
+            var userId = User.GetUserId();
+            if (userId == null) return RedirectToAction("Login", "Auth");
+
+            var profile = await _profileService.GetProfileAsync(userId.Value);
+            if (profile == null)
+            {
+                TempData["Error"] = "User not found";
+                return RedirectToAction("Index", "Home");
+            }
+            return View(profile);
+        }
+
+        // POST: /Profile/UpdateProfile - AJAX endpoint
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(UpdateProfileDto model)
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+            {
+                return Json(new { success = false, message = "Please login" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = string.Join(", ", errors) });
+            }
+
+            var (success, message) = await _profileService.UpdateProfileAsync(userId.Value, model);
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success, message });
+            }
+
+            TempData[success ? "Success" : "Error"] = message;
+            return RedirectToAction("ManageProfile");
+        }
+
         // GET: /Profile/Edit
         public async Task<IActionResult> Edit()
         {
