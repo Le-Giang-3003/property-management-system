@@ -53,5 +53,14 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
 
             return (maxOrder ?? -1) + 1;
         }
+
+        public async Task<bool> UpdateCaptionAsync(int imageId, string caption)
+        {
+            var image = await GetByIdAsync(imageId);
+            if (image == null) return false;
+
+            image.Caption = caption;
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

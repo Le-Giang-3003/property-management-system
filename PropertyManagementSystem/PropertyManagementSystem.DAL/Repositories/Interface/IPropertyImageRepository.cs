@@ -9,5 +9,6 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<bool> DeleteAsync(int imageId);
         Task<bool> SetThumbnailAsync(int propertyId, int imageId);
         Task<int> GetNextDisplayOrderAsync(int propertyId);
+        Task<bool> UpdateCaptionAsync(int imageId, string caption);
     }
 }

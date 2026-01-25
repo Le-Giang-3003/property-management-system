@@ -1,0 +1,801 @@
+﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
+
+@{
+    ViewData["Title"] = "BDS của tôi";
+    Layout = "_AuthLayout";
+    var totalProperties = ViewBag.TotalProperties as int? ?? 0;
+    var availableCount = ViewBag.AvailableCount as int? ?? 0;
+    var rentedCount = ViewBag.RentedCount as int? ?? 0;
+    var maintenanceCount = ViewBag.MaintenanceCount as int? ?? 0;
+}
+
+<div class="my-properties-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">
+                <i class="bi bi-building"></i>
+                BDS của tôi
+            </h1>
+            <p class="page-subtitle">Quản lý tất cả bất động sản của bạn</p>
+        </div>
+        <div class="header-actions">
+            <a asp-action="Create" class="btn-create">
+                <i class="bi bi-plus-circle"></i>
+                Thêm BDS mới
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-icon">
+                <i class="bi bi-buildings"></i>
+            </div>
+            <div class="stat-info">
+                <h3>@totalProperties</h3>
+                <p>Tổng BDS</p>
+            </div>
+        </div>
+
+        <div class="stat-card available">
+            <div class="stat-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>@availableCount</h3>
+                <p>Có sẵn</p>
+            </div>
+        </div>
+
+        <div class="stat-card rented">
+            <div class="stat-icon">
+                <i class="bi bi-house-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3>@rentedCount</h3>
+                <p>Đã cho thuê</p>
+            </div>
+        </div>
+
+        <div class="stat-card maintenance">
+            <div class="stat-icon">
+                <i class="bi bi-tools"></i>
+            </div>
+            <div class="stat-info">
+                <h3>@maintenanceCount</h3>
+                <p>Bảo trì</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Properties List -->
+    @if (Model.Any())
+    {
+        <div class="properties-grid">
+            @foreach (var property in Model)
+            {
+                var thumbnail = property.Images?.FirstOrDefault(i => i.IsThumbnail)
+                ?? property.Images?.FirstOrDefault();
+                var imageUrl = thumbnail?.ImageUrl ?? "/images/no-image.jpg";
+
+                <div class="property-card" data-property-id="@property.PropertyId">
+                    <div class="property-image">
+                        <img src="@imageUrl" alt="@property.Name">
+                        <div class="status-badge @GetStatusClass(property.Status)">
+                            @GetStatusDisplay(property.Status)
+                        </div>
+                        @if (thumbnail?.IsThumbnail == true)
+                        {
+                            <div class="thumbnail-badge">
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="property-content">
+                        <h3 class="property-name">@property.Name</h3>
+
+                        <div class="property-meta">
+                            <span class="property-type">
+                                <i class="bi bi-house-door"></i>
+                                @property.PropertyType
+                            </span>
+                            <span class="property-location">
+                                <i class="bi bi-geo-alt"></i>
+                                @property.City
+                            </span>
+                        </div>
+
+                        <div class="property-specs">
+                            <span>
+                                <i class="bi bi-door-closed"></i>
+                                @property.Bedrooms PN
+                            </span>
+                            <span>
+                                <i class="bi bi-droplet"></i>
+                                @property.Bathrooms PT
+                            </span>
+                            <span>
+                                <i class="bi bi-rulers"></i>
+                                @property.SquareFeet.ToString("N0") ft²
+                            </span>
+                        </div>
+
+                        <div class="property-price">
+                            <span class="price-amount">@FormatVNCurrency(property.RentAmount)</span>
+                            <span class="price-period">/tháng</span>
+                        </div>
+
+                        <div class="property-footer">
+                            <div class="property-images-info">
+                                <i class="bi bi-images"></i>
+                                <span>@(property.Images?.Count ?? 0) ảnh</span>
+                            </div>
+                            <div class="property-date">
+                                <i class="bi bi-clock"></i>
+                                @property.CreatedAt.ToString("dd/MM/yyyy")
+                            </div>
+                        </div>
+
+                        <div class="property-actions">
+                            <div class="action-row">
+                                <a asp-action="Details" asp-route-id="@property.PropertyId"
+                                   class="btn-action view" title="Xem chi tiết">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@property.PropertyId"
+                                   class="btn-action edit" title="Chỉnh sửa">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="ManageImages" asp-route-id="@property.PropertyId"
+                                   class="btn-action images" title="Quản lý ảnh">
+                                    <i class="bi bi-images"></i>
+                                </a>
+                                <button type="button" class="btn-action status"
+                                        onclick="showStatusModal(@property.PropertyId, '@property.Status')"
+                                        title="Đổi trạng thái">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-building-add"></i>
+            <h3>Chưa có bất động sản nào</h3>
+            <p>Bắt đầu bằng cách thêm BDS đầu tiên của bạn</p>
+            <a asp-action="Create" class="btn-create-large">
+                <i class="bi bi-plus-circle"></i>
+                Thêm BDS đầu tiên
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Quick Status Update Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5><i class="bi bi-arrow-repeat"></i> Đổi trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalPropertyId">
+                <input type="hidden" id="modalCurrentStatus">
+
+                <div class="status-options">
+                    <button type="button" class="status-option available" data-status="Available">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Có sẵn</span>
+                    </button>
+                    <button type="button" class="status-option rented" data-status="Rented">
+                        <i class="bi bi-house-check"></i>
+                        <span>Đã thuê</span>
+                    </button>
+                    <button type="button" class="status-option maintenance" data-status="Maintenance">
+                        <i class="bi bi-tools"></i>
+                        <span>Bảo trì</span>
+                    </button>
+                    <button type="button" class="status-option unavailable" data-status="Unavailable">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Không khả dụng</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <style>
+        .my-properties-container {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .btn-create {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #16a34a;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-create:hover {
+                background: #15803d;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+            }
+
+        /* Statistics Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-card.total .stat-icon {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .stat-card.available .stat-icon {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .stat-card.rented .stat-icon {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stat-card.maintenance .stat-icon {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .stat-info h3 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .stat-info p {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Properties Grid */
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .property-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+            .property-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            }
+
+        .property-image {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+        }
+
+            .property-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s;
+            }
+
+        .property-card:hover .property-image img {
+            transform: scale(1.05);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+            .status-badge.available {
+                background: #dcfce7;
+                color: #166534;
+            }
+
+            .status-badge.rented {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .status-badge.maintenance {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .status-badge.unavailable {
+                background: #f1f5f9;
+                color: #475569;
+            }
+
+        .thumbnail-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 32px;
+            height: 32px;
+            background: #fbbf24;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            z-index: 10;
+        }
+
+        .property-content {
+            padding: 20px;
+        }
+
+        .property-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 12px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .property-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+            .property-meta span {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+        .property-specs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+            .property-specs span {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+        .property-price {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .price-amount {
+            font-size: 22px;
+            font-weight: 700;
+            color: #15803d;
+        }
+
+        .price-period {
+            font-size: 14px;
+            color: #16a34a;
+        }
+
+        .property-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+            .property-footer span {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+        .property-actions .action-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+            .btn-action.view {
+                color: #3b82f6;
+            }
+
+                .btn-action.view:hover {
+                    background: #eff6ff;
+                    border-color: #3b82f6;
+                }
+
+            .btn-action.edit {
+                color: #f59e0b;
+            }
+
+                .btn-action.edit:hover {
+                    background: #fef3c7;
+                    border-color: #f59e0b;
+                }
+
+            .btn-action.images {
+                color: #8b5cf6;
+            }
+
+                .btn-action.images:hover {
+                    background: #f5f3ff;
+                    border-color: #8b5cf6;
+                }
+
+            .btn-action.status {
+                color: #10b981;
+            }
+
+                .btn-action.status:hover {
+                    background: #d1fae5;
+                    border-color: #10b981;
+                }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: white;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e1;
+        }
+
+            .empty-state i {
+                font-size: 64px;
+                color: #cbd5e1;
+                margin-bottom: 20px;
+            }
+
+            .empty-state h3 {
+                font-size: 24px;
+                color: #1e293b;
+                margin: 0 0 12px 0;
+            }
+
+            .empty-state p {
+                font-size: 16px;
+                color: #64748b;
+                margin: 0 0 24px 0;
+            }
+
+        .btn-create-large {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            background: #16a34a;
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-create-large:hover {
+                background: #15803d;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+            }
+
+        /* Status Modal */
+        .status-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .status-option {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .status-option i {
+                font-size: 32px;
+            }
+
+            .status-option span {
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .status-option.available {
+                color: #166534;
+            }
+
+                .status-option.available:hover {
+                    background: #dcfce7;
+                    border-color: #16a34a;
+                }
+
+            .status-option.rented {
+                color: #92400e;
+            }
+
+                .status-option.rented:hover {
+                    background: #fef3c7;
+                    border-color: #f59e0b;
+                }
+
+            .status-option.maintenance {
+                color: #1e40af;
+            }
+
+                .status-option.maintenance:hover {
+                    background: #dbeafe;
+                    border-color: #3b82f6;
+                }
+
+            .status-option.unavailable {
+                color: #475569;
+            }
+
+                .status-option.unavailable:hover {
+                    background: #f1f5f9;
+                    border-color: #94a3b8;
+                }
+
+        /* Responsive */
+        @@media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .properties-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .my-properties-container {
+                padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .btn-create {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .properties-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function showStatusModal(propertyId, currentStatus) {
+            $('#modalPropertyId').val(propertyId);
+            $('#modalCurrentStatus').val(currentStatus);
+
+            // Highlight current status
+            $('.status-option').removeClass('active');
+            $(`.status-option[data-status="${currentStatus}"]`).addClass('active');
+
+            new bootstrap.Modal(document.getElementById('statusModal')).show();
+        }
+
+        $('.status-option').on('click', async function() {
+            const newStatus = $(this).data('status');
+            const propertyId = $('#modalPropertyId').val();
+            const currentStatus = $('#modalCurrentStatus').val();
+
+            if (newStatus === currentStatus) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Thông báo',
+                    text: 'Trạng thái không thay đổi',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                bootstrap.Modal.getInstance(document.getElementById('statusModal')).hide();
+                return;
+            }
+
+            try {
+                const response = await fetch('@Url.Action("QuickStatusUpdate", "Property")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    body: `propertyId=${propertyId}&newStatus=${newStatus}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: result.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    location.reload();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: error.message
+                });
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('statusModal')).hide();
+        });
+    </script>
+}
+
+@functions {
+    string GetStatusClass(string status) => status switch
+    {
+        "Available" => "available",
+        "Rented" => "rented",
+        "Maintenance" => "maintenance",
+        _ => "unavailable"
+    };
+
+    string GetStatusDisplay(string status) => status switch
+    {
+        "Available" => "Có sẵn",
+        "Rented" => "Đã thuê",
+        "Maintenance" => "Bảo trì",
+        "Unavailable" => "Không khả dụng",
+        _ => status
+    };
+
+    string FormatVNCurrency(decimal amount)
+    {
+        return amount.ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")) + " ₫";
+    }
+}

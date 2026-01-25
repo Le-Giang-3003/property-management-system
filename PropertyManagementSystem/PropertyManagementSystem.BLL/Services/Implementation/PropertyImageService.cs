@@ -189,5 +189,27 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (file.Length > 5 * 1024 * 1024)
                 throw new ArgumentException("File không được vượt quá 5MB");
         }
+
+        public async Task<bool> UpdateCaptionAsync(int imageId, int propertyId, string caption)
+        {
+            if (imageId <= 0 || propertyId <= 0)
+            {
+                throw new ArgumentException("Invalid ID");
+            }
+
+            var image = await _unitOfWork.PropertyImages.GetByIdAsync(imageId);
+            if (image == null || image.PropertyId != propertyId)
+            {
+                throw new KeyNotFoundException("Image not found or doesn't belong to this property");
+            }
+
+            // Validate caption length (optional)
+            if (!string.IsNullOrEmpty(caption) && caption.Length > 500)
+            {
+                throw new ArgumentException("Caption too long. Maximum 500 characters.");
+            }
+
+            return await _unitOfWork.PropertyImages.UpdateCaptionAsync(imageId, caption);
+        }
     }
 }
