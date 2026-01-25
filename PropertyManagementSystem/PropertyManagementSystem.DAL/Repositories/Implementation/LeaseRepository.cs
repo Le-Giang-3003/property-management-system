@@ -155,5 +155,31 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .OrderByDescending(l => l.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Lease>> GetLeasesByTenantUserIdAsync(int tenantUserId)
+        {
+            return await _dbSet
+                .Include(l => l.Property)
+                .Include(l => l.Tenant)
+                .Where(l => l.Tenant.UserId == tenantUserId)
+                .OrderByDescending(l => l.StartDate)
+                .ToListAsync();
+        }
+
+        public async Task<List<Lease>> GetExpiringByLandlordAsync(int landlordId, int daysAhead = 30)
+        {
+            var today = DateTime.UtcNow;
+            var futureDate = DateTime.UtcNow.AddDays(daysAhead);
+
+            return await _dbSet
+                .Include(c => c.Property)
+                .Include(c => c.Tenant)
+                .Where(c => c.Property.LandlordId == landlordId &&
+                           c.Status == "Active" &&
+                           c.EndDate >= today &&
+                           c.EndDate <= futureDate)
+                .OrderBy(c => c.EndDate)
+                .ToListAsync();
+        }
     }
 }

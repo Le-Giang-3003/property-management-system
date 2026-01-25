@@ -34,5 +34,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<Dictionary<string, int>> GetRequestStatsByTenantAsync(int tenantId);
         Task<Dictionary<string, int>> GetRequestStatsByLandlordAsync(int landlordId);
         Task<Dictionary<string, int>> GetRequestStatsByTechnicianAsync(int technicianId);
+
+        Task<int> GetPendingCountByLandlordAsync(int landlordId);
+        Task<List<MaintenanceRequest>> GetRecentByLandlordAsync(int landlordId, int take = 5);
     }
 }

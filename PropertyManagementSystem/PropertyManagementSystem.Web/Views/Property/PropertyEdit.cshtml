@@ -10,147 +10,145 @@
         new() { Value = "Maintenance", Text = "Bảo trì" },
         new() { Value = "Unavailable", Text = "Không khả dụng" }
     };
-    var documents = ViewBag.Documents as IEnumerable<PropertyManagementSystem.DAL.Entities.Document> ?? new List<PropertyManagementSystem.DAL.Entities.Document>();
+    var images = ViewBag.PropertyImages as List<PropertyManagementSystem.DAL.Entities.PropertyImage>
+                 ?? new List<PropertyManagementSystem.DAL.Entities.PropertyImage>();
     Layout = "_AuthLayout";
 }
 
-<div class="container mt-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1>Chỉnh sửa: @Model.Name</h1>
-            <p class="text-muted">
-                <span class="badge badge-info">@Model.Status</span>
-                <span>@Model.PropertyType • @Model.SquareFeet.ToString("N0") ft²</span>
-            </p>
+<div class="edit-property-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">
+                <i class="bi bi-pencil-square"></i>
+                Chỉnh sửa bất động sản
+            </h1>
+            <div class="property-info">
+                <span class="property-name">@Model.Name</span>
+                <span class="status-badge @GetStatusClass(Model.Status)">@GetStatusDisplay(Model.Status)</span>
+                <span class="property-meta">@Model.PropertyType • @Model.SquareFeet.ToString("N0") ft²</span>
+            </div>
         </div>
-        <div>
-            <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-primary">Xem chi tiết</a>
-            <a asp-action="Index" class="btn btn-secondary">Danh sách</a>
+        <div class="header-actions">
+            <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn-action preview">
+                <i class="bi bi-eye"></i>
+                Xem chi tiết
+            </a>
+            <a asp-action="Index" class="btn-action back">
+                <i class="bi bi-arrow-left"></i>
+                Danh sách
+            </a>
         </div>
     </div>
 
-    <!-- Notifications -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">
-            @TempData["Success"]
-            <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-            @TempData["Error"]
-            <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
-        </div>
-    }
-    @if (TempData["Warning"] != null)
-    {
-        <div class="alert alert-warning alert-dismissible fade show">
-            @TempData["Warning"]
-            <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
-        </div>
-    }
-
     <!-- Images Section -->
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-images"></i> Hình ảnh BDS
-                    @if (documents.Any())
-                    {
-                        <span class="badge badge-info">@documents.Count()</span>
-                    }
-                </h5>
-                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                    <i class="fas fa-cloud-upload"></i> Upload hình ảnh
-                </button>
-            </div>
+    <div class="images-section">
+        <div class="section-header">
+            <h3>
+                <i class="bi bi-images"></i>
+                Hình ảnh
+                @if (images.Any())
+                {
+                    <span class="count-badge">@images.Count</span>
+                }
+            </h3>
+            <button type="button" class="btn-upload-header" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-cloud-upload"></i>
+                Upload hình ảnh
+            </button>
         </div>
-        <div class="card-body">
-            @if (documents.Any())
-            {
-                <div class="row">
-                    @foreach (var doc in documents.OrderByDescending(d => d.UploadedAt))
-                    {
-                        <div class="col-md-2 col-sm-3 col-4 mb-3">
-                            <div class="card h-100 shadow-sm">
-                                @if (doc.FileType.ToLower() is "jpg" or "jpeg" or "png" or "webp")
-                                {
-                                    <img src="@doc.FileUrl" class="card-img-top" alt="@doc.FileName"
-                                         style="height: 150px; object-fit: cover; cursor: pointer;"
-                                         onclick="showImage('@doc.FileUrl', '@doc.FileName')">
-                                }
-                                else
-                                {
-                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
-                                         style="height: 150px;">
-                                        <i class="fas fa-file fa-3x text-muted"></i>
-                                    </div>
-                                }
-                                <div class="card-body p-2">
-                                    <small class="text-muted d-block text-truncate" title="@doc.FileName">
-                                        @doc.FileName
-                                    </small>
-                                    <div class="btn-group btn-group-sm w-100 mt-1">
-                                        <a href="@Url.Action("Download", "Document", new { id = doc.DocumentId })"
-                                           class="btn btn-outline-primary btn-sm">
-                                            <i class="fas fa-download"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-outline-danger btn-sm"
-                                                onclick="deleteImage(@doc.DocumentId, '@doc.FileName')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+
+        @if (images.Any())
+        {
+            <div class="images-grid">
+                @foreach (var image in images.OrderBy(i => i.DisplayOrder))
+                {
+                    <div class="image-card" data-image-id="@image.ImageId">
+                        <div class="image-preview" onclick="showImage('@image.ImageUrl', '@(image.Caption ?? Model.Name)')">
+                            <img src="@image.ImageUrl" alt="@image.Caption">
+                            @if (image.IsThumbnail)
+                            {
+                                <div class="thumbnail-badge">
+                                    <i class="bi bi-star-fill"></i> Thumbnail
                                 </div>
+                            }
+                            <div class="image-overlay">
+                                <i class="bi bi-eye"></i>
                             </div>
                         </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-4 text-muted">
-                    <i class="fas fa-images" style="font-size: 3rem;"></i>
-                    <p class="mt-2">Chưa có hình ảnh nào</p>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                        <i class="fas fa-cloud-upload"></i> Upload hình ảnh
+                        <div class="image-info">
+                            <span class="image-name" title="@image.Caption">
+                                @(string.IsNullOrEmpty(image.Caption) ? $"Ảnh {image.DisplayOrder + 1}" : image.Caption)
+                            </span>
+                            <div class="image-actions">
+                                @if (!image.IsThumbnail)
+                                {
+                                    <button type="button" class="btn-icon star"
+                                            onclick="setThumbnail(@image.ImageId)"
+                                            title="Đặt làm ảnh đại diện">
+                                        <i class="bi bi-star"></i>
+                                    </button>
+                                }
+                                <button type="button" class="btn-icon delete"
+                                        onclick="deleteImage(@image.ImageId, '@(image.Caption ?? "Ảnh")')"
+                                        title="Xóa">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="upload-empty-state">
+                <div class="upload-drop-zone" id="dropZone">
+                    <div class="upload-icon">
+                        <i class="bi bi-cloud-upload"></i>
+                    </div>
+                    <h4>Chưa có hình ảnh nào</h4>
+                    <p>Kéo thả file vào đây hoặc click để chọn file</p>
+                    <button type="button" class="btn-choose-file" onclick="document.getElementById('quickUploadInput').click()">
+                        <i class="bi bi-folder2-open"></i>
+                        Chọn file từ máy
                     </button>
+                    <small>JPG, PNG, WEBP • Tối đa 5MB mỗi file</small>
                 </div>
-            }
-        </div>
+                <input type="file" id="quickUploadInput" accept="image/*" multiple style="display: none;" onchange="handleQuickUpload(this)">
+            </div>
+        }
     </div>
 
     <!-- Edit Form -->
-    <form asp-action="Edit" method="post">
+    <form asp-action="Edit" method="post" class="edit-form">
         <input type="hidden" asp-for="PropertyId" />
         <input type="hidden" asp-for="LandlordId" />
         <input type="hidden" asp-for="CreatedAt" />
 
         @if (!ViewData.ModelState.IsValid)
         {
-            <div class="alert alert-danger">
-                <strong>Vui lòng sửa các lỗi sau:</strong>
-                <div asp-validation-summary="All" class="mb-0"></div>
+            <div class="validation-alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                <div>
+                    <strong>Vui lòng kiểm tra lại thông tin</strong>
+                    <div asp-validation-summary="All"></div>
+                </div>
             </div>
         }
 
-        <!-- Basic Info -->
-        <h3>Thông tin cơ bản</h3>
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="form-group">
-                    <label asp-for="Name">Tên BDS</label>
-                    <input asp-for="Name" class="form-control" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+        <!-- Section 1: Basic Info -->
+        <div class="form-section">
+            <h3>Thông tin cơ bản</h3>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label asp-for="Name">Tên bất động sản <span class="required">*</span></label>
+                    <input asp-for="Name" class="form-input" />
+                    <span asp-validation-for="Name" class="form-error"></span>
                 </div>
-            </div>
-            <div class="col-lg-4">
                 <div class="form-group">
-                    <label asp-for="PropertyType">Loại BDS</label>
-                    <select asp-for="PropertyType" class="form-control">
+                    <label asp-for="PropertyType">Loại bất động sản <span class="required">*</span></label>
+                    <select asp-for="PropertyType" class="form-select">
                         @foreach (var type in propertyTypes)
                         {
                             <option value="@type.Value" selected="@(type.Value == Model.PropertyType)">
@@ -158,86 +156,11 @@
                             </option>
                         }
                     </select>
-                    <span asp-validation-for="PropertyType" class="text-danger"></span>
+                    <span asp-validation-for="PropertyType" class="form-error"></span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Location -->
-        <h3>Địa chỉ</h3>
-        <div class="form-group">
-            <label asp-for="Address">Địa chỉ chi tiết</label>
-            <input asp-for="Address" class="form-control" />
-            <span asp-validation-for="Address" class="text-danger"></span>
-        </div>
-        <div class="row">
-            <div class="col-md-4">
                 <div class="form-group">
-                    <label asp-for="City">Thành Phố</label>
-                    <input asp-for="City" class="form-control" />
-                    <span asp-validation-for="City" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label asp-for="District">Quận</label>
-                    <input asp-for="District" class="form-control" />
-                    <span asp-validation-for="District" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label asp-for="ZipCode">Mã bưu điện</label>
-                    <input asp-for="ZipCode" class="form-control" />
-                    <span asp-validation-for="ZipCode" class="text-danger"></span>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label asp-for="Latitude">Latitude</label>
-                    <input asp-for="Latitude" type="number" step="0.000001" class="form-control" />
-                    <span asp-validation-for="Latitude" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label asp-for="Longitude">Longitude</label>
-                    <input asp-for="Longitude" type="number" step="0.000001" class="form-control" />
-                    <span asp-validation-for="Longitude" class="text-danger"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Specs & Status -->
-        <h3>Thông số & Trạng thái</h3>
-        <div class="row">
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label asp-for="Bedrooms">Phòng ngủ</label>
-                    <input asp-for="Bedrooms" type="number" min="0" max="20" class="form-control" />
-                    <span asp-validation-for="Bedrooms" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label asp-for="Bathrooms">Phòng tắm</label>
-                    <input asp-for="Bathrooms" type="number" min="0" max="10" class="form-control" />
-                    <span asp-validation-for="Bathrooms" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label asp-for="SquareFeet">Diện tích (ft²)</label>
-                    <input asp-for="SquareFeet" type="number" step="0.01" class="form-control" />
-                    <span asp-validation-for="SquareFeet" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label asp-for="Status">Trạng thái</label>
-                    <select asp-for="Status" class="form-control">
+                    <label asp-for="Status">Trạng thái <span class="required">*</span></label>
+                    <select asp-for="Status" class="form-select">
                         @foreach (var status in statuses)
                         {
                             <option value="@status.Value" selected="@(status.Value == Model.Status)">
@@ -245,120 +168,192 @@
                             </option>
                         }
                     </select>
-                    <span asp-validation-for="Status" class="text-danger"></span>
+                    <span asp-validation-for="Status" class="form-error"></span>
                 </div>
             </div>
         </div>
 
-        <!-- Pricing -->
-        <h3>Giá cả</h3>
-        <div class="row">
-            <div class="col-md-6">
+        <!-- Section 2: Location -->
+        <div class="form-section">
+            <h3>Địa chỉ</h3>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label asp-for="Address">Địa chỉ chi tiết <span class="required">*</span></label>
+                    <input asp-for="Address" class="form-input" />
+                    <span asp-validation-for="Address" class="form-error"></span>
+                </div>
                 <div class="form-group">
-                    <label asp-for="RentAmount">Giá thuê/tháng (₫)</label>
-                    <input asp-for="RentAmount" type="number" min="0" class="form-control" />
-                    <span asp-validation-for="RentAmount" class="text-danger"></span>
+                    <label asp-for="City">Thành phố</label>
+                    <input asp-for="City" class="form-input" />
+                    <span asp-validation-for="City" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="District">Quận / Huyện</label>
+                    <input asp-for="District" class="form-input" />
+                    <span asp-validation-for="District" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ZipCode">Mã bưu điện</label>
+                    <input asp-for="ZipCode" class="form-input" />
+                    <span asp-validation-for="ZipCode" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Latitude">Latitude</label>
+                    <input asp-for="Latitude" type="number" step="0.000001" class="form-input" />
+                    <span asp-validation-for="Latitude" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Longitude">Longitude</label>
+                    <input asp-for="Longitude" type="number" step="0.000001" class="form-input" />
+                    <span asp-validation-for="Longitude" class="form-error"></span>
                 </div>
             </div>
-            <div class="col-md-6">
+        </div>
+
+        <!-- Section 3: Specs -->
+        <div class="form-section">
+            <h3>Thông số</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="Bedrooms">Phòng ngủ <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-door-closed"></i>
+                        <input asp-for="Bedrooms" type="number" min="0" max="20" class="form-input" />
+                    </div>
+                    <span asp-validation-for="Bedrooms" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Bathrooms">Phòng tắm <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-droplet"></i>
+                        <input asp-for="Bathrooms" type="number" min="0" max="10" class="form-input" />
+                    </div>
+                    <span asp-validation-for="Bathrooms" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SquareFeet">Diện tích (ft²) <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-rulers"></i>
+                        <input asp-for="SquareFeet" type="number" step="0.01" class="form-input" />
+                    </div>
+                    <span asp-validation-for="SquareFeet" class="form-error"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Pricing -->
+        <div class="form-section">
+            <h3>Giá cả</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="RentAmount">Giá thuê/tháng (₫) <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-currency-dollar"></i>
+                        <input asp-for="RentAmount" type="number" min="0" class="form-input" />
+                    </div>
+                    <span asp-validation-for="RentAmount" class="form-error"></span>
+                </div>
                 <div class="form-group">
                     <label asp-for="DepositAmount">Tiền cọc (₫)</label>
-                    <input asp-for="DepositAmount" type="number" min="0" class="form-control" />
-                    <span asp-validation-for="DepositAmount" class="text-danger"></span>
+                    <div class="input-with-icon">
+                        <i class="bi bi-piggy-bank"></i>
+                        <input asp-for="DepositAmount" type="number" min="0" class="form-input" />
+                    </div>
+                    <span asp-validation-for="DepositAmount" class="form-error"></span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Description & Features -->
-        <h3>Mô tả & Tiện ích</h3>
-        <div class="form-group">
-            <label asp-for="Description">Mô tả chi tiết</label>
-            <textarea asp-for="Description" rows="5" class="form-control"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="form-group">
-                    <label asp-for="Amenities">Tiện ích</label>
-                    <textarea asp-for="Amenities" rows="3" class="form-control"></textarea>
-                    <small class="form-text text-muted">Phân cách bằng dấu phẩy</small>
-                    <span asp-validation-for="Amenities" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="form-group">
-                    <label asp-for="UtilitiesIncluded">Tiện ích đi kèm</label>
-                    <textarea asp-for="UtilitiesIncluded" rows="3" class="form-control"></textarea>
-                    <small class="form-text text-muted">Phân cách bằng dấu phẩy</small>
-                    <span asp-validation-for="UtilitiesIncluded" class="text-danger"></span>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="form-check">
-                    <input asp-for="IsFurnished" class="form-check-input" type="checkbox" />
-                    <label class="form-check-label" asp-for="IsFurnished">Nội thất đầy đủ</label>
-                </div>
-                <div class="form-check">
-                    <input asp-for="PetsAllowed" class="form-check-input" type="checkbox" />
-                    <label class="form-check-label" asp-for="PetsAllowed">Cho phép thú cưng</label>
-                </div>
-            </div>
-            <div class="col-lg-6">
                 <div class="form-group">
                     <label asp-for="AvailableFrom">Có sẵn từ ngày</label>
-                    <input asp-for="AvailableFrom" type="date" class="form-control" />
-                    <span asp-validation-for="AvailableFrom" class="text-danger"></span>
+                    <input asp-for="AvailableFrom" type="date" class="form-input" />
+                    <span asp-validation-for="AvailableFrom" class="form-error"></span>
                 </div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="form-group mt-4">
-            <button type="submit" class="btn btn-primary">Cập nhật BDS</button>
-            <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-info">Xem trước</a>
-            <a asp-action="Index" class="btn btn-secondary">Danh sách</a>
+        <!-- Section 5: Description & Amenities -->
+        <div class="form-section">
+            <h3>Mô tả & Tiện ích</h3>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label asp-for="Description">Mô tả chi tiết</label>
+                    <textarea asp-for="Description" rows="5" class="form-textarea"></textarea>
+                    <span asp-validation-for="Description" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Amenities">Tiện ích</label>
+                    <textarea asp-for="Amenities" rows="3" class="form-textarea"></textarea>
+                    <small class="form-hint">Phân cách bằng dấu phẩy</small>
+                    <span asp-validation-for="Amenities" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="UtilitiesIncluded">Tiện ích đi kèm</label>
+                    <textarea asp-for="UtilitiesIncluded" rows="3" class="form-textarea"></textarea>
+                    <small class="form-hint">Phân cách bằng dấu phẩy</small>
+                    <span asp-validation-for="UtilitiesIncluded" class="form-error"></span>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input asp-for="IsFurnished" type="checkbox" class="checkbox-input">
+                    <span class="checkbox-text">
+                        <i class="bi bi-check-circle"></i>
+                        Nội thất đầy đủ
+                    </span>
+                </label>
+                <label class="checkbox-label">
+                    <input asp-for="PetsAllowed" type="checkbox" class="checkbox-input">
+                    <span class="checkbox-text">
+                        <i class="bi bi-check-circle"></i>
+                        Cho phép nuôi thú cưng
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="bi bi-check-lg"></i>
+                Cập nhật bất động sản
+            </button>
+            <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn-preview">
+                <i class="bi bi-eye"></i>
+                Xem trước
+            </a>
+            <a asp-action="Index" class="btn-cancel">
+                Hủy bỏ
+            </a>
         </div>
     </form>
 </div>
 
 <!-- Upload Modal -->
 <div class="modal fade" id="uploadModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-cloud-upload"></i> Upload hình ảnh
-                </h5>
-                <button type="button" class="close text-white" data-bs-dismiss="modal">&times;</button>
+            <div class="modal-header">
+                <h5><i class="bi bi-cloud-upload"></i> Upload hình ảnh</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="uploadForm" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="entityType" value="Property" />
-                <input type="hidden" name="entityId" value="@Model.PropertyId" />
-                <input type="hidden" name="documentType" value="Image" />
+                <input type="hidden" name="propertyId" value="@Model.PropertyId" />
 
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Chọn hình ảnh <span class="text-danger">*</span></label>
-                        <input type="file" name="file" id="fileInput" class="form-control-file"
-                               accept="image/*" required />
-                        <small class="form-text text-muted">JPG, PNG, WEBP. Tối đa 5MB.</small>
+                        <input type="file" name="files" id="fileInput" class="form-input"
+                               accept="image/*" multiple required />
+                        <small class="form-hint">Có thể chọn nhiều ảnh. JPG, PNG, WEBP. Tối đa 5MB/file</small>
                     </div>
 
-                    <div class="form-group">
-                        <label>Mô tả (không bắt buộc)</label>
-                        <textarea name="description" class="form-control" rows="2"></textarea>
-                    </div>
-
-                    <div id="imagePreview"></div>
+                    <div id="imagePreview" class="image-preview-container"></div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn btn-primary" id="uploadBtn">
-                        <i class="fas fa-upload"></i> Upload
+                        <i class="bi bi-upload"></i> Upload
                     </button>
                 </div>
             </form>
@@ -368,14 +363,14 @@
 
 <!-- View Image Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="imageTitle"></h5>
-                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                <h5 id="imageTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center">
-                <img id="imageView" src="" class="img-fluid" alt="">
+            <div class="modal-body p-0">
+                <img id="imageView" src="" class="w-100" alt="">
             </div>
         </div>
     </div>
@@ -385,15 +380,715 @@
     @Html.AntiForgeryToken()
 </form>
 
+@section Styles {
+    <style>
+        .thumbnail-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #fbbf24;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-icon.star:hover {
+            border-color: #fbbf24;
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+        .edit-property-container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-title i {
+                color: #3b82f6;
+            }
+
+        .property-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .property-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .property-meta {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-action.preview {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+                .btn-action.preview:hover {
+                    background: #bfdbfe;
+                }
+
+            .btn-action.back {
+                background: #f1f5f9;
+                color: #475569;
+            }
+
+                .btn-action.back:hover {
+                    background: #e2e8f0;
+                }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+            .status-badge.available {
+                background: #dcfce7;
+                color: #166534;
+            }
+
+            .status-badge.rented {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .status-badge.maintenance {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .status-badge.unavailable {
+                background: #f1f5f9;
+                color: #475569;
+            }
+
+        /* Images Section */
+        .images-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+            .section-header h3 {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+        .count-badge {
+            padding: 4px 10px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-upload-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-upload-header:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+
+        /* Images Grid */
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .image-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+            .image-card:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transform: translateY(-2px);
+            }
+
+        .image-preview {
+            position: relative;
+            width: 100%;
+            height: 160px;
+            overflow: hidden;
+            cursor: pointer;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .image-preview img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s;
+            }
+
+        .image-card:hover .image-preview img {
+            transform: scale(1.1);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .image-preview:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .image-overlay i {
+            font-size: 32px;
+            color: white;
+        }
+
+        .image-preview.file-icon {
+            color: #94a3b8;
+            font-size: 48px;
+        }
+
+        .image-info {
+            padding: 12px;
+        }
+
+        .image-name {
+            display: block;
+            font-size: 12px;
+            color: #475569;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 8px;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-align: center;
+        }
+
+            .btn-icon:hover {
+                border-color: #3b82f6;
+                background: #eff6ff;
+                color: #3b82f6;
+            }
+
+            .btn-icon.delete:hover {
+                border-color: #dc2626;
+                background: #fef2f2;
+                color: #dc2626;
+            }
+
+        /* Upload Empty State */
+        .upload-empty-state {
+            padding: 40px 20px;
+        }
+
+        .upload-drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+            .upload-drop-zone:hover {
+                border-color: #3b82f6;
+                background: #eff6ff;
+            }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+            .upload-icon i {
+                font-size: 36px;
+                color: #3b82f6;
+            }
+
+        .upload-drop-zone h4 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .upload-drop-zone p {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0 0 20px 0;
+        }
+
+        .btn-choose-file {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+            .btn-choose-file:hover {
+                background: #2563eb;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+
+        .upload-drop-zone small {
+            display: block;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* Drag and Drop States */
+        .upload-drop-zone.drag-over {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+            .upload-drop-zone.drag-over .upload-icon {
+                transform: scale(1.1);
+            }
+
+        /* Form Section */
+        .form-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+            .form-section h3 {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0 0 20px 0;
+            }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .form-group.full-width {
+                grid-column: 1 / -1;
+            }
+
+            .form-group label {
+                font-size: 14px;
+                font-weight: 500;
+                color: #334155;
+            }
+
+        .required {
+            color: #ef4444;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #1e293b;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+            .form-input:focus,
+            .form-select:focus,
+            .form-textarea:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+            .input-with-icon i {
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94a3b8;
+            }
+
+            .input-with-icon .form-input {
+                padding-left: 44px;
+            }
+
+        .form-hint {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: #ef4444;
+        }
+
+        /* Checkbox Group */
+        .checkbox-group {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox-input {
+            display: none;
+        }
+
+        .checkbox-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            padding: 10px 16px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+            .checkbox-text i {
+                color: #cbd5e1;
+            }
+
+        .checkbox-input:checked + .checkbox-text {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            color: #1e293b;
+        }
+
+            .checkbox-input:checked + .checkbox-text i {
+                color: #3b82f6;
+            }
+
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            padding: 24px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            position: sticky;
+            bottom: 20px;
+        }
+
+        .btn-submit {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-submit:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+
+        .btn-preview {
+            padding: 14px 24px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+            .btn-preview:hover {
+                background: #e2e8f0;
+            }
+
+        .btn-cancel {
+            padding: 14px 24px;
+            background: transparent;
+            color: #64748b;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-cancel:hover {
+                background: #f1f5f9;
+            }
+
+        /* Validation Alert */
+        .validation-alert {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            color: #991b1b;
+        }
+
+            .validation-alert i {
+                font-size: 24px;
+                flex-shrink: 0;
+            }
+
+        /* Modal */
+        .image-preview-container {
+            margin-top: 16px;
+        }
+
+            .image-preview-container img {
+                width: 100%;
+                border-radius: 8px;
+            }
+
+        /* Responsive */
+        @@media (max-width: 1024px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .edit-property-container {
+                padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .btn-action {
+                justify-content: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .images-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-actions {
+                flex-direction: column-reverse;
+            }
+
+            .btn-submit,
+            .btn-preview {
+                width: 100%;
+            }
+
+            .upload-drop-zone {
+                padding: 40px 20px;
+            }
+
+            .upload-icon {
+                width: 60px;
+                height: 60px;
+            }
+
+                .upload-icon i {
+                    font-size: 28px;
+                }
+        }
+    </style>
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Auto-hide alerts
-        setTimeout(() => $('.alert').fadeOut('slow'), 5000);
+        const propertyId = @Model.PropertyId;
+        // Quick upload handler
+        function handleQuickUpload(input) {
+            if (input.files && input.files.length > 0) {
+                const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+                const modalFileInput = document.getElementById('fileInput');
 
-        // Upload
-                document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+                const dataTransfer = new DataTransfer();
+                for (let file of input.files) {
+                    dataTransfer.items.add(file);
+                }
+                modalFileInput.files = dataTransfer.files;
+
+                const event = new Event('change');
+                modalFileInput.dispatchEvent(event);
+
+                modal.show();
+            }
+        }
+
+        //  Upload form
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('uploadBtn');
             btn.disabled = true;
@@ -401,18 +1096,15 @@
 
             try {
                 const formData = new FormData(this);
-
-                const response = await fetch('@Url.Action("Upload", "Document")', {
+                const response = await fetch('@Url.Action("UploadImages", "Property")', {
                     method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'  // ✅ Thêm header để controller biết đây là AJAX
-                    },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: formData
                 });
 
-                const result = await response.json();  // ✅ Parse JSON response
+                const result = await response.json();
 
-                if (result.success) {  
+                if (result.success) {
                     await Swal.fire({
                         icon: 'success',
                         title: 'Thành công!',
@@ -422,65 +1114,189 @@
                     });
                     location.reload();
                 } else {
-                    throw new Error(result.message);  
+                    throw new Error(result.message);
                 }
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi!',
-                    text: error.message || 'Có lỗi xảy ra khi upload file'
+                    text: error.message || 'Có lỗi xảy ra'
                 });
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-upload"></i> Upload';
+                btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
             }
         });
 
-        // Preview
+        // Preview multiple images
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const preview = document.getElementById('imagePreview');
             preview.innerHTML = '';
 
-            if (this.files[0] && this.files[0].type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    preview.innerHTML = `<img src="${e.target.result}" class="img-thumbnail mt-2" style="max-height: 200px;">`;
-                };
-                reader.readAsDataURL(this.files[0]);
+            if (this.files.length > 0) {
+                preview.innerHTML = '<div class="preview-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px;"></div>';
+                const grid = preview.querySelector('.preview-grid');
+
+                Array.from(this.files).forEach((file, index) => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const div = document.createElement('div');
+                            div.innerHTML = `
+                                <img src="${e.target.result}" class="img-thumbnail" style="width: 100%; height: 100px; object-fit: cover;">
+                                <small class="d-block text-center mt-1">${file.name}</small>
+                            `;
+                            grid.appendChild(div);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
             }
         });
 
         // Show image
-        function showImage(url, filename) {
-            document.getElementById('imageTitle').textContent = filename;
+        function showImage(url, caption) {
+            document.getElementById('imageTitle').textContent = caption;
             document.getElementById('imageView').src = url;
-            $('#imageModal').modal('show');
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
         }
 
-        // Delete
-        function deleteImage(id, filename) {
+        // Set thumbnail
+        async function setThumbnail(imageId) {
+            try {
+                const response = await fetch('@Url.Action("SetThumbnail", "Property")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `imageId=${imageId}&propertyId=${propertyId}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: result.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    location.reload();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: error.message
+                });
+            }
+        }
+
+        // Delete image
+        function deleteImage(imageId, caption) {
             Swal.fire({
                 title: 'Xóa hình ảnh?',
-                text: `Xóa "${filename}"?`,
+                text: `Xóa "${caption}"?`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
+                confirmButtonColor: '#dc2626',
                 confirmButtonText: 'Xóa',
                 cancelButtonText: 'Hủy'
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
-                    const form = document.getElementById('deleteForm');
-                    form.action = '@Url.Action("Delete", "Document")/' + id + '?returnUrl=' + encodeURIComponent(window.location.pathname);
-                    form.submit();
+                    try {
+                        const response = await fetch('@Url.Action("DeleteImage", "Property")', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: `imageId=${imageId}&propertyId=${propertyId}`
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Đã xóa!',
+                                text: data.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            location.reload();
+                        } else {
+                            throw new Error(data.message);
+                        }
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi!',
+                            text: error.message
+                        });
+                    }
                 }
             });
         }
 
-        // Money input
-        ['RentAmount', 'DepositAmount'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input) input.addEventListener('input', function() {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
+        // Drag and drop
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropZone = document.getElementById('dropZone');
+
+            if (dropZone) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, preventDefaults, false);
+                });
+
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, () => {
+                        dropZone.classList.add('drag-over');
+                    });
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, () => {
+                        dropZone.classList.remove('drag-over');
+                    });
+                });
+
+                dropZone.addEventListener('drop', function(e) {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const input = document.getElementById('quickUploadInput');
+                        input.files = files;
+                        handleQuickUpload(input);
+                    }
+                });
+            }
         });
+
     </script>
+}
+
+@functions {
+    string GetStatusClass(string status) => status switch
+    {
+        "Available" => "available",
+        "Rented" => "rented",
+        "Maintenance" => "maintenance",
+        _ => "unavailable"
+    };
+
+    string GetStatusDisplay(string status) => status switch
+    {
+        "Available" => "Có sẵn",
+        "Rented" => "Đã thuê",
+        "Maintenance" => "Bảo trì",
+        "Unavailable" => "Không khả dụng",
+        _ => status
+    };
 }

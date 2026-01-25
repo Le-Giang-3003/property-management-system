@@ -58,7 +58,7 @@ namespace PropertyManagementSystem.Web.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                TempData["ErrorMessage"] = ex.Message;
                 return View(vm);
             }
         }

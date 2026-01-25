@@ -14,14 +14,17 @@ namespace PropertyManagementSystem.Web.Controllers
         private readonly IUserService _userService;
         private readonly IFavoritePropertyService _favoritePropertyService;
         private readonly IDocumentService _documentService;
+        private readonly IPropertyImageService _propertyImageService;
 
         public PropertyController(IPropertyService propertyService, 
-            IUserService userService, IFavoritePropertyService favoritePropertyService, IDocumentService documentService)
+            IUserService userService, IFavoritePropertyService favoritePropertyService,
+            IDocumentService documentService, IPropertyImageService propertyImageService)
         {
             _propertyService = propertyService;
             _userService = userService;
             _favoritePropertyService = favoritePropertyService;
             _documentService = documentService;
+            _propertyImageService = propertyImageService;
         }
 
         #region Index & Search
@@ -100,8 +103,8 @@ namespace PropertyManagementSystem.Web.Controllers
             {
                 ViewBag.IsFavorited = false;
             }
-            var documents = await _documentService.GetDocumentsByEntityAsync("Property", id);
-            ViewBag.Documents = documents;
+            var images = await _propertyImageService.GetImagesByPropertyIdAsync(id);
+            ViewBag.PropertyImages = images;
 
             return View("PropertyDetail", property);
         }
@@ -210,9 +213,11 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var documents = await _documentService.GetDocumentsByEntityAsync("Property", id);
-            ViewBag.Documents = documents;
+            // Lấy images từ PropertyImageService thay vì DocumentService
+            var images = await _propertyImageService.GetImagesByPropertyIdAsync(id);
+            ViewBag.PropertyImages = images;
             ViewBag.PropertyTypes = GetPropertyTypesSelectList();
+
             return View("PropertyEdit", property);
         }
 
@@ -538,6 +543,140 @@ namespace PropertyManagementSystem.Web.Controllers
             {
                 TempData["Error"] = "Lỗi: " + ex.Message;
                 return RedirectToAction(nameof(MyFavorites));
+            }
+        }
+
+        #endregion
+
+        #region Property Images
+
+        [HttpGet]
+        public async Task<IActionResult> ManageImages(int id)
+        {
+            var property = await _propertyService.GetPropertyByIdAsync(id);
+            if (property == null)
+            {
+                TempData["Error"] = "Không tìm thấy BDS.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Authorization
+            var currentUserId = GetCurrentUserId();
+            if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
+            {
+                TempData["Error"] = "Bạn không có quyền quản lý ảnh BDS này.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var images = await _propertyImageService.GetImagesByPropertyIdAsync(id);
+            ViewBag.Property = property;
+            ViewBag.PropertyId = id;
+
+            return View("PropertyManageImages", images);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadImages(int propertyId, List<IFormFile> files)
+        {
+            try
+            {
+                var property = await _propertyService.GetPropertyByIdAsync(propertyId);
+                if (property == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                }
+
+                // Authorization
+                var currentUserId = GetCurrentUserId();
+                if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
+                {
+                    return Json(new { success = false, message = "Không có quyền" });
+                }
+
+                if (files == null || !files.Any())
+                {
+                    return Json(new { success = false, message = "Chưa chọn file" });
+                }
+
+                var uploadedImages = await _propertyImageService.UploadMultipleImagesAsync(propertyId, files);
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"✅ Upload thành công {uploadedImages.Count} ảnh",
+                    count = uploadedImages.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteImage(int imageId, int propertyId)
+        {
+            try
+            {
+                var property = await _propertyService.GetPropertyByIdAsync(propertyId);
+                if (property == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                }
+
+                // Authorization
+                var currentUserId = GetCurrentUserId();
+                if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
+                {
+                    return Json(new { success = false, message = "Không có quyền" });
+                }
+
+                var result = await _propertyImageService.DeleteImageAsync(imageId, propertyId);
+
+                return Json(new
+                {
+                    success = result,
+                    message = result ? " Đã xóa ảnh" : " Không thể xóa"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetThumbnail(int imageId, int propertyId)
+        {
+            try
+            {
+                var property = await _propertyService.GetPropertyByIdAsync(propertyId);
+                if (property == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                }
+
+                // Authorization
+                var currentUserId = GetCurrentUserId();
+                if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
+                {
+                    return Json(new { success = false, message = "Không có quyền" });
+                }
+
+                var result = await _propertyImageService.SetThumbnailAsync(propertyId, imageId);
+
+                return Json(new
+                {
+                    success = result,
+                    message = result ? " Đã đặt làm ảnh đại diện" : " Không thể cập nhật"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 

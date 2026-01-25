@@ -1,0 +1,171 @@
+﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.Document>
+
+@{
+    ViewData["Title"] = "Tài liệu hợp đồng thuê";
+    var groupedDocs = Model?.GroupBy(d => d.EntityId).OrderByDescending(g => g.First().UploadedAt);
+    Layout = "_AuthLayout";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2>
+                <i class="fas fa-file-contract text-primary"></i>
+                Tài liệu hợp đồng thuê của tôi
+            </h2>
+            <p class="text-muted">Xem và tải xuống các tài liệu liên quan đến hợp đồng thuê nhà</p>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Grouped by Lease -->
+        @foreach (var leaseGroup in groupedDocs)
+        {
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-home"></i> Hợp đồng thuê #@leaseGroup.Key
+                        <span class="badge bg-light text-dark ms-2">
+                            @leaseGroup.Count() tài liệu
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        @foreach (var doc in leaseGroup.OrderByDescending(d => d.UploadedAt))
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card h-100 border hover-shadow">
+                                    <div class="card-body">
+                                        <!-- File Icon & Info -->
+                                        <div class="d-flex align-items-start mb-3">
+                                            @{
+                                                var iconClass = doc.FileType?.ToLower() switch
+                                                {
+                                                    "pdf" => "fa-file-pdf text-danger",
+                                                    "docx" or "doc" => "fa-file-word text-primary",
+                                                    "xlsx" or "xls" => "fa-file-excel text-success",
+                                                    "jpg" or "jpeg" or "png" or "webp" => "fa-file-image text-info",
+                                                    _ => "fa-file text-secondary"
+                                                };
+                                            }
+                                            <i class="fas @iconClass fa-3x me-3"></i>
+                                            <div class="flex-grow-1">
+                                                <h6 class="card-title mb-1 text-truncate" title="@doc.FileName">
+                                                    @doc.FileName
+                                                </h6>
+                                                <small class="text-muted d-block">
+                                                    <i class="far fa-calendar"></i>
+                                                    @doc.UploadedAt.ToString("dd/MM/yyyy HH:mm")
+                                                </small>
+                                                <small class="text-muted d-block">
+                                                    <i class="fas fa-hdd"></i>
+                                                    @((doc.FileSize / 1024.0 / 1024.0).ToString("0.##")) MB
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <!-- Description -->
+                                        @if (!string.IsNullOrEmpty(doc.Description))
+                                        {
+                                            <p class="card-text text-muted small mb-3">
+                                                <i class="fas fa-info-circle"></i> @doc.Description
+                                            </p>
+                                        }
+
+                                        <!-- Badges -->
+                                        <div class="mb-3">
+                                            <span class="badge bg-@(doc.DocumentType == "Contract" ? "success" : "info") me-1">
+                                                @doc.DocumentType
+                                            </span>
+                                            <span class="badge bg-secondary">
+                                                @doc.FileType?.ToUpper()
+                                            </span>
+                                        </div>
+
+                                        <!-- Uploaded By -->
+                                        @if (doc.UploadedByUser != null)
+                                        {
+                                            <small class="text-muted">
+                                                <i class="fas fa-user"></i>
+                                                Uploaded by: @doc.UploadedByUser.FullName
+                                            </small>
+                                        }
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="card-footer bg-white border-top">
+                                        <div class="d-grid gap-2">
+                                            <a asp-action="Download" asp-route-id="@doc.DocumentId"
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fas fa-download"></i> Tải xuống
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@doc.DocumentId"
+                                               class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-eye"></i> Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="alert alert-info d-flex align-items-center shadow-sm">
+            <i class="fas fa-info-circle fa-3x me-3"></i>
+            <div>
+                <h5 class="mb-1">Chưa có tài liệu hợp đồng</h5>
+                <p class="mb-0">
+                    Bạn chưa có tài liệu hợp đồng thuê nào.
+                    Vui lòng liên hệ với chủ nhà nếu cần.
+                </p>
+            </div>
+        </div>
+    }
+
+    <!-- Back Button -->
+    <div class="mt-4 mb-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .hover-shadow {
+            transition: all 0.3s ease;
+        }
+
+            .hover-shadow:hover {
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+                transform: translateY(-2px);
+            }
+
+        .text-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Fade in animation
+            $('.card').hide().fadeIn(800);
+
+            // Tooltip for file names
+            $('[title]').tooltip();
+        });
+    </script>
+}

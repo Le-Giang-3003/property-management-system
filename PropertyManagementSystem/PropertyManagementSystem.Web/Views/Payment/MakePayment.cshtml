@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Thanh toán hóa đơn";
-    Layout = "_Layout";
+    Layout = "_AuthLayout";
 }
 
 <div class="container mt-5">
@@ -64,7 +64,10 @@
                 </div>
 
                 <!-- Display validation summary -->
-                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+                        @if (TempData["ErrorMessage"] != null)
+                    {
+                    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+                    }
             </form>
         </div>
 

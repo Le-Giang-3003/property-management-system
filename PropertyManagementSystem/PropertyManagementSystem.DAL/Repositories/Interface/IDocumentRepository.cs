@@ -11,5 +11,6 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<bool> SoftDeleteAsync(int documentId, int deletedBy);
         Task<bool> RestoreDocumentAsync(int documentId);
         Task<IEnumerable<Document>> GetDeletedDocumentsAsync();
+        Task<IEnumerable<Document>> GetDocumentsByEntityIdsAsync(string entityType, IEnumerable<int> entityIds);
     }
 }
