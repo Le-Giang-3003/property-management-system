@@ -237,7 +237,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 { "Assigned", requests.Count(r => r.Status == "Assigned") },
                 { "InProgress", requests.Count(r => r.Status == "InProgress") },
                 { "Completed", requests.Count(r => r.Status == "Completed") },
-                { "Cancelled", requests.Count(r => r.Status == "Cancelled") }
+                { "Cancelled", requests.Count(r => r.Status == "Cancelled") },
+                { "Rejected", requests.Count(r => r.Status == "Rejected") }
             };
         }
 
@@ -255,7 +256,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 { "Assigned", requests.Count(r => r.Status == "Assigned") },
                 { "InProgress", requests.Count(r => r.Status == "InProgress") },
                 { "Completed", requests.Count(r => r.Status == "Completed") },
-                { "Cancelled", requests.Count(r => r.Status == "Cancelled") }
+                { "Cancelled", requests.Count(r => r.Status == "Cancelled") },
+                { "Rejected", requests.Count(r => r.Status == "Rejected") }
             };
         }
 

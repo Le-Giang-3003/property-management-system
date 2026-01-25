@@ -734,6 +734,140 @@ namespace PropertyManagementSystem.Web.Controllers
 
         #endregion
 
+        #region My Properties (Landlord)
+        /// <summary>
+        /// Display all properties of current landlord
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> MyProperties()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId <= 0)
+                {
+                    TempData["Error"] = "Vui lòng đăng nhập";
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var properties = await _propertyService.GetPropertiesByLandlordIdAsync(userId);
+
+                // Load images for each property
+                foreach (var property in properties)
+                {
+                    var images = await _propertyImageService.GetImagesByPropertyIdAsync(property.PropertyId);
+                    property.Images = images.ToList();
+                }
+
+                ViewBag.TotalProperties = properties.Count();
+                ViewBag.AvailableCount = properties.Count(p => p.Status == "Available");
+                ViewBag.RentedCount = properties.Count(p => p.Status == "Rented");
+                ViewBag.MaintenanceCount = properties.Count(p => p.Status == "Maintenance");
+
+                return View("MyProperties", properties);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi tải danh sách: " + ex.Message;
+                return RedirectToAction("Dashboard", "Home");
+            }
+        }
+
+        /// <summary>
+        /// Quick status update from My Properties page
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuickStatusUpdate(int propertyId, string newStatus)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId <= 0)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập" });
+                }
+
+                var property = await _propertyService.GetPropertyByIdAsync(propertyId);
+                if (property == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                }
+
+                // Authorization check
+                if (property.LandlordId != userId && !User.IsInRole("Admin"))
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền cập nhật BDS này" });
+                }
+
+                // Validate status
+                if (!IsValidStatus(newStatus))
+                {
+                    return Json(new { success = false, message = "Trạng thái không hợp lệ" });
+                }
+
+                // Update status
+                property.Status = newStatus;
+                property.UpdatedAt = DateTime.UtcNow;
+                var result = await _propertyService.UpdatePropertyAsync(property);
+
+                if (result)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"✅ Đã cập nhật trạng thái: {GetStatusDisplay(newStatus)}",
+                        newStatus = newStatus,
+                        statusDisplay = GetStatusDisplay(newStatus)
+                    });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không thể cập nhật trạng thái" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+        #endregion
+        #region Update Caption
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateCaption(int imageId, int propertyId, string caption)
+        {
+            try
+            {
+                var property = await _propertyService.GetPropertyByIdAsync(propertyId);
+                if (property == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                }
+
+                // Authorization
+                var currentUserId = GetCurrentUserId();
+                if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
+                {
+                    return Json(new { success = false, message = "Không có quyền" });
+                }
+
+                var result = await _propertyImageService.UpdateCaptionAsync(imageId, propertyId, caption);
+
+                return Json(new
+                {
+                    success = result,
+                    message = result ? " Đã cập nhật caption" : " Không thể cập nhật"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
         #region Helper Methods
 
         private List<SelectListItem> GetPropertyTypesSelectList()
@@ -771,6 +905,15 @@ namespace PropertyManagementSystem.Web.Controllers
             string[] validStatuses = { "Available", "Rented", "Maintenance", "Unavailable" };
             return validStatuses.Contains(status);
         }
+
+        private string GetStatusDisplay(string status) => status switch
+        {
+            "Available" => "Có sẵn",
+            "Rented" => "Đã thuê",
+            "Maintenance" => "Bảo trì",
+            "Unavailable" => "Không khả dụng",
+            _ => status
+        };
 
         #endregion
     }

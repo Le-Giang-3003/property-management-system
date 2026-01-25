@@ -533,9 +533,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="@Url.Action("Index", "RentalApplication")" class="nav-link">
+                    <a href="@Url.Action("MyApplications", "RentalApplication")" class="nav-link">
                         <i class="bi bi-file-text"></i>
-                        <span>My Contracts</span>
+                        <span>My Applications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("MyLeases", "Lease")" class="nav-link">
+                        <i class="bi bi-file-earmark-check"></i>
+                        <span>My Leases</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -584,9 +590,21 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="@Url.Action("Contracts", "Contract")" class="nav-link">
-                        <i class="bi bi-file-text"></i>
-                        <span>Contracts</span>
+                    <a href="@Url.Action("Index", "RentalApplication")" class="nav-link">
+                        <i class="bi bi-clipboard-check"></i>
+                        <span>Manage Applications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Lease")" class="nav-link">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Manage Leases</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("MyProperties", "Lease")" class="nav-link">
+                        <i class="bi bi-building-check"></i>
+                        <span>Leased Properties</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -601,12 +619,7 @@
                         <span>Maintenance</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Applications", "Application")" class="nav-link">
-                        <i class="bi bi-file-earmark-check"></i>
-                        <span>Applications</span>
-                    </a>
-                </li>
+                
                 <li class="nav-item">
                     <a href="@Url.Action("Viewings", "Viewing")" class="nav-link">
                         <i class="bi bi-calendar-check"></i>

@@ -124,7 +124,8 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 PendingRequests = stats["Pending"],
                 InProgressRequests = stats["InProgress"] + stats["Assigned"],
                 CompletedRequests = stats["Completed"],
-                CancelledRequests = stats["Cancelled"]
+                CancelledRequests = stats["Cancelled"],
+                RejectedRequests = stats["Rejected"]
             };
         }
 
@@ -222,7 +223,8 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 PendingRequests = stats["Pending"],
                 InProgressRequests = stats["InProgress"] + stats["Assigned"],
                 CompletedRequests = stats["Completed"],
-                CancelledRequests = stats["Cancelled"]
+                CancelledRequests = stats["Cancelled"],
+                RejectedRequests = stats["Rejected"]
             };
         }
 

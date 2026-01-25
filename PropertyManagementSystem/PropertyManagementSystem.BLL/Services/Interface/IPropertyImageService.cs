@@ -10,5 +10,6 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         Task<List<PropertyImage>> GetImagesByPropertyIdAsync(int propertyId);
         Task<bool> DeleteImageAsync(int imageId, int propertyId);
         Task<bool> SetThumbnailAsync(int propertyId, int imageId);
+        Task<bool> UpdateCaptionAsync(int imageId, int propertyId, string caption);
     }
 }
