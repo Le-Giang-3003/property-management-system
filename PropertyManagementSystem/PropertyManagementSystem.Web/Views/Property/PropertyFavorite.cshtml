@@ -1,139 +1,152 @@
-﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.FavoriteProperty>
+@using System.Security.Claims
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.FavoriteProperty>
 
 @{
-    ViewData["Title"] = "Bất động sản yêu thích";
+    ViewData["Title"] = "Favorite Properties";
     Layout = "_AuthLayout";
+    var currentUserId = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    }
 }
 
 <div class="favorites-container">
     <!-- Page Header -->
-    <div class="page-header">
-        <div class="header-content">
-            <h1 class="page-title">
-                <i class="bi bi-heart-fill"></i>
-                Bất động sản yêu thích
-            </h1>
-            <p class="page-subtitle">
-                @if (Model.Any())
-                {
-                    <span>Bạn có <strong>@Model.Count()</strong> bất động sản yêu thích</span>
-                }
-                else
-                {
-                    <span>Bạn chưa có bất động sản yêu thích nào</span>
-                }
-            </p>
+    <div class="fav-header">
+        <div class="fav-header-left">
+            <h1 class="fav-title">Favorite Properties</h1>
+            <p class="fav-subtitle">Properties you've saved for later</p>
         </div>
-        <div class="header-actions">
-            <a asp-action="Index" class="btn-back">
-                <i class="bi bi-arrow-left"></i>
-                Quay lại danh sách
-            </a>
+        <div class="fav-header-right">
+            @if (Model.Any())
+            {
+                <div class="fav-count">
+                    <i class="bi bi-heart-fill"></i>
+                    <span>@Model.Count() Saved</span>
+                </div>
+            }
         </div>
     </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="fav-alert fav-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["Success"]</span>
+            <button type="button" class="fav-alert-close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="fav-alert fav-alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["Error"]</span>
+            <button type="button" class="fav-alert-close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    }
 
     <!-- Properties Grid -->
     @if (Model != null && Model.Any())
     {
-        <div class="properties-grid">
+        <div class="fav-properties-grid">
             @foreach (var favorite in Model)
             {
                 var property = favorite.Property;
                 if (property != null)
                 {
-                    <div class="property-card">
-                        <!-- Card Header -->
-                        <div class="card-header">
-                            <h3 class="property-name">
-                                <a asp-action="Details" asp-route-id="@property.PropertyId">
-                                    @property.Name
-                                </a>
-                            </h3>
-                            <form asp-action="RemoveFavorite" method="post" class="remove-favorite-form">
+                    var thumbnailImage = property.Images?.FirstOrDefault(i => i.IsThumbnail) ?? property.Images?.FirstOrDefault();
+                    var imageUrl = thumbnailImage?.ImageUrl ?? "/images/property-placeholder.svg";
+
+                    <div class="fav-property-card">
+                        <!-- Card Image -->
+                        <div class="fav-card-image">
+                            <img src="@imageUrl" alt="@property.Name" onerror="this.src='/images/property-placeholder.svg'" />
+
+                            <!-- Status Badge -->
+                            <span class="fav-status-badge @GetStatusClass(property.Status)">
+                                @GetStatusDisplay(property.Status)
+                            </span>
+
+                            <!-- Favorite Button (Remove) -->
+                            <form asp-action="RemoveFavorite" method="post" class="fav-remove-form">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="propertyId" value="@property.PropertyId" />
                                 <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                                <button type="button" class="btn-favorite active"
-                                        onclick="confirmRemove(this)"
-                                        title="Xóa khỏi yêu thích">
+                                <button type="button" class="fav-favorite-btn active" onclick="confirmRemove(this)" title="Remove from favorites">
                                     <i class="bi bi-heart-fill"></i>
                                 </button>
                             </form>
                         </div>
 
-                        <!-- Card Badges -->
-                        <div class="card-badges">
-                            <span class="badge type">@property.PropertyType</span>
-                            <span class="badge status @GetStatusClass(property.Status)">
-                                @GetStatusDisplay(property.Status)
-                            </span>
-                        </div>
-
-                        <!-- Location -->
-                        <div class="property-location">
-                            <i class="bi bi-geo-alt"></i>
-                            <div>
-                                <p class="address">@property.Address</p>
-                                @if (!string.IsNullOrEmpty(property.City))
-                                {
-                                    <p class="city">
-                                        @(property.District != null ? $"{property.District}, " : "")@property.City
-                                    </p>
-                                }
-                            </div>
-                        </div>
-
-                        <!-- Specs -->
-                        <div class="property-specs">
-                            <div class="spec-item">
-                                <i class="bi bi-door-closed"></i>
-                                <div>
-                                    <strong>@property.Bedrooms</strong>
-                                    <span>Phòng ngủ</span>
+                        <!-- Card Content -->
+                        <div class="fav-card-content">
+                            <div class="fav-card-header">
+                                <h3 class="fav-property-name">
+                                    <a asp-action="Details" asp-route-id="@property.PropertyId">@property.Name</a>
+                                </h3>
+                                <div class="fav-rating">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span>4.@(new Random().Next(0, 9))</span>
                                 </div>
                             </div>
-                            <div class="spec-item">
-                                <i class="bi bi-droplet"></i>
-                                <div>
-                                    <strong>@property.Bathrooms</strong>
-                                    <span>Phòng tắm</span>
+
+                            <div class="fav-property-address">
+                                <i class="bi bi-geo-alt"></i>
+                                <span>@property.Address@(!string.IsNullOrEmpty(property.City) ? $", {property.City}" : "")@(!string.IsNullOrEmpty(property.ZipCode) ? $" {property.ZipCode}" : "")</span>
+                            </div>
+
+                            <div class="fav-property-specs">
+                                <div class="fav-spec">
+                                    <i class="bi bi-door-open"></i>
+                                    <span>@property.Bedrooms Beds</span>
+                                </div>
+                                <div class="fav-spec">
+                                    <i class="bi bi-droplet"></i>
+                                    <span>@property.Bathrooms Baths</span>
+                                </div>
+                                <div class="fav-spec">
+                                    <i class="bi bi-arrows-angle-expand"></i>
+                                    <span>@property.SquareFeet.ToString("N0") sqft</span>
                                 </div>
                             </div>
-                            <div class="spec-item">
-                                <i class="bi bi-rulers"></i>
-                                <div>
-                                    <strong>@property.SquareFeet</strong>
-                                    <span>ft²</span>
+
+                            <!-- Added to favorites date -->
+                            <div class="fav-added-date">
+                                <i class="bi bi-calendar-heart"></i>
+                                <span>Added to favorites on @favorite.CreatedAt.ToString("MMM dd, yyyy")</span>
+                            </div>
+
+                            <!-- Price & Actions -->
+                            <div class="fav-card-footer">
+                                <div class="fav-price">
+                                    <span class="fav-price-amount">$@property.RentAmount.ToString("N0")</span>
+                                    <span class="fav-price-period">per month</span>
+                                </div>
+                                <div class="fav-card-actions">
+                                    <form asp-action="RemoveFavorite" method="post" class="fav-remove-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="propertyId" value="@property.PropertyId" />
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <button type="button" class="fav-btn-remove" onclick="confirmRemove(this)" title="Remove">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                    <a asp-action="Details" asp-route-id="@property.PropertyId" class="fav-btn-outline">
+                                        View Details
+                                    </a>
+                                    @if (property.Status == "Available" && property.LandlordId != currentUserId)
+                                    {
+                                        <a asp-controller="RentalApplication" asp-action="Create" asp-route-propertyId="@property.PropertyId" class="fav-btn-primary">
+                                            Apply Now
+                                        </a>
+                                    }
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Description -->
-                        @if (!string.IsNullOrEmpty(property.Description))
-                        {
-                            <div class="property-description">
-                                @(property.Description.Length > 100
-                                                ? property.Description.Substring(0, 100) + "..."
-                                                : property.Description)
-                            </div>
-                        }
-
-                        <!-- Card Footer -->
-                        <div class="card-footer">
-                            <div class="price-info">
-                                <span class="price">@property.RentAmount.ToString("N0") ₫</span>
-                                <span class="period">/tháng</span>
-                            </div>
-                            <a asp-action="Details" asp-route-id="@property.PropertyId" class="btn-view-detail">
-                                Xem chi tiết
-                                <i class="bi bi-arrow-right"></i>
-                            </a>
-                        </div>
-
-                        <!-- Added Date -->
-                        <div class="card-meta">
-                            <i class="bi bi-clock"></i>
-                            <span>Đã thêm: @favorite.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                         </div>
                     </div>
                 }
@@ -142,15 +155,16 @@
     }
     else
     {
-        <div class="empty-state">
-            <div class="empty-icon">
+        <!-- Empty State -->
+        <div class="fav-empty-state">
+            <div class="fav-empty-icon">
                 <i class="bi bi-heart"></i>
             </div>
-            <h3>Bạn chưa có bất động sản yêu thích nào</h3>
-            <p>Hãy khám phá và thêm các bất động sản yêu thích của bạn!</p>
-            <a asp-action="Index" class="btn-explore">
+            <h3>No Favorites Yet</h3>
+            <p>Start exploring properties and save your favorites here!</p>
+            <a asp-action="SearchProperties" class="fav-btn-explore">
                 <i class="bi bi-search"></i>
-                Tìm kiếm bất động sản
+                Browse Properties
             </a>
         </div>
     }
@@ -159,114 +173,320 @@
 @section Styles {
     <style>
         .favorites-container {
-            padding: 30px;
+            padding: 24px 32px;
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* Page Header */
-        .page-header {
+        /* Header */
+        .fav-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 32px;
-            padding-bottom: 24px;
-            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 24px;
         }
 
-        .page-title {
-            font-size: 32px;
+        .fav-title {
+            font-size: 28px;
             font-weight: 700;
             color: #1e293b;
-            margin: 0 0 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            margin: 0 0 4px 0;
         }
 
-            .page-title i {
-                color: #ef4444;
-            }
-
-        .page-subtitle {
-            font-size: 16px;
+        .fav-subtitle {
+            font-size: 15px;
             color: #64748b;
             margin: 0;
         }
 
-        .btn-back {
+        .fav-count {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 20px;
-            background: #f1f5f9;
-            color: #475569;
+            padding: 10px 16px;
+            background: #fef2f2;
+            color: #ef4444;
             border-radius: 8px;
             font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.2s;
+            font-weight: 600;
         }
 
-            .btn-back:hover {
-                background: #e2e8f0;
-                color: #1e293b;
-            }
+        .fav-count i {
+            font-size: 16px;
+        }
+
+        /* Alerts */
+        .fav-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .fav-alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .fav-alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .fav-alert-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.7;
+        }
 
         /* Properties Grid */
-        .properties-grid {
+        .fav-properties-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 24px;
         }
 
         /* Property Card */
-        .property-card {
+        .fav-property-card {
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s;
+            overflow: hidden;
+            transition: all 0.2s;
         }
 
-            .property-card:hover {
-                box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-                transform: translateY(-4px);
-            }
+        .fav-property-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
 
-        /* Card Header */
-        .card-header {
+        /* Card Image */
+        .fav-card-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .fav-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .fav-property-card:hover .fav-card-image img {
+            transform: scale(1.05);
+        }
+
+        /* Status Badge */
+        .fav-status-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .fav-status-badge.available {
+            background: #22c55e;
+            color: white;
+        }
+
+        .fav-status-badge.rented {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .fav-status-badge.maintenance {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .fav-status-badge.unavailable {
+            background: #94a3b8;
+            color: white;
+        }
+
+        /* Favorite Button */
+        .fav-remove-form {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        .fav-favorite-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .fav-favorite-btn i {
+            font-size: 18px;
+            color: #ef4444;
+        }
+
+        .fav-favorite-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Card Content */
+        .fav-card-content {
+            padding: 16px 20px 20px;
+        }
+
+        .fav-card-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
 
-        .property-name {
+        .fav-property-name {
             font-size: 18px;
             font-weight: 600;
             margin: 0;
-            flex: 1;
         }
 
-            .property-name a {
-                color: #1e293b;
-                text-decoration: none;
-                transition: color 0.2s;
-            }
+        .fav-property-name a {
+            color: #1e293b;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
 
-                .property-name a:hover {
-                    color: #3b82f6;
-                }
+        .fav-property-name a:hover {
+            color: #3b82f6;
+        }
 
-        .btn-favorite {
+        .fav-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #fef3c7;
+            border-radius: 6px;
+        }
+
+        .fav-rating i {
+            color: #f59e0b;
+            font-size: 12px;
+        }
+
+        .fav-rating span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .fav-property-address {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .fav-property-address i {
+            color: #94a3b8;
+        }
+
+        /* Specs */
+        .fav-property-specs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .fav-spec {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .fav-spec i {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Added Date */
+        .fav-added-date {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: #fef2f2;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #991b1b;
+            margin-bottom: 16px;
+        }
+
+        .fav-added-date i {
+            color: #ef4444;
+        }
+
+        /* Card Footer */
+        .fav-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .fav-price {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fav-price-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #16a34a;
+        }
+
+        .fav-price-period {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .fav-card-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .fav-remove-inline {
+            display: inline;
+        }
+
+        .fav-btn-remove {
             width: 40px;
             height: 40px;
-            flex-shrink: 0;
-            border: none;
+            border: 1px solid #fecaca;
             background: #fef2f2;
-            border-radius: 50%;
+            color: #ef4444;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -274,203 +494,58 @@
             transition: all 0.2s;
         }
 
-            .btn-favorite i {
-                font-size: 18px;
-                color: #ef4444;
-            }
-
-            .btn-favorite:hover {
-                background: #fee2e2;
-                transform: scale(1.1);
-            }
-
-        /* Card Badges */
-        .card-badges {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
+        .fav-btn-remove:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
         }
 
-        .badge {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-            .badge.type {
-                background: #dbeafe;
-                color: #1e40af;
-            }
-
-            .badge.status.available {
-                background: #dcfce7;
-                color: #166534;
-            }
-
-            .badge.status.rented {
-                background: #fef3c7;
-                color: #92400e;
-            }
-
-            .badge.status.maintenance {
-                background: #dbeafe;
-                color: #1e40af;
-            }
-
-            .badge.status.unavailable {
-                background: #f1f5f9;
-                color: #475569;
-            }
-
-        /* Location */
-        .property-location {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-            .property-location i {
-                font-size: 18px;
-                color: #ef4444;
-                flex-shrink: 0;
-                margin-top: 2px;
-            }
-
-            .property-location .address {
-                font-size: 14px;
-                font-weight: 500;
-                color: #1e293b;
-                margin: 0 0 4px 0;
-            }
-
-            .property-location .city {
-                font-size: 13px;
-                color: #64748b;
-                margin: 0;
-            }
-
-        /* Specs */
-        .property-specs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            padding: 16px;
-            background: #f8fafc;
+        .fav-btn-outline {
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
             border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .spec-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-            .spec-item i {
-                font-size: 20px;
-                color: #3b82f6;
-            }
-
-            .spec-item strong {
-                display: block;
-                font-size: 16px;
-                color: #1e293b;
-                line-height: 1.2;
-            }
-
-            .spec-item span {
-                display: block;
-                font-size: 11px;
-                color: #64748b;
-                line-height: 1.2;
-            }
-
-        /* Description */
-        .property-description {
             font-size: 13px;
-            color: #64748b;
-            line-height: 1.6;
-            margin-bottom: 16px;
-            padding: 12px;
-            background: #f8fafc;
-            border-radius: 8px;
-            border-left: 3px solid #3b82f6;
-        }
-
-        /* Card Footer */
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 16px;
-            border-top: 1px solid #e2e8f0;
-            margin-bottom: 12px;
-        }
-
-        .price-info {
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
-        }
-
-        .price {
-            font-size: 24px;
-            font-weight: 700;
-            color: #16a34a;
-        }
-
-        .period {
-            font-size: 13px;
-            color: #64748b;
-        }
-
-        .btn-view-detail {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 20px;
-            background: #3b82f6;
-            color: white;
-            border-radius: 8px;
-            font-size: 14px;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.2s;
         }
 
-            .btn-view-detail:hover {
-                background: #2563eb;
-                transform: translateX(2px);
-                color: white;
-            }
-
-        /* Card Meta */
-        .card-meta {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #94a3b8;
+        .fav-btn-outline:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #eff6ff;
         }
 
-            .card-meta i {
-                font-size: 13px;
-            }
+        .fav-btn-primary {
+            padding: 10px 16px;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .fav-btn-primary:hover {
+            background: #2563eb;
+            color: white;
+        }
 
         /* Empty State */
-        .empty-state {
+        .fav-empty-state {
+            text-align: center;
+            padding: 80px 40px;
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 80px 40px;
-            text-align: center;
         }
 
-        .empty-icon {
-            width: 120px;
-            height: 120px;
+        .fav-empty-icon {
+            width: 100px;
+            height: 100px;
             margin: 0 auto 24px;
             background: #fef2f2;
             border-radius: 50%;
@@ -479,102 +554,77 @@
             justify-content: center;
         }
 
-            .empty-icon i {
-                font-size: 60px;
-                color: #fca5a5;
-            }
-
-        .empty-state h3 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1e293b;
-            margin: 0 0 12px 0;
+        .fav-empty-icon i {
+            font-size: 48px;
+            color: #fca5a5;
         }
 
-        .empty-state p {
-            font-size: 16px;
+        .fav-empty-state h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .fav-empty-state p {
+            font-size: 15px;
             color: #64748b;
             margin: 0 0 24px 0;
         }
 
-        .btn-explore {
+        .fav-btn-explore {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 14px 32px;
+            padding: 14px 28px;
             background: #3b82f6;
             color: white;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.2s;
         }
 
-            .btn-explore:hover {
-                background: #2563eb;
-                transform: translateY(-2px);
-                box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
-                color: white;
-            }
+        .fav-btn-explore:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+            color: white;
+        }
 
         /* Responsive */
-        @@media (max-width: 1024px) {
-            .properties-grid {
-                grid-template-columns: repeat(2, 1fr);
+        @@media (max-width: 1200px) {
+            .fav-properties-grid {
+                grid-template-columns: 1fr;
             }
         }
 
         @@media (max-width: 768px) {
             .favorites-container {
-                padding: 20px;
+                padding: 16px;
             }
 
-            .page-header {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .btn-back {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .properties-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .page-title {
-                font-size: 24px;
-            }
-
-            .property-specs {
-                grid-template-columns: 1fr;
-            }
-
-            .card-footer {
+            .fav-header {
                 flex-direction: column;
                 gap: 12px;
-                align-items: flex-start;
             }
 
-            .btn-view-detail {
-                width: 100%;
-                justify-content: center;
+            .fav-card-footer {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
             }
 
-            .empty-state {
-                padding: 60px 20px;
+            .fav-card-actions {
+                justify-content: stretch;
             }
 
-            .empty-icon {
-                width: 100px;
-                height: 100px;
+            .fav-btn-outline,
+            .fav-btn-primary {
+                flex: 1;
+                text-align: center;
             }
-
-                .empty-icon i {
-                    font-size: 48px;
-                }
         }
     </style>
 }
@@ -584,54 +634,19 @@
     <script>
         function confirmRemove(button) {
             Swal.fire({
-                title: 'Xóa khỏi yêu thích?',
-                text: 'Bạn có chắc muốn xóa bất động sản này khỏi danh sách yêu thích?',
+                title: 'Remove from Favorites?',
+                text: 'Are you sure you want to remove this property from your favorites?',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy',
-                customClass: {
-                    confirmButton: 'btn-confirm',
-                    cancelButton: 'btn-cancel'
-                }
+                confirmButtonText: 'Yes, Remove',
+                cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
                     button.closest('form').submit();
                 }
             });
-        }
-
-        // Success/Error messages
-        @if (TempData["Success"] != null)
-        {
-                <text>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Thành công!',
-                    text: '@TempData["Success"]',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-                </text>
-        }
-
-        @if (TempData["Error"] != null)
-        {
-                <text>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi!',
-                    text: '@TempData["Error"]',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-                </text>
         }
     </script>
 }
@@ -647,10 +662,10 @@
 
     string GetStatusDisplay(string status) => status switch
     {
-        "Available" => "Có sẵn",
-        "Rented" => "Đã thuê",
-        "Maintenance" => "Bảo trì",
-        "Unavailable" => "Không khả dụng",
+        "Available" => "Available",
+        "Rented" => "Rented",
+        "Maintenance" => "Maintenance",
+        "Unavailable" => "Unavailable",
         _ => status
     };
 }
