@@ -1,0 +1,835 @@
+@using System.Security.Claims
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
+
+@{
+    ViewData["Title"] = "Search Properties";
+    Layout = "_AuthLayout";
+    var city = ViewBag.City as string ?? "";
+    var propertyType = ViewBag.PropertyType as string ?? "";
+    var minRent = ViewBag.MinRent as decimal?;
+    var maxRent = ViewBag.MaxRent as decimal?;
+    var minBedrooms = ViewBag.MinBedrooms as int?;
+    var propertyTypes = ViewBag.PropertyTypes as List<SelectListItem> ?? new();
+    var hasFilters = !string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(propertyType) || minRent.HasValue || maxRent.HasValue || minBedrooms.HasValue;
+    var favoritePropertyIds = ViewBag.FavoritePropertyIds as HashSet<int> ?? new HashSet<int>();
+
+    var currentUserId = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    }
+}
+
+<div class="search-properties-container">
+    <!-- Page Header -->
+    <div class="sp-header">
+        <h1 class="sp-title">Search Properties</h1>
+        <p class="sp-subtitle">Find your perfect rental home</p>
+    </div>
+
+    <!-- Search & Filter Section -->
+    <div class="sp-filter-card">
+        <form asp-action="SearchProperties" method="get" class="sp-filter-form">
+            <!-- Main Search Bar -->
+            <div class="sp-search-row">
+                <div class="sp-search-input-wrapper">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="city" class="sp-search-input"
+                           placeholder="Search by location, property name..." value="@city" />
+                </div>
+                <button type="submit" class="sp-search-btn">
+                    Search
+                </button>
+            </div>
+
+            <!-- Filter Row -->
+            <div class="sp-filter-row">
+                <div class="sp-filter-group">
+                    <input type="number" name="minRent" class="sp-filter-input"
+                           placeholder="Min Price" min="0" step="100000" value="@minRent" />
+                </div>
+                <div class="sp-filter-group">
+                    <input type="number" name="maxRent" class="sp-filter-input"
+                           placeholder="Max Price" min="0" step="100000" value="@maxRent" />
+                </div>
+                <div class="sp-filter-group">
+                    <select name="minBedrooms" class="sp-filter-select">
+                        <option value="">All Bedrooms</option>
+                        <option value="1" selected="@(minBedrooms == 1)">1+ Bedroom</option>
+                        <option value="2" selected="@(minBedrooms == 2)">2+ Bedrooms</option>
+                        <option value="3" selected="@(minBedrooms == 3)">3+ Bedrooms</option>
+                        <option value="4" selected="@(minBedrooms == 4)">4+ Bedrooms</option>
+                    </select>
+                </div>
+                <div class="sp-filter-group">
+                    <select name="propertyType" class="sp-filter-select">
+                        <option value="">All Types</option>
+                        @foreach (var type in propertyTypes)
+                        {
+                            <option value="@type.Value" selected="@(type.Value == propertyType)">
+                                @type.Text
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Properties Grid -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="sp-properties-grid">
+            @foreach (var item in Model)
+            {
+                var isFavorited = favoritePropertyIds.Contains(item.PropertyId);
+                var thumbnailImage = item.Images?.FirstOrDefault(i => i.IsThumbnail) ?? item.Images?.FirstOrDefault();
+                var imageUrl = thumbnailImage?.ImageUrl ?? "/images/property-placeholder.svg";
+
+                // Parse amenities if available
+                var amenitiesList = new List<string>();
+                if (!string.IsNullOrEmpty(item.Amenities))
+                {
+                    try
+                    {
+                        amenitiesList = System.Text.Json.JsonSerializer.Deserialize<List<string>>(item.Amenities) ?? new List<string>();
+                    }
+                    catch
+                    {
+                        amenitiesList = item.Amenities.Split(',').Select(a => a.Trim()).Take(3).ToList();
+                    }
+                }
+
+                <div class="sp-property-card">
+                    <!-- Card Image -->
+                    <div class="sp-card-image">
+                        <img src="@imageUrl" alt="@item.Name" onerror="this.src='/images/property-placeholder.svg'" />
+
+                        <!-- Status Badge -->
+                        <span class="sp-status-badge @GetStatusClass(item.Status)">
+                            @GetStatusDisplay(item.Status)
+                        </span>
+
+                        <!-- Favorite Button -->
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <button type="button" class="sp-favorite-btn @(isFavorited ? "active" : "")"
+                                    data-property-id="@item.PropertyId">
+                                <i class="bi @(isFavorited ? "bi-heart-fill" : "bi-heart")"></i>
+                            </button>
+                        }
+
+                        <!-- Rating (if available) -->
+                        @if (item.Viewings?.Any() == true)
+                        {
+                            <div class="sp-rating">
+                                <i class="bi bi-star-fill"></i>
+                                <span>4.5</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Card Content -->
+                    <div class="sp-card-content">
+                        <div class="sp-card-header">
+                            <h3 class="sp-property-name">
+                                <a asp-action="Details" asp-route-id="@item.PropertyId">@item.Name</a>
+                            </h3>
+                            @if (item.Viewings?.Any() == true || item.RentalApplications?.Any() == true)
+                            {
+                                <div class="sp-rating-badge">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span>4.@(new Random().Next(0, 9))</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="sp-property-address">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>@item.Address@(!string.IsNullOrEmpty(item.City) ? $", {item.City}" : "")@(!string.IsNullOrEmpty(item.ZipCode) ? $" {item.ZipCode}" : "")</span>
+                        </div>
+
+                        <div class="sp-property-specs">
+                            <div class="sp-spec">
+                                <i class="bi bi-door-open"></i>
+                                <span>@item.Bedrooms Beds</span>
+                            </div>
+                            <div class="sp-spec">
+                                <i class="bi bi-droplet"></i>
+                                <span>@item.Bathrooms Baths</span>
+                            </div>
+                            <div class="sp-spec">
+                                <i class="bi bi-arrows-angle-expand"></i>
+                                <span>@item.SquareFeet.ToString("N0") sqft</span>
+                            </div>
+                        </div>
+
+                        <!-- Amenities Tags -->
+                        @if (amenitiesList.Any())
+                        {
+                            <div class="sp-amenities">
+                                @foreach (var amenity in amenitiesList.Take(3))
+                                {
+                                    <span class="sp-amenity-tag">@amenity</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="sp-amenities">
+                                @if (item.IsFurnished)
+                                {
+                                    <span class="sp-amenity-tag">Furnished</span>
+                                }
+                                @if (item.PetsAllowed)
+                                {
+                                    <span class="sp-amenity-tag">Pet Friendly</span>
+                                }
+                                <span class="sp-amenity-tag">@item.PropertyType</span>
+                            </div>
+                        }
+
+                        <!-- Price & Actions -->
+                        <div class="sp-card-footer">
+                            <div class="sp-price">
+                                <span class="sp-price-amount">@item.RentAmount.ToString("N0") VND</span>
+                                <span class="sp-price-period">per month</span>
+                            </div>
+                            <div class="sp-card-actions">
+                                <a asp-action="Details" asp-route-id="@item.PropertyId" class="sp-btn-outline">
+                                    View Details
+                                </a>
+                                @if (item.Status == "Available" && item.LandlordId != currentUserId)
+                                {
+                                    <a asp-controller="RentalApplication" asp-action="Create" asp-route-propertyId="@item.PropertyId" class="sp-btn-primary">
+                                        Apply Now
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="sp-empty-state">
+            <div class="sp-empty-icon">
+                <i class="bi bi-house-slash"></i>
+            </div>
+            <h3>No Properties Found</h3>
+            <p>
+                @if (hasFilters)
+                {
+                    <span>Try adjusting your search filters or </span>
+                    <a asp-action="SearchProperties">clear all filters</a>
+                }
+                else
+                {
+                    <span>No properties available at the moment.</span>
+                }
+            </p>
+        </div>
+    }
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <style>
+        .search-properties-container {
+            padding: 24px 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .sp-header {
+            margin-bottom: 24px;
+        }
+
+        .sp-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .sp-subtitle {
+            font-size: 15px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Filter Card */
+        .sp-filter-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+
+        .sp-search-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .sp-search-input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .sp-search-input-wrapper i {
+            position: absolute;
+            left: 16px;
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        .sp-search-input {
+            width: 100%;
+            padding: 12px 16px 12px 48px;
+            font-size: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .sp-search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .sp-search-btn {
+            padding: 12px 32px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sp-search-btn:hover {
+            background: #2563eb;
+        }
+
+        .sp-filter-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .sp-filter-input,
+        .sp-filter-select {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .sp-filter-input:focus,
+        .sp-filter-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Properties Grid */
+        .sp-properties-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        /* Property Card */
+        .sp-property-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .sp-property-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Card Image */
+        .sp-card-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .sp-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .sp-property-card:hover .sp-card-image img {
+            transform: scale(1.05);
+        }
+
+        /* Status Badge */
+        .sp-status-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sp-status-badge.available {
+            background: #22c55e;
+            color: white;
+        }
+
+        .sp-status-badge.rented {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .sp-status-badge.maintenance {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .sp-status-badge.unavailable {
+            background: #94a3b8;
+            color: white;
+        }
+
+        /* Favorite Button */
+        .sp-favorite-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sp-favorite-btn i {
+            font-size: 18px;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .sp-favorite-btn:hover i {
+            color: #ef4444;
+        }
+
+        .sp-favorite-btn.active i {
+            color: #ef4444;
+        }
+
+        /* Rating */
+        .sp-rating {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sp-rating i {
+            color: #fbbf24;
+            font-size: 12px;
+        }
+
+        .sp-rating span {
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Card Content */
+        .sp-card-content {
+            padding: 16px 20px 20px;
+        }
+
+        .sp-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .sp-property-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .sp-property-name a {
+            color: #1e293b;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .sp-property-name a:hover {
+            color: #3b82f6;
+        }
+
+        .sp-rating-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #fef3c7;
+            border-radius: 6px;
+        }
+
+        .sp-rating-badge i {
+            color: #f59e0b;
+            font-size: 12px;
+        }
+
+        .sp-rating-badge span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .sp-property-address {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .sp-property-address i {
+            color: #94a3b8;
+        }
+
+        /* Specs */
+        .sp-property-specs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .sp-spec {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .sp-spec i {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Amenities */
+        .sp-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .sp-amenity-tag {
+            padding: 4px 10px;
+            background: #eff6ff;
+            color: #2563eb;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Card Footer */
+        .sp-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .sp-price {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sp-price-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #16a34a;
+        }
+
+        .sp-price-period {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .sp-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .sp-btn-outline {
+            padding: 10px 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .sp-btn-outline:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .sp-btn-primary {
+            padding: 10px 16px;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .sp-btn-primary:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* Empty State */
+        .sp-empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+
+        .sp-empty-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            background: #f8fafc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sp-empty-icon i {
+            font-size: 48px;
+            color: #cbd5e1;
+        }
+
+        .sp-empty-state h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .sp-empty-state p {
+            font-size: 15px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .sp-empty-state a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .sp-empty-state a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @@media (max-width: 1200px) {
+            .sp-properties-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .search-properties-container {
+                padding: 16px;
+            }
+
+            .sp-filter-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sp-search-row {
+                flex-direction: column;
+            }
+
+            .sp-search-btn {
+                width: 100%;
+            }
+
+            .sp-card-footer {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+            .sp-card-actions {
+                justify-content: stretch;
+            }
+
+            .sp-btn-outline,
+            .sp-btn-primary {
+                flex: 1;
+                text-align: center;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .sp-filter-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Toggle favorite
+            $('.sp-favorite-btn').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var propertyId = btn.data('property-id');
+                var icon = btn.find('i');
+                btn.prop('disabled', true);
+
+                $.ajax({
+                    url: '@Url.Action("ToggleFavorite", "Property")',
+                    type: 'POST',
+                    data: {
+                        propertyId: propertyId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        btn.prop('disabled', false);
+                        if (response.success) {
+                            if (response.isFavorited) {
+                                btn.addClass('active');
+                                icon.removeClass('bi-heart').addClass('bi-heart-fill');
+                            } else {
+                                btn.removeClass('active');
+                                icon.removeClass('bi-heart-fill').addClass('bi-heart');
+                            }
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: response.message,
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        btn.prop('disabled', false);
+                        Swal.fire('Error', 'An error occurred', 'error');
+                    }
+                });
+            });
+        });
+
+        // Success/Error messages
+        @if (TempData["Success"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '@TempData["Success"]',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+            </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '@TempData["Error"]',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+            </text>
+        }
+    </script>
+}
+
+@functions {
+    string GetStatusClass(string status) => status switch
+    {
+        "Available" => "available",
+        "Rented" => "rented",
+        "Maintenance" => "maintenance",
+        _ => "unavailable"
+    };
+
+    string GetStatusDisplay(string status) => status switch
+    {
+        "Available" => "Available",
+        "Rented" => "Rented",
+        "Maintenance" => "Maintenance",
+        "Unavailable" => "Unavailable",
+        _ => status
+    };
+}
