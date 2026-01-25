@@ -13,16 +13,10 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
     /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Interface.IGenericRepository&lt;PropertyManagementSystem.DAL.Entities.Lease&gt;" />
     public interface ILeaseRepository : IGenericRepository<Lease>
     {
-        // ===== From features/implementation_Giang'sTask =====
-
         Task<IEnumerable<Lease>> GetActiveLeasesForTenantAsync(int tenantId);
-
         Task<Lease?> GetLeaseWithPropertyAsync(int leaseId);
-
         Task<IEnumerable<Property>> GetTenantActivePropertiesAsync(int tenantId);
-
         Task<IEnumerable<Lease>> GetLeasesByLandlordAsync(int landlordId);
-
         Task<bool> HasActiveLease(int tenantId, int propertyId);
 
         Task<IEnumerable<Lease>> GetLeasesByTenantUserIdAsync(int tenantUserId);

@@ -1,11 +1,10 @@
-﻿using PropertyManagementSystem.BLL.DTOs.Payments;
+﻿using PropertyManagementSystem.BLL.DTOs.Invoice;
+using PropertyManagementSystem.BLL.DTOs.Payments;
 using PropertyManagementSystem.DAL.Entities;
-
-namespace PropertyManagementSystem.BLL.Services.Interface
+public interface IPaymentService
 {
-    public interface IPaymentService
-    {
-        Task<PaymentDto> MakePaymentAsync(int tenantId, MakePaymentRequestDto request);
-        Task<List<Invoice>> GetAvailableInvoicesAsync(int tenantId);
-    }
+    Task<PaymentDto> MakePaymentAsync(int tenantId, MakePaymentRequestDto request);
+    Task<List<InvoiceDto>> GetAvailableInvoicesAsync(int tenantId);
+    Task<List<PaymentDto>> GetPaymentHistoryAsync(int tenantId);
+
 }

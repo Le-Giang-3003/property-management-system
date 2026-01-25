@@ -11,6 +11,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         {
         }
 
+        public override async Task AddAsync(Payment payment)
+        {
+            await _dbSet.AddAsync(payment);
+            await _context.SaveChangesAsync();
+        }
         public async Task<Payment?> GetPaymentByIdAsync(int paymentId)
         {
             return await _context.Payments
@@ -31,6 +36,15 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             return await _context.Payments
                 .Include(p => p.Invoice)
                 .ThenInclude(i => i.Lease)
+                .Where(p => p.Invoice.Lease.TenantId == tenantId)
+                .OrderByDescending(p => p.PaymentDate)
+                .ToListAsync();
+        }
+        public async Task<List<Payment>> GetByTenantAsync(int tenantId)
+        {
+            return await _context.Payments
+                .Include(p => p.Invoice)
+                    .ThenInclude(i => i.Lease)
                 .Where(p => p.Invoice.Lease.TenantId == tenantId)
                 .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();

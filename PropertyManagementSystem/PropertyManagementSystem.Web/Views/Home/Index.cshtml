@@ -180,4 +180,20 @@ else
             <li><a asp-controller="Technician" asp-action="Index">Công việc bảo trì</a></li>
         </ul>
     }
+
+    <!-- ========== PAYMENT ========== -->
+    <h3>Payment / Invoice</h3>
+    <ul>
+        <li>
+            <a asp-controller="Payment" asp-action="MakePayment">
+                Thanh toán & chọn hóa đơn
+            </a>
+        </li>
+        <li>
+            <a asp-controller="Invoice" asp-action="Index">
+                Danh sách hóa đơn & In PDF
+            </a>
+        </li>
+    </ul>
+
 }

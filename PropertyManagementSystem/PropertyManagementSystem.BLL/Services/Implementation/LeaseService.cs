@@ -540,5 +540,11 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
 
             return result;
         }
+        public async Task<bool> ValidateTenantPropertyAccessAsync(int tenantId, int propertyId)
+        {
+            var leases = await _unitOfWork.Leases.GetByTenantIdAsync(tenantId);
+            return leases.Any(l => l.PropertyId == propertyId && l.Status == "Active");
+        }
+
     }
 }

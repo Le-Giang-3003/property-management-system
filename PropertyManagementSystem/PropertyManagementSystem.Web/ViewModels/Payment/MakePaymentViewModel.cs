@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using PropertyManagementSystem.DAL.Entities;
+using PropertyManagementSystem.BLL.DTOs.Invoice;
 
 namespace PropertyManagementSystem.Web.ViewModels.Payment
 {
@@ -17,6 +17,6 @@ namespace PropertyManagementSystem.Web.ViewModels.Payment
 
         public string? Notes { get; set; }
 
-        public List<Invoice> AvailableInvoices { get; set; } = new();
+        public List<InvoiceDto> AvailableInvoices { get; set; } = new();
     }
 }
