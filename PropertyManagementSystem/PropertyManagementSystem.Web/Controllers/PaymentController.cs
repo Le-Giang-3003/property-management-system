@@ -3,6 +3,7 @@ using PropertyManagementSystem.BLL.DTOs.Payments;
 using PropertyManagementSystem.Web.ViewModels.Payment;
 using QRCoder;
 using System.Drawing.Imaging;
+using System.Security.Claims;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
@@ -110,5 +111,36 @@ namespace PropertyManagementSystem.Web.Controllers
             qrImage.Save(ms, ImageFormat.Png);
             return File(ms.ToArray(), "image/png");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Report(DateTime? fromDate, DateTime? toDate)
+        {
+            var tenantId = GetTenantId();
+            if (tenantId == null) return RedirectToAction("Login", "Auth");
+
+            // Mặc định: Lấy dữ liệu trong 1 tháng gần đây
+            var start = fromDate ?? DateTime.Today.AddMonths(-1);
+            var end = toDate ?? DateTime.Today;
+
+            // Lấy lịch sử từ Service và lọc theo ngày
+            var allHistory = await _paymentService.GetPaymentHistoryAsync(tenantId.Value);
+            var filteredHistory = allHistory
+                .Where(p => p.PaymentDate.Date >= start.Date && p.PaymentDate.Date <= end.Date)
+                .OrderByDescending(p => p.PaymentDate)
+                .ToList();
+
+            var vm = new PaymentReportViewModel
+            {
+                FromDate = start,
+                ToDate = end,
+                TotalAmountPaid = filteredHistory.Sum(p => p.Amount),
+                TransactionCount = filteredHistory.Count,
+                PaymentHistory = filteredHistory,
+                TenantName = User.Identity?.Name ?? "Người thuê"
+            };
+
+            return View(vm);
+        }
+
     }
 }

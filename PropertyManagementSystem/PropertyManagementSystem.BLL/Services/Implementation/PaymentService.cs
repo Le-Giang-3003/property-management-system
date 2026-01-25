@@ -104,6 +104,34 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Status = p.Status
             }).ToList();
         }
+        public async Task<PaymentReportDto> GetPaymentReportAsync(int tenantId, DateTime fromDate, DateTime? toDate = null)
+        {
+            var end = toDate ?? DateTime.UtcNow;
+            var allPayments = await _paymentRepository.GetByTenantAsync(tenantId);
+
+            // Lọc theo ngày
+            var filtered = allPayments
+                .Where(p => p.PaymentDate >= fromDate && p.PaymentDate <= end)
+                .OrderByDescending(p => p.PaymentDate)
+                .ToList();
+
+            return new PaymentReportDto
+            {
+                TotalPaid = filtered.Sum(p => p.Amount),
+                TotalTransactions = filtered.Count,
+                FromDate = fromDate,
+                ToDate = end,
+                Payments = filtered.Select(p => new PaymentDto
+                {
+                    PaymentId = p.PaymentId,
+                    Amount = p.Amount,
+                    PaymentMethod = p.PaymentMethod,
+                    PaymentDate = p.PaymentDate,
+                    Status = p.Status,
+                    InvoiceId = p.InvoiceId
+                }).ToList()
+            };
+        }
 
     }
 }
