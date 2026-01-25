@@ -2,93 +2,122 @@
 @model MakePaymentViewModel
 
 @{
-    ViewData["Title"] = "Thanh toán hóa đơn";
-    Layout = "_AuthLayout";
+	ViewData["Title"] = "Thanh toán hóa đơn";
+	Layout = "_AuthLayout";
 }
 
 <div class="container mt-5">
-    <h2>Thanh toán hóa đơn</h2>
-    <hr />
+	<h2>Thanh toán hóa đơn</h2>
+	<hr />
 
-    <div class="row">
-        <div class="col-md-8">
-            <form asp-action="MakePayment" method="post">
-                @Html.AntiForgeryToken()
+	<div class="row">
+		<div class="col-md-8">
+			<div class="card shadow-sm">
+				<div class="card-body">
+					<form asp-controller="Payment" asp-action="MakePayment" method="post">
+						@Html.AntiForgeryToken()
 
-                <!-- Invoice Selection -->  
-                <div class="mb-3">
-                    <label asp-for="InvoiceId" class="form-label">Hóa đơn</label>
-                    <select asp-for="InvoiceId" class="form-select">
-                        <option value="">-- Chọn hóa đơn --</option>
-                        @foreach (var invoice in Model.AvailableInvoices)
-                        {
-                            <option value="@invoice.InvoiceId">
-                                @invoice.InvoiceNumber - Còn nợ: @invoice.RemainingAmount.ToString("N0") VND (Hạn: @invoice.DueDate.ToString("dd/MM/yyyy"))
-                            </option>
-                        }
-                    </select>
-                    <span asp-validation-for="InvoiceId" class="text-danger"></span>
-                </div>
+						<!-- Chọn Hóa đơn -->
+						<div class="mb-3">
+							<label asp-for="InvoiceId" class="form-label font-weight-bold">Hóa đơn</label>
+							<select asp-for="InvoiceId" class="form-select" id="InvoiceId">
+								<option value="">-- Chọn hóa đơn cần thanh toán --</option>
+								@foreach (var invoice in Model.AvailableInvoices)
+								{
+									<option value="@invoice.InvoiceId" data-remaining="@invoice.RemainingAmount">
+										@invoice.InvoiceNumber - Còn nợ: @invoice.RemainingAmount.ToString("N0") VND
+									</option>
+								}
+							</select>
+							<span asp-validation-for="InvoiceId" class="text-danger"></span>
+						</div>
 
-                <!-- Amount -->
-                <div class="mb-3">
-                    <label asp-for="Amount" class="form-label">Số tiền thanh toán (VND)</label>
-                    <input asp-for="Amount" type="number" class="form-control" step="0.01" placeholder="0.00" />
-                    <span asp-validation-for="Amount" class="text-danger"></span>
-                </div>
+						<!-- Số tiền -->
+						<div class="mb-3">
+							<label asp-for="Amount" class="form-label font-weight-bold">Số tiền thanh toán (VND)</label>
+							<input asp-for="Amount" type="number" class="form-control" id="Amount" placeholder="0" />
+							<span asp-validation-for="Amount" class="text-danger"></span>
+						</div>
 
-                <!-- Payment Method -->
-                <div class="mb-3">
-                    <label asp-for="PaymentMethod" class="form-label">Phương thức thanh toán</label>
-                    <select asp-for="PaymentMethod" class="form-select">
-                        <option value="">-- Chọn phương thức --</option>
-                        <option value="Cash">Tiền mặt</option>
-                        <option value="BankTransfer">Chuyển khoản ngân hàng</option>
-                        <option value="CreditCard">Thẻ tín dụng</option>
-                    </select>
-                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
-                </div>
+						<!-- Phương thức thanh toán -->
+						<div class="mb-3">
+							<label asp-for="PaymentMethod" class="form-label font-weight-bold">Phương thức thanh toán</label>
+							<select asp-for="PaymentMethod" class="form-select" id="PaymentMethod">
+								<option value="">-- Chọn phương thức --</option>
+								<option value="Cash">Tiền mặt</option>
+								<option value="BankTransfer">Chuyển khoản ngân hàng</option>
+								<option value="CreditCard">Thẻ tín dụng</option>
+							</select>
+							<span asp-validation-for="PaymentMethod" class="text-danger"></span>
+						</div>
 
-                <!-- Notes -->
-                <div class="mb-3">
-                    <label asp-for="Notes" class="form-label">Ghi chú (tùy chọn)</label>
-                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
-                </div>
+						<!-- Khu vực hiện mã QR -->
+						<div id="qrArea" class="mb-3 text-center p-3 border rounded bg-light" style="display:none;">
+							<label class="form-label d-block font-weight-bold text-primary">Quét mã QR để thanh toán</label>
+							<img id="qrImage" src="" alt="QR Code" class="img-fluid border shadow-sm" style="max-width:250px;" />
+							<p class="mt-2 small text-muted">Vui lòng thực hiện chuyển khoản theo thông tin trong mã QR.</p>
+						</div>
 
-                <!-- Buttons -->
-                <div class="mb-3">
-                    <button type="submit" class="btn btn-primary">Thanh toán</button>
-                    <a asp-action="History" class="btn btn-secondary">Hủy</a>
-                </div>
+						<!-- Ghi chú -->
+						<div class="mb-3">
+							<label asp-for="Notes" class="form-label">Ghi chú (tùy chọn)</label>
+							<textarea asp-for="Notes" class="form-control" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
+						</div>
 
-                <!-- Display validation summary -->
-                        @if (TempData["ErrorMessage"] != null)
-                    {
-                    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
-                    }
-            </form>
-        </div>
+						<div class="mt-4">
+							<button type="submit" class="btn btn-primary px-4">Xác nhận thanh toán</button>
+							<a asp-controller="Payment" asp-action="History" class="btn btn-secondary px-4">Quay lại</a>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5>Hướng dẫn</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Bước 1:</strong> Chọn hóa đơn cần thanh toán</p>
-                    <p><strong>Bước 2:</strong> Nhập số tiền thanh toán</p>
-                    <p><strong>Bước 3:</strong> Chọn phương thức thanh toán</p>
-                    <p><strong>Bước 4:</strong> Bấm "Thanh toán"</p>
-                    <hr />
-                    <p class="text-muted small">Bạn có thể thanh toán một phần hoặc toàn bộ số tiền còn nợ.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+		<div class="col-md-4">
+			<div class="card bg-light">
+				<div class="card-body">
+					<h5><i class="fas fa-info-circle"></i> Thông tin</h5>
+					<p class="small">Hệ thống hỗ trợ thanh toán từng phần. Bạn có thể nhập số tiền ít hơn số nợ để thanh toán trước một phần.</p>
+					<hr />
+					<p class="small font-italic">Sau khi bấm "Xác nhận thanh toán", hóa đơn sẽ được cập nhật trạng thái ngay lập tức.</p>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+
+	<script>
+		const methodSelect = document.getElementById('PaymentMethod');
+		const invoiceSelect = document.getElementById('InvoiceId');
+		const amountInput = document.getElementById('Amount');
+		const qrArea = document.getElementById('qrArea');
+		const qrImage = document.getElementById('qrImage');
+
+		// Khi chọn hóa đơn, tự động điền số tiền còn nợ
+		invoiceSelect.addEventListener('change', function() {
+			const selectedOption = this.options[this.selectedIndex];
+			const remaining = selectedOption.getAttribute('data-remaining');
+			if (remaining) {
+				amountInput.value = Math.round(remaining);
+			}
+			updateQr();
+		});
+
+		function updateQr() {
+			if (methodSelect.value === 'BankTransfer' && invoiceSelect.value && amountInput.value > 0) {
+				qrArea.style.display = 'block';
+				qrImage.src = `@Url.Action("GenerateBankTransferQr", "Payment")?invoiceId=${invoiceSelect.value}&amount=${amountInput.value}`;
+			} else {
+				qrArea.style.display = 'none';
+			}
+		}
+
+		methodSelect.addEventListener('change', updateQr);
+		amountInput.addEventListener('input', updateQr);
+	</script>
 }
