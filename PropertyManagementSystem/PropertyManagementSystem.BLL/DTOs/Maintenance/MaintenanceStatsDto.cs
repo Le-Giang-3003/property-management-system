@@ -7,5 +7,6 @@ namespace PropertyManagementSystem.BLL.DTOs.Maintenance
         public int InProgressRequests { get; set; }
         public int CompletedRequests { get; set; }
         public int CancelledRequests { get; set; }
+        public int RejectedRequests { get; set; }
     }
 }
