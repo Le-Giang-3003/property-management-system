@@ -1,83 +1,700 @@
-﻿@model IEnumerable<PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto>
+@model IEnumerable<PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto>
 @{
-    ViewData["Title"] = "My Viewings";
+    ViewData["Title"] = "Viewing Schedule";
+    Layout = "_AuthLayout";
+
+    var totalViewings = Model.Count();
+    var confirmedViewings = Model.Count(v => v.Status == "Confirmed");
+    var pendingViewings = Model.Count(v => v.Status == "Requested");
+    var completedViewings = Model.Count(v => v.Status == "Completed");
 }
 
-<h2>My Property Viewings</h2>
+<style>
+    .page-container {
+        padding: 24px 32px;
+        background-color: #f8fafc;
+        min-height: calc(100vh - 70px);
+    }
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <p style="color:green;">@TempData["SuccessMessage"]</p>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <p style="color:red;">@TempData["ErrorMessage"]</p>
-}
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+    }
 
-@if (!Model.Any())
-{
-    <p>
-        You haven't scheduled any viewings yet.
-        <a href="/Property">Browse properties</a> to schedule a viewing.
-    </p>
-}
-else
-{
-    <table border="1" cellpadding="8" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Property</th>
-                <th>Address</th>
-                <th>Requested Date</th>
-                <th>Scheduled Date</th>
-                <th>Status</th>
-                <th>Landlord</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.PropertyName</td>
-                    <td>@item.PropertyAddress</td>
-                    <td>@item.PreferredDate1?.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>
-                        @if (item.ScheduledDate.HasValue)
-                        {
-                            @item.ScheduledDate.Value.ToString("dd/MM/yyyy HH:mm")
-                        }
-                        else
-                        {
-                            <em>Not scheduled</em>
-                        }
-                    </td>
-                    <td>@item.Status</td>
-                    <td>
-                        @item.LandlordName<br />
-                        @item.LandlordPhone
-                    </td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.ViewingId">Details</a>
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
 
-                        @if (item.Status == "Requested" || item.Status == "Confirmed")
-                        {
-                            <span> | </span>
-                            <form asp-action="Cancel" asp-route-id="@item.ViewingId" method="post" style="display:inline;"
-                                  onsubmit="return confirm('Are you sure you want to cancel?');">
-                                @Html.AntiForgeryToken()
-                                <button type="submit">Cancel</button>
-                            </form>
-                        }
+    .page-subtitle {
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 4px;
+    }
 
-                        @if (item.Status == "Completed" && !item.Rating.HasValue)
+    .btn-schedule {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-schedule:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .stat-icon.total {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .stat-icon.confirmed {
+        background: #f0fdf4;
+        color: #16a34a;
+    }
+
+    .stat-icon.pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .stat-content h3 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .stat-content p {
+        font-size: 13px;
+        color: #64748b;
+        margin: 0;
+    }
+
+    /* Viewing Cards */
+    .viewing-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 24px;
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .viewing-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .viewing-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .viewing-title-section {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .viewing-status-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .viewing-status-icon.confirmed {
+        background: #f0fdf4;
+        color: #16a34a;
+        border: 2px solid #16a34a;
+    }
+
+    .viewing-status-icon.pending {
+        background: #fef3c7;
+        color: #d97706;
+        border: 2px solid #d97706;
+    }
+
+    .viewing-status-icon.completed {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 2px solid #64748b;
+    }
+
+    .viewing-status-icon.cancelled {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 2px solid #dc2626;
+    }
+
+    .viewing-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .viewing-address {
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .viewing-schedule {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-top: 8px;
+    }
+
+    .schedule-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .schedule-item i {
+        color: #64748b;
+    }
+
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .status-confirmed {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .status-pending, .status-requested {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-completed {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .status-cancelled, .status-rejected {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-rescheduled {
+        background: #e0f2fe;
+        color: #0284c7;
+    }
+
+    .landlord-info {
+        padding: 12px 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .landlord-info span {
+        color: #2563eb;
+        font-weight: 500;
+    }
+
+    .viewing-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-view-details {
+        flex: 1;
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-view-details:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .btn-reschedule {
+        flex: 1;
+        background: white;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-reschedule:hover {
+        background: #f8fafc;
+        color: #1e293b;
+    }
+
+    .btn-cancel {
+        background: white;
+        color: #dc2626;
+        border: 1px solid #dc2626;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #fef2f2;
+    }
+
+    .btn-confirm-viewing {
+        flex: 2;
+        background: #16a34a;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-confirm-viewing:hover {
+        background: #15803d;
+        color: white;
+    }
+
+    .btn-cancel-full {
+        flex: 1;
+        background: white;
+        color: #dc2626;
+        border: 1px solid #dc2626;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel-full:hover {
+        background: #fef2f2;
+    }
+
+    .btn-submit-application {
+        width: 100%;
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit-application:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .btn-feedback {
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-feedback:hover {
+        background: #7c3aed;
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 60px 24px;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: #94a3b8;
+        font-size: 32px;
+    }
+
+    .empty-state h4 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        margin-bottom: 24px;
+    }
+
+    .rating-display {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+    }
+
+    .rating-display i {
+        color: #fbbf24;
+        font-size: 14px;
+    }
+
+    .rating-display i.empty {
+        color: #e2e8f0;
+    }
+
+    @@media (max-width: 768px) {
+        .page-container {
+            padding: 16px;
+        }
+
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .viewing-header {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .viewing-schedule {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .viewing-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Viewing Schedule</h1>
+            <p class="page-subtitle">Manage your property viewing appointments</p>
+        </div>
+        <a asp-controller="Property" asp-action="Index" class="btn-schedule">
+            <i class="bi bi-plus-lg"></i>
+            Schedule New Viewing
+        </a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+            <div class="stat-content">
+                <h3>@totalViewings</h3>
+                <p>Total Viewings</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon confirmed">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <h3>@confirmedViewings</h3>
+                <p>Confirmed</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon pending">
+                <i class="bi bi-clock"></i>
+            </div>
+            <div class="stat-content">
+                <h3>@pendingViewings</h3>
+                <p>Pending</p>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <h4>No viewings scheduled</h4>
+            <p>You haven't scheduled any property viewings yet. Start by browsing available properties.</p>
+            <a asp-controller="Property" asp-action="Index" class="btn-schedule">
+                <i class="bi bi-search"></i>
+                Browse Properties
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var viewing in Model.OrderByDescending(v => v.ScheduledDate ?? v.PreferredDate1))
+        {
+            <div class="viewing-card">
+                <div class="viewing-header">
+                    <div class="viewing-title-section">
+                        <div class="viewing-status-icon @GetStatusIconClass(viewing.Status)">
+                            <i class="bi @GetStatusIcon(viewing.Status)"></i>
+                        </div>
+                        <div>
+                            <h3 class="viewing-title">@viewing.PropertyName</h3>
+                            <p class="viewing-address">
+                                <i class="bi bi-geo-alt"></i>
+                                @viewing.PropertyAddress
+                            </p>
+                            <div class="viewing-schedule">
+                                <span class="schedule-item">
+                                    <i class="bi bi-calendar3"></i>
+                                    @if (viewing.ScheduledDate.HasValue)
+                                    {
+                                        @viewing.ScheduledDate.Value.ToString("MMM dd, yyyy")
+                                    }
+                                    else if (viewing.PreferredDate1.HasValue)
+                                    {
+                                        @viewing.PreferredDate1.Value.ToString("MMM dd, yyyy")
+                                    }
+                                </span>
+                                <span class="schedule-item">
+                                    <i class="bi bi-clock"></i>
+                                    @if (viewing.ScheduledDate.HasValue)
+                                    {
+                                        @viewing.ScheduledDate.Value.ToString("h:mm tt")
+                                    }
+                                    else if (viewing.PreferredDate1.HasValue)
+                                    {
+                                        @viewing.PreferredDate1.Value.ToString("h:mm tt")
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="status-badge @GetStatusBadgeClass(viewing.Status)">@GetStatusText(viewing.Status)</span>
+                </div>
+
+                <div class="landlord-info">
+                    Landlord: <span>@viewing.LandlordName</span> &bull; @viewing.LandlordPhone
+                </div>
+
+                @if (viewing.Rating.HasValue)
+                {
+                    <div class="rating-display" style="margin-bottom: 16px;">
+                        @for (int i = 1; i <= 5; i++)
                         {
-                            <span> | </span>
-                            <a asp-action="Feedback" asp-route-id="@item.ViewingId">Give Feedback</a>
+                            if (i <= viewing.Rating.Value)
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star-fill empty"></i>
+                            }
                         }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                        <span style="margin-left: 8px; color: #64748b; font-size: 14px;">Your rating</span>
+                    </div>
+                }
+
+                <div class="viewing-actions">
+                    @if (viewing.Status == "Confirmed")
+                    {
+                        <a asp-action="Details" asp-route-id="@viewing.ViewingId" class="btn-view-details">
+                            View Details
+                        </a>
+                        <a asp-action="Reschedule" asp-route-id="@viewing.ViewingId" class="btn-reschedule">
+                            Reschedule
+                        </a>
+                        <form asp-action="Cancel" asp-route-id="@viewing.ViewingId" method="post" style="display: contents;"
+                              onsubmit="return confirm('Are you sure you want to cancel this viewing?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-cancel">Cancel</button>
+                        </form>
+                    }
+                    else if (viewing.Status == "Requested")
+                    {
+                        <a asp-action="Details" asp-route-id="@viewing.ViewingId" class="btn-view-details" style="flex: 1;">
+                            View Details
+                        </a>
+                        <form asp-action="Cancel" asp-route-id="@viewing.ViewingId" method="post" style="flex: 1;"
+                              onsubmit="return confirm('Are you sure you want to cancel this viewing request?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-cancel-full" style="width: 100%;">Cancel</button>
+                        </form>
+                    }
+                    else if (viewing.Status == "Completed")
+                    {
+                        @if (!viewing.Rating.HasValue)
+                        {
+                            <a asp-action="Feedback" asp-route-id="@viewing.ViewingId" class="btn-feedback" style="flex: 1;">
+                                <i class="bi bi-star"></i> Give Feedback
+                            </a>
+                        }
+                        <a asp-controller="RentalApplication" asp-action="Create" asp-route-propertyId="@viewing.PropertyId" class="btn-submit-application" style="flex: 2;">
+                            Submit Application
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="Details" asp-route-id="@viewing.ViewingId" class="btn-view-details" style="width: 100%;">
+                            View Details
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@functions {
+    string GetStatusIconClass(string status)
+    {
+        return status switch
+        {
+            "Confirmed" => "confirmed",
+            "Requested" => "pending",
+            "Completed" => "completed",
+            "Cancelled" or "Rejected" => "cancelled",
+            _ => "pending"
+        };
+    }
+
+    string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Confirmed" => "bi-check-lg",
+            "Requested" => "bi-clock",
+            "Completed" => "bi-check-circle",
+            "Cancelled" or "Rejected" => "bi-x-lg",
+            _ => "bi-clock"
+        };
+    }
+
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Confirmed" => "status-confirmed",
+            "Requested" => "status-pending",
+            "Completed" => "status-completed",
+            "Cancelled" or "Rejected" => "status-cancelled",
+            "Rescheduled" => "status-rescheduled",
+            _ => "status-pending"
+        };
+    }
+
+    string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "Confirmed" => "Confirmed",
+            "Requested" => "Pending",
+            "Completed" => "Completed",
+            "Cancelled" => "Cancelled",
+            "Rejected" => "Rejected",
+            "Rescheduled" => "Rescheduled",
+            _ => status
+        };
+    }
 }

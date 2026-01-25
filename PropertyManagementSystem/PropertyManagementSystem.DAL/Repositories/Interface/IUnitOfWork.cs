@@ -12,6 +12,9 @@
         ILeaseRepository Leases { get; }
         IMaintenanceRepository MaintenanceRequests { get; }
         IPropertyImageRepository PropertyImages { get; }
+
+        ILeaseSignatureRepository LeaseSignatures { get; }
+
         Task<int> SaveChangesAsync();
         int SaveChanges();
     }

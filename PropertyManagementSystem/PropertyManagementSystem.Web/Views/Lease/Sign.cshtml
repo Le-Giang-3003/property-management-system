@@ -1,0 +1,390 @@
+﻿@model PropertyManagementSystem.DAL.Entities.Lease
+@{
+    ViewData["Title"] = "Ký hợp đồng";
+    var signatures = ViewBag.Signatures as IEnumerable<PropertyManagementSystem.DAL.Entities.LeaseSignature>;
+    var userEmail = ViewBag.UserEmail as string;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-pen-nib"></i> Ký hợp đồng @Model.LeaseNumber
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Thông tin hợp đồng -->
+                    <div class="alert alert-info mb-4">
+                        <h5><i class="fas fa-info-circle"></i> Thông tin hợp đồng</h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Bất động sản:</strong> @Model.Property?.Name</p>
+                                <p><strong>Địa chỉ:</strong> @Model.Property?.Address</p>
+                                <p><strong>Người thuê:</strong> @Model.Tenant?.FullName</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Thời hạn:</strong> @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
+                                <p><strong>Tiền thuê:</strong> @Model.MonthlyRent.ToString("N0") VNĐ/tháng</p>
+                                <p><strong>Tiền cọc:</strong> @Model.SecurityDeposit.ToString("N0") VNĐ</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trạng thái ký -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5><i class="fas fa-signature"></i> Trạng thái ký</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (signatures != null && signatures.Any())
+                            {
+                                foreach (var sig in signatures)
+                                {
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle"></i>
+                                        <strong>@sig.SignerRole</strong> (@sig.User?.FullName)
+                                        đã ký vào lúc @sig.SignedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted">Chưa có chữ ký nào</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Điều khoản hợp đồng -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5><i class="fas fa-file-alt"></i> Điều khoản hợp đồng</h5>
+                        </div>
+                        <div class="card-body">
+                            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; background: #f8f9fa;">
+                                <pre style="white-space: pre-wrap; font-family: 'Segoe UI', sans-serif; margin: 0;">@Model.Terms</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas vẽ chữ ký -->
+                    <div class="card mb-4 border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-pen-fancy"></i> Vẽ chữ ký của bạn
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">
+                                <i class="fas fa-hand-pointer"></i>
+                                Sử dụng chuột hoặc ngón tay để vẽ chữ ký của bạn trong khung bên dưới
+                            </p>
+
+                            <div class="text-center mb-3">
+                                <canvas id="signatureCanvas"
+                                        style="border: 2px solid #007bff; border-radius: 8px; background: white; cursor: crosshair;"
+                                        width="400"
+                                        height="150">
+                                </canvas>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button" id="clearBtn" class="btn btn-warning">
+                                    <i class="fas fa-eraser"></i> Xóa và vẽ lại
+                                </button>
+                                <small class="text-muted align-self-center">
+                                    <i class="fas fa-info-circle"></i> Chữ ký này sẽ được lưu vào hợp đồng
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Checkbox xác nhận -->
+                    <div class="card mb-4 border-warning">
+                        <div class="card-header bg-warning">
+                            <h5 class="mb-0">
+                                <i class="fas fa-check-square"></i> Xác nhận
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                <label class="form-check-label fw-bold" for="agreeTerms">
+                                    <i class="fas fa-file-contract"></i>
+                                    Tôi đã đọc kỹ và đồng ý với tất cả điều khoản trong hợp đồng này
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="agreeInfo" required>
+                                <label class="form-check-label fw-bold" for="agreeInfo">
+                                    <i class="fas fa-user-check"></i>
+                                    Tôi xác nhận các thông tin cá nhân và tài chính trong hợp đồng là chính xác
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="agreeSign" required>
+                                <label class="form-check-label fw-bold" for="agreeSign">
+                                    <i class="fas fa-signature"></i>
+                                    Tôi hiểu rằng chữ ký điện tử này có giá trị pháp lý như chữ ký tay
+                                </label>
+                            </div>
+
+                            <div class="alert alert-danger mb-0">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Cảnh báo:</strong>
+                                Sau khi ký, bạn không thể chỉnh sửa hoặc hủy hợp đồng một cách đơn phương.
+                                Hành động này không thể hoàn tác.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Xác thực OTP -->
+                    <div class="card mb-4 border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt"></i> Xác thực 2 lớp (OTP)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                Để đảm bảo an toàn, chúng tôi sẽ gửi mã OTP (6 số) đến email của bạn:
+                                <strong>@userEmail</strong>
+                            </div>
+
+                            <!-- Nút gửi OTP -->
+                            <div class="mb-3">
+                                <button type="button" id="sendOtpBtn" class="btn btn-primary btn-lg" disabled>
+                                    <i class="fas fa-paper-plane"></i> Gửi mã OTP
+                                </button>
+                                <small class="text-muted ms-2" id="otpStatus"></small>
+                            </div>
+
+                            <!-- Form nhập OTP -->
+                            <form asp-action="Sign" method="post" id="signForm">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="signatureData" id="signatureData" />
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="otpInput" class="form-label fw-bold">
+                                            <i class="fas fa-key"></i> Nhập mã OTP (6 số)
+                                        </label>
+                                        <input type="text"
+                                               class="form-control form-control-lg text-center"
+                                               id="otpInput"
+                                               name="otp"
+                                               maxlength="6"
+                                               placeholder="000000"
+                                               pattern="[0-9]{6}"
+                                               required
+                                               disabled>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock"></i> Mã có hiệu lực trong 5 phút
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Buttons -->
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                    <a asp-action="Details" asp-route-id="@Model.LeaseId" class="btn btn-lg btn-outline-secondary">
+                                        <i class="fas fa-times"></i> Hủy bỏ
+                                    </a>
+                                    <button type="submit" id="submitBtn" class="btn btn-lg btn-success" disabled>
+                                        <i class="fas fa-pen-nib"></i> Xác nhận ký hợp đồng
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Canvas signature
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let hasDrawn = false;
+
+        function startDrawing(e) {
+            isDrawing = true;
+            hasDrawn = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            checkCanSendOtp();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopDrawing();
+        });
+
+        // Clear button
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasDrawn = false;
+            checkCanSendOtp();
+        });
+
+        // Checkbox validation
+        const agreeTerms = document.getElementById('agreeTerms');
+        const agreeInfo = document.getElementById('agreeInfo');
+        const agreeSign = document.getElementById('agreeSign');
+        const sendOtpBtn = document.getElementById('sendOtpBtn');
+        const otpInput = document.getElementById('otpInput');
+        const submitBtn = document.getElementById('submitBtn');
+        let otpSent = false;
+
+        function checkCanSendOtp() {
+            const allChecked = agreeTerms.checked && agreeInfo.checked && agreeSign.checked;
+            sendOtpBtn.disabled = !(allChecked && hasDrawn);
+        }
+
+        agreeTerms.addEventListener('change', checkCanSendOtp);
+        agreeInfo.addEventListener('change', checkCanSendOtp);
+        agreeSign.addEventListener('change', checkCanSendOtp);
+
+        // Gửi OTP
+        sendOtpBtn.addEventListener('click', async function() {
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
+
+            try {
+                const response = await fetch('@Url.Action("SendOtp", "Lease")?leaseId=@Model.LeaseId', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    otpSent = true;
+                    otpInput.disabled = false;
+                    submitBtn.disabled = false;
+                    otpInput.focus();
+
+                    document.getElementById('otpStatus').innerHTML =
+                        '<span class="text-success"><i class="fas fa-check-circle"></i> ' + result.message + '</span>';
+
+                    sendOtpBtn.innerHTML = '<i class="fas fa-check"></i> Đã gửi';
+
+                    // Countdown 60s
+                    let countdown = 60;
+                    const interval = setInterval(() => {
+                        countdown--;
+                        sendOtpBtn.innerHTML = `<i class="fas fa-clock"></i> Gửi lại (${countdown}s)`;
+                        if (countdown <= 0) {
+                            clearInterval(interval);
+                            sendOtpBtn.disabled = false;
+                            sendOtpBtn.innerHTML = '<i class="fas fa-redo"></i> Gửi lại mã OTP';
+                        }
+                    }, 1000);
+                } else {
+                    alert('Lỗi: ' + result.message);
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Gửi mã OTP';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra. Vui lòng thử lại!');
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Gửi mã OTP';
+            }
+        });
+
+        // Validate OTP input (chỉ cho nhập số)
+        otpInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Submit form
+        document.getElementById('signForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!hasDrawn) {
+                alert('Vui lòng vẽ chữ ký của bạn!');
+                return false;
+            }
+
+            if (!otpSent) {
+                alert('Vui lòng gửi mã OTP trước!');
+                return false;
+            }
+
+            const otpValue = otpInput.value.trim();
+            if (otpValue.length !== 6) {
+                alert('Mã OTP phải có 6 số!');
+                otpInput.focus();
+                return false;
+            }
+
+            if (!confirm('Bạn có chắc chắn muốn ký hợp đồng này không?\n\nHành động này không thể hoàn tác.')) {
+                return false;
+            }
+
+            // Convert canvas to Base64
+            const signatureData = canvas.toDataURL('image/png');
+            document.getElementById('signatureData').value = signatureData;
+
+            // Submit form
+            this.submit();
+        });
+    </script>
+}

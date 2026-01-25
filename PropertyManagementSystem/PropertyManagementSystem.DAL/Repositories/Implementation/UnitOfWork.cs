@@ -17,6 +17,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         private ILeaseRepository? _leases;
         private IMaintenanceRepository? _maintenanceRequests;
         private IPropertyImageRepository _propertyImage;
+        private ILeaseSignatureRepository _leaseSignatures;
+
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
@@ -35,6 +37,9 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         public IMaintenanceRepository MaintenanceRequests => _maintenanceRequests ??= new MaintenanceRepository(_context);
 
         public IPropertyImageRepository PropertyImages => _propertyImage ??= new PropertyImageRepository(_context);
+
+
+        public ILeaseSignatureRepository LeaseSignatures => _leaseSignatures ??= new LeaseSignatureRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

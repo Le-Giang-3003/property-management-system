@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PropertyManagementSystem.BLL.DTOs.Application;
+using PropertyManagementSystem.BLL.Services.Implementation;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.Application;
 using System.Security.Claims;
@@ -12,13 +13,16 @@ namespace PropertyManagementSystem.Web.Controllers
     {
         private readonly IRentalApplicationService _applicationService;
         private readonly IPropertyService _propertyService;
+        private readonly ILeaseService _leaseService;
 
         public RentalApplicationController(
-            IRentalApplicationService applicationService,
-            IPropertyService propertyService)
+                IRentalApplicationService applicationService,
+                IPropertyService propertyService,
+                ILeaseService leaseService) 
         {
             _applicationService = applicationService;
             _propertyService = propertyService;
+            _leaseService = leaseService; 
         }
 
         // GET: /RentalApplication/Create
@@ -158,7 +162,6 @@ namespace PropertyManagementSystem.Web.Controllers
             ViewBag.SelectedStatus = status;
             return View("ApplicationIndex", applications); // ✅ ĐÚNG TÊN FILE
         }
-
         // GET: /RentalApplication/Details/5
         public async Task<IActionResult> Details(int id)
         {
@@ -172,7 +175,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (userRole == "Tenant" || userRole == "Guest")
+            if (userRole == "member")
             {
                 if (application.ApplicantId != userId)
                 {
@@ -181,8 +184,16 @@ namespace PropertyManagementSystem.Web.Controllers
                 }
             }
 
-            return View("ApplicationDetails", application); // ✅ ĐÚNG TÊN FILE
+            // ✅ THÊM: Kiểm tra xem đã có Lease chưa
+            if (application.Status == "Approved")
+            {
+                var existingLease = await _leaseService.GetLeaseByApplicationIdAsync(id);
+                ViewBag.ExistingLease = existingLease;
+            }
+
+            return View("ApplicationDetails", application);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -522,7 +522,7 @@
                 </li>
                 <li class="nav-item">
                     <a href="@Url.Action("Index", "Property")" class="nav-link">
-                        <i class="bi bi-search"></i>
+                        <i class="bi bi-house-door"></i>
                         <span>Search Properties</span>
                     </a>
                 </li>
@@ -533,14 +533,14 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="@Url.Action("ViewLeaseDocuments", "Document")" class="nav-link">
+                    <a href="@Url.Action("Index", "RentalApplication")" class="nav-link">
                         <i class="bi bi-file-text"></i>
                         <span>My Contracts</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="@Url.Action("MakePayment", "Payment")" class="nav-link">
-                        <i class="bi bi-credit-card"></i>
+                    <a href="@Url.Action("Payments", "Payment")" class="nav-link">
+                        <i class="bi bi-currency-dollar"></i>
                         <span>Payments</span>
                     </a>
                 </li>
@@ -551,15 +551,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="@Url.Action("Applications", "RentalApplication")" class="nav-link">
-                        <i class="bi bi-file-earmark-person"></i>
-                        <span>Applications</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Viewings", "Viewing")" class="nav-link">
-                        <i class="bi bi-calendar"></i>
-                        <span>Viewings</span>
+                    <a href="@Url.Action("MyViewings", "PropertyViewing")" class="nav-link">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Viewing Schedule</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -615,13 +609,13 @@
                 </li>
                 <li class="nav-item">
                     <a href="@Url.Action("Viewings", "Viewing")" class="nav-link">
-                        <i class="bi bi-calendar"></i>
+                        <i class="bi bi-calendar-check"></i>
                         <span>Viewings</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="@Url.Action("Reports", "Report")" class="nav-link">
-                        <i class="bi bi-bar-chart"></i>
+                        <i class="bi bi-bar-chart-line"></i>
                         <span>Reports</span>
                     </a>
                 </li>
@@ -629,6 +623,12 @@
                     <a href="@Url.Action("AIInsights", "AI")" class="nav-link">
                         <i class="bi bi-stars"></i>
                         <span>AI Insights</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "File")" class="nav-link">
+                        <i class="bi bi-folder"></i>
+                        <span>Files</span>
                     </a>
                 </li>
                 <li class="nav-item">

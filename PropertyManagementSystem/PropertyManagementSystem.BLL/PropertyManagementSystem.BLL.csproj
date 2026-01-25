@@ -16,6 +16,7 @@
 <PackageReference Include="MailKit" />
 		<PackageReference Include="BCrypt.Net-Next" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+		<PackageReference Include="QuestPDF" />
 
   </ItemGroup>
 

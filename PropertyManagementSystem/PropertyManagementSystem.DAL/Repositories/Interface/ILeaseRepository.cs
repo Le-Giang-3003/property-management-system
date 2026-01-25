@@ -1,4 +1,9 @@
-using PropertyManagementSystem.DAL.Entities;
+﻿using PropertyManagementSystem.DAL.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace PropertyManagementSystem.DAL.Repositories.Interface
 {
@@ -8,53 +13,49 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
     /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Interface.IGenericRepository&lt;PropertyManagementSystem.DAL.Entities.Lease&gt;" />
     public interface ILeaseRepository : IGenericRepository<Lease>
     {
-        /// <summary>
-        /// Gets active leases for a tenant
-        /// </summary>
-        /// <param name="tenantId">The tenant identifier.</param>
-        /// <returns></returns>
+        // ===== From features/implementation_Giang'sTask =====
+
         Task<IEnumerable<Lease>> GetActiveLeasesForTenantAsync(int tenantId);
 
-        /// <summary>
-        /// Gets lease with property details
-        /// </summary>
-        /// <param name="leaseId">The lease identifier.</param>
-        /// <returns></returns>
         Task<Lease?> GetLeaseWithPropertyAsync(int leaseId);
 
-        /// <summary>
-        /// Gets properties with active leases for a tenant (for maintenance request dropdown)
-        /// </summary>
-        /// <param name="tenantId">The tenant identifier.</param>
-        /// <returns></returns>
         Task<IEnumerable<Property>> GetTenantActivePropertiesAsync(int tenantId);
 
-        /// <summary>
-        /// Gets all leases for a landlord's properties
-        /// </summary>
-        /// <param name="landlordId">The landlord identifier.</param>
-        /// <returns></returns>
         Task<IEnumerable<Lease>> GetLeasesByLandlordAsync(int landlordId);
 
-        /// <summary>
-        /// Checks if a tenant has an active lease for a property
-        /// </summary>
-        /// <param name="tenantId">The tenant identifier.</param>
-        /// <param name="propertyId">The property identifier.</param>
-        /// <returns></returns>
         Task<bool> HasActiveLease(int tenantId, int propertyId);
-        /// <summary>
-        /// Gets the leases by tenant user identifier asynchronous.
-        /// </summary>
-        /// <param name="tenantUserId">The tenant user identifier.</param>
-        /// <returns></returns>
+
         Task<IEnumerable<Lease>> GetLeasesByTenantUserIdAsync(int tenantUserId);
-        /// <summary>
-        /// Gets the expiring by landlord asynchronous.
-        /// </summary>
-        /// <param name="landlordId">The landlord identifier.</param>
-        /// <param name="daysAhead">The days ahead.</param>
-        /// <returns></returns>
+
         Task<List<Lease>> GetExpiringByLandlordAsync(int landlordId, int daysAhead = 30);
+
+        // ===== From develop =====
+        // CRUD-like methods (kept to avoid breaking existing services)
+
+        Task<Lease> CreateAsync(Lease lease);
+
+        Task<Lease> GetByIdAsync(int id);
+
+        Task<IEnumerable<Lease>> GetAllAsync();
+
+        Task<IEnumerable<Lease>> GetByPropertyIdAsync(int propertyId);
+
+        Task<IEnumerable<Lease>> GetByTenantIdAsync(int tenantId);
+
+        Task<Lease> GetByApplicationIdAsync(int applicationId);
+
+        Task<bool> UpdateAsync(Lease lease);
+
+        // ===== Business / utility methods =====
+
+        Task<string> GenerateLeaseNumberAsync();
+
+        Task<IEnumerable<Lease>> GetLeaseHistoryByPropertyIdAsync(int propertyId);
+
+        Task<IEnumerable<Lease>> GetRenewableLeasesAsync(int daysBeforeExpiry = 30);
+
+        Task<Lease?> GetLeaseWithDetailsAsync(int leaseId);
+
+        Task<IEnumerable<Lease>> GetLeasesByStatusAsync(string status);
     }
 }
