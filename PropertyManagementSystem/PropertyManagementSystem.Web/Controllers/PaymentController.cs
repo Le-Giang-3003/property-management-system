@@ -1,15 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Payments;
-using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.Payment;
 using QRCoder;
 using System.Drawing.Imaging;
-using System.Security.Claims;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
-    //[Authorize(Roles = "Tenant")]
     public class PaymentController : Controller
     {
         private readonly IPaymentService _paymentService;
@@ -19,36 +15,42 @@ namespace PropertyManagementSystem.Web.Controllers
             _paymentService = paymentService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> MakePayment()
+        private int? GetTenantId()
         {
             var tenantClaim = User.FindFirst("TenantId");
-            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+            if (tenantClaim != null && int.TryParse(tenantClaim.Value, out var tenantId))
             {
-                return RedirectToAction("Login", "Auth");
+                return tenantId;
             }
+            return null;
+        }
 
-            var invoices = await _paymentService.GetAvailableInvoicesAsync(tenantId);
+        [HttpGet]
+        public async Task<IActionResult> Payments()
+        {
+            var tenantId = GetTenantId();
+            if (tenantId == null) return RedirectToAction("Login", "Auth");
 
             var vm = new MakePaymentViewModel
             {
-                AvailableInvoices = invoices
+                AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value)
             };
 
-            return View(vm);
+            return View("MakePayment", vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName("Payments")]
         public async Task<IActionResult> MakePayment(MakePaymentViewModel vm)
         {
-            if (!ModelState.IsValid)
-                return View(vm);
+            var tenantId = GetTenantId();
+            if (tenantId == null) return RedirectToAction("Login", "Auth");
 
-            var tenantClaim = User.FindFirst("TenantId");
-            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+            if (!ModelState.IsValid)
             {
-                return RedirectToAction("Login", "Auth");
+                vm.AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value);
+                return View(vm);
             }
 
             try
@@ -61,46 +63,51 @@ namespace PropertyManagementSystem.Web.Controllers
                     Notes = vm.Notes
                 };
 
-                var result = await _paymentService.MakePaymentAsync(tenantId, dto);
+                var result = await _paymentService.MakePaymentAsync(tenantId.Value, dto);
 
-                TempData["SuccessMessage"] = $"Thanh toán thành công. Mã thanh toán: {result.PaymentId}";
-                return RedirectToAction("History", new { invoiceId = vm.InvoiceId });
+                TempData["SuccessMessage"] = "Thanh toán thành công!";
+                return RedirectToAction("History");
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = ex.Message;
+                vm.AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value);
                 return View(vm);
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> History()
         {
-            var tenantClaim = User.FindFirst("TenantId");
-            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
-                return RedirectToAction("Login", "Auth");
+            var tenantId = GetTenantId();
+            if (tenantId == null) return RedirectToAction("Login", "Auth");
 
-            var history = await _paymentService.GetPaymentHistoryAsync(tenantId);
+            var history = await _paymentService.GetPaymentHistoryAsync(tenantId.Value);
             return View(history);
         }
 
+        [HttpGet]
         public IActionResult GenerateBankTransferQr(int invoiceId, decimal amount)
         {
-            // TODO: lấy thông tin invoice, tenant, nội dung chuyển khoản, số tài khoản thực tế
-            var accountNumber = "1025755773 ";
-            var bankName = "Vietcombank";
-            var content = $"Thanh toan hoa don {invoiceId}";
+            string myBank = "Vietcombank";
+            string myAccount = "1025755773";
+            string myName = "TRUONG HOANG PHAT";
+            string content = $"THANH TOAN HD {invoiceId}";
 
-            // Chuỗi đơn giản, sau này đổi sang format VietQR
-            var qrContent = $"BANK:{bankName}|ACC:{accountNumber}|AMT:{amount}|MSG:{content}";
+            string qrText = $"NGAN HANG: {myBank}\n" +
+                            $"STK: {myAccount}\n" +
+                            $"CHU TK: {myName}\n" +
+                            $"SO TIEN: {amount:N0} VND\n" +
+                            $"NOI DUNG: {content}";
 
             using var qrGenerator = new QRCodeGenerator();
-            using var qrData = qrGenerator.CreateQrCode(qrContent, QRCodeGenerator.ECCLevel.Q);
+            using var qrData = qrGenerator.CreateQrCode(qrText, QRCodeGenerator.ECCLevel.Q);
             using var qrCode = new QRCode(qrData);
-            using var qrImage = qrCode.GetGraphic(20);
+
+            using var qrImage = qrCode.GetGraphic(10);
 
             using var ms = new MemoryStream();
             qrImage.Save(ms, ImageFormat.Png);
-            ms.Position = 0;
             return File(ms.ToArray(), "image/png");
         }
     }
