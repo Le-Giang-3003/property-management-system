@@ -58,5 +58,12 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Payment>> GetByInvoiceIdAsync(int invoiceId)
+        {
+            return await _context.Payments
+                .Where(p => p.InvoiceId == invoiceId)
+                .ToListAsync();
+        }
+
     }
 }

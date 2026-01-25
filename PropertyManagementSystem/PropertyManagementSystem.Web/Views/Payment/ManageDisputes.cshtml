@@ -1,0 +1,89 @@
+﻿@model PropertyManagementSystem.Web.ViewModels.Payment.AdminDisputeManagementViewModel
+<div class="container mt-4">
+    <h2 class="fw-bold text-dark mb-4"><i class="bi bi-shield-exclamation"></i> Quản lý khiếu nại thanh toán</h2>
+
+    <!-- Bảng khiếu nại CHỜ XỬ LÝ -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-header bg-warning py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history"></i> Khiếu nại đang chờ (@Model.PendingDisputes.Count)</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Ngày gửi</th>
+                        <th>Người thuê</th>
+                        <th>Hóa đơn</th>
+                        <th>Lý do</th>
+                        <th style="width: 30%;">Mô tả</th>
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in Model.PendingDisputes)
+                    {
+                        <tr>
+                            <td class="ps-4 small">@d.CreatedAt.ToString("dd/MM HH:mm")</td>
+                            <td><strong>@d.TenantName</strong></td>
+                            <td>#@d.InvoiceId</td>
+                            <td><span class="badge bg-danger">@d.Reason</span></td>
+                            <td class="small text-muted">@d.Description</td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-success" onclick="openResolveModal(@d.DisputeId, true)">
+                                    <i class="bi bi-arrow-left-right"></i> Hoàn tiền
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="openResolveModal(@d.DisputeId, false)">
+                                    Từ chối
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL XỬ LÝ CỦA ADMIN -->
+<div class="modal fade" id="resolveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="ResolveDispute" method="post">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Xử lý khiếu nại</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="modalDisputeId" name="DisputeId" />
+                    <input type="hidden" id="modalIsRefund" name="IsRefundRequest" />
+
+                    <div id="refundAlert" class="alert alert-info d-none">
+                        <i class="bi bi-info-circle"></i> Hệ thống sẽ <strong>hoàn trả tiền</strong> và đưa hóa đơn về trạng thái <strong>CHƯA THANH TOÁN</strong>.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nội dung phản hồi cho Tenant</label>
+                        <textarea name="Resolution" class="form-control" rows="3" required placeholder="Ví dụ: Đã nhận được tiền hoàn trả, vui lòng kiểm tra lại STK..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Xác nhận xử lý</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openResolveModal(id, isRefund) {
+            document.getElementById('modalDisputeId').value = id;
+            document.getElementById('modalIsRefund').value = isRefund;
+
+            if(isRefund) document.getElementById('refundAlert').classList.remove('d-none');
+            else document.getElementById('refundAlert').classList.add('d-none');
+
+            new bootstrap.Modal(document.getElementById('resolveModal')).show();
+        }
+    </script>
+}

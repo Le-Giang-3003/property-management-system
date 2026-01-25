@@ -141,8 +141,72 @@ namespace PropertyManagementSystem.Web.Controllers
                 PaymentHistory = reportData.Payments,
                 TenantName = reportData.TenantName
             };
+            return View(vm);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        [Route("Payment/ManageDisputes")]
+        public async Task<IActionResult> ManageDisputes()
+        {
+            var allDisputes = await _paymentService.GetAllDisputesAsync();
+
+            var vm = new AdminDisputeManagementViewModel
+            {
+                PendingDisputes = allDisputes.Where(d => d.Status == "Pending").ToList(),
+                ResolvedDisputes = allDisputes.Where(d => d.Status != "Pending").ToList()
+            };
 
             return View(vm);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RaiseDispute(RaiseDisputeViewModel vm)
+        {
+            if (!ModelState.IsValid) return RedirectToAction("History");
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var dto = new RaiseDisputeDTO
+            { // Dùng DTO viết hoa cho khớp Service của bạn
+                InvoiceId = vm.InvoiceId,
+                Reason = vm.Reason,
+                Description = vm.Description
+            };
+
+            if (await _paymentService.RaiseDisputeAsync(userId, dto))
+                TempData["SuccessMessage"] = "Khiếu nại đã được gửi.";
+
+            return RedirectToAction("History");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResolveDispute(ResolveDisputeViewModel vm)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var adminId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (vm.IsRefundRequest)
+            {
+                await _paymentService.ProcessRefundAsync(vm.DisputeId, adminId, vm.Resolution);
+            }
+            else
+            {
+                var dto = new ResolveDisputeDTO
+                {
+                    DisputeId = vm.DisputeId,
+                    Resolution = vm.Resolution,
+                    Status = vm.Status
+                };
+                await _paymentService.ResolveDisputeAsync(adminId, dto);
+            }
+
+             TempData["SuccessMessage"] = "Xử lý khiếu nại thành công!";
+            return RedirectToAction("ManageDisputes");
+        }
+
     }
 }

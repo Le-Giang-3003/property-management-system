@@ -8,5 +8,6 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<IEnumerable<Payment>> GetPaymentsByTenantIdAsync(int tenantId);
         Task<List<Payment>> GetByTenantAsync(int tenantId);
         Task<IEnumerable<Payment>> GetAllAsync();
+        Task<IEnumerable<Payment>> GetByInvoiceIdAsync(int invoiceId);
     }
 }
