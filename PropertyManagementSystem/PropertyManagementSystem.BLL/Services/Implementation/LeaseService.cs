@@ -30,5 +30,15 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         {
             return await _leaseRepository.HasActiveLease(tenantId, propertyId);
         }
+        public async Task<Lease?> GetByIdAsync(int leaseId)
+        {
+            return await _leaseRepository.GetLeaseWithPropertyAsync(leaseId);
+        }
+
+        public async Task<List<Lease>> GetByTenantAsync(int tenantId)
+        {
+            var leases = await _leaseRepository.GetActiveLeasesForTenantAsync(tenantId);
+            return leases.ToList();
+        }
     }
 }
