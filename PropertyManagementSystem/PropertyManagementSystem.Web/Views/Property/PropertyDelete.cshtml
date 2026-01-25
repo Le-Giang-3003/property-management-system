@@ -5,88 +5,124 @@
     Layout = "_AuthLayout";
 }
 
-<div class="container mt-4">
+<div class="delete-property-container">
     <!-- Warning Header -->
-    <div class="text-center mb-4">
-        <h1 class="text-danger">Xác nhận xóa BDS</h1>
-        <p class="text-muted">Hành động này không thể hoàn tác!</p>
+    <div class="warning-header">
+        <div class="warning-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <h1 class="warning-title">Xác nhận xóa bất động sản</h1>
+        <p class="warning-subtitle">Hành động này không thể hoàn tác!</p>
     </div>
 
-    <!-- Property Card -->
-    <div class="card border-danger mb-3">
-        <div class="card-header bg-danger text-white">
-            <h5 class="mb-0">Thông tin BDS sẽ bị xóa</h5>
+    <!-- Alert Card -->
+    <div class="alert-card">
+        <div class="alert-icon">
+            <i class="bi bi-shield-exclamation"></i>
         </div>
-        <div class="card-body">
-            <!-- Alert -->
-            <div class="alert alert-warning" role="alert">
-                <h5 class="alert-heading">Cảnh báo quan trọng!</h5>
-                <p class="mb-0">
-                    Bạn có chắc chắn muốn xóa bất động sản này?
-                    Mọi dữ liệu liên quan (hợp đồng, bảo trì, ảnh) sẽ bị xóa vĩnh viễn.
-                </p>
+        <div class="alert-content">
+            <h5 class="alert-title">Cảnh báo quan trọng!</h5>
+            <p class="alert-text">
+                Bạn có chắc chắn muốn xóa bất động sản này?
+                Mọi dữ liệu liên quan bao gồm <strong>hợp đồng, bảo trì, lịch xem nhà, ứng tuyển và hình ảnh</strong>
+                sẽ bị xóa vĩnh viễn và không thể khôi phục.
+            </p>
+        </div>
+    </div>
+
+    <!-- Property Info Card -->
+    <div class="property-delete-card">
+        <div class="card-header-delete">
+            <h3>Thông tin bất động sản sẽ bị xóa</h3>
+        </div>
+
+        <div class="property-content">
+            <!-- Property Name -->
+            <div class="property-name-section">
+                <i class="bi bi-building"></i>
+                <h2>@Model.Name</h2>
             </div>
 
-            <!-- Property Details -->
-            <div class="bg-light p-3 rounded mb-3">
-                <h4 class="mb-3">@Model.Name</h4>
+            <div class="divider"></div>
 
-                <div class="row">
-                    <!-- Location -->
-                    <div class="col-md-6 mb-3">
-                        <small class="text-muted d-block">Địa chỉ</small>
-                        <strong>@Model.Address</strong>
+            <!-- Property Details Grid -->
+            <div class="details-grid">
+                <!-- Location -->
+                <div class="detail-item">
+                    <label>Địa chỉ</label>
+                    <div class="detail-value">
+                        <i class="bi bi-geo-alt"></i>
+                        <span>@Model.Address</span>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <small class="text-muted d-block">Khu vực</small>
-                        <strong>
-                            @Model.City@(Model.District != null ? $", {Model.District}" : "")
-                        </strong>
-                    </div>
+                </div>
 
-                    <!-- Type & Specs -->
-                    <div class="col-md-6 mb-3">
-                        <small class="text-muted d-block">Loại BDS</small>
-                        <span class="badge badge-info">@Model.PropertyType</span>
+                <div class="detail-item">
+                    <label>Khu vực</label>
+                    <div class="detail-value">
+                        <i class="bi bi-map"></i>
+                        <span>@Model.City@(Model.District != null ? $", {Model.District}" : "")</span>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <small class="text-muted d-block">Thông số</small>
-                        <strong>
-                            @Model.Bedrooms PN • @Model.Bathrooms PT • @Model.SquareFeet.ToString("N0") ft²
-                        </strong>
-                    </div>
+                </div>
 
-                    <!-- Pricing -->
-                    <div class="col-md-6 mb-3">
-                        <small class="text-muted d-block">Giá thuê</small>
-                        <h5 class="text-success mb-0">
-                            @Model.RentAmount.ToString("N0") ₫/tháng
-                        </h5>
+                <!-- Type & Specs -->
+                <div class="detail-item">
+                    <label>Loại bất động sản</label>
+                    <div class="detail-value">
+                        <span class="badge-type">@Model.PropertyType</span>
                     </div>
+                </div>
 
-                    <!-- Status -->
-                    <div class="col-md-6 mb-3">
-                        <small class="text-muted d-block">Trạng thái</small>
-                        <span class="badge @GetStatusBadgeClass(Model.Status)">
+                <div class="detail-item">
+                    <label>Thông số</label>
+                    <div class="detail-value specs">
+                        <span class="spec-item">
+                            <i class="bi bi-door-closed"></i>
+                            @Model.Bedrooms PN
+                        </span>
+                        <span class="spec-item">
+                            <i class="bi bi-droplet"></i>
+                            @Model.Bathrooms PT
+                        </span>
+                        <span class="spec-item">
+                            <i class="bi bi-rulers"></i>
+                            @Model.SquareFeet.ToString("N0") ft²
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Pricing -->
+                <div class="detail-item highlight">
+                    <label>Giá thuê</label>
+                    <div class="detail-value">
+                        <span class="price">@Model.RentAmount.ToString("N0") ₫<small>/tháng</small></span>
+                    </div>
+                </div>
+
+                @if (Model.DepositAmount.HasValue)
+                {
+                    <div class="detail-item">
+                        <label>Tiền cọc</label>
+                        <div class="detail-value">
+                            <span class="deposit">@Model.DepositAmount.Value.ToString("N0") ₫</span>
+                        </div>
+                    </div>
+                }
+
+                <!-- Status -->
+                <div class="detail-item">
+                    <label>Trạng thái</label>
+                    <div class="detail-value">
+                        <span class="status-badge @GetStatusClass(Model.Status)">
                             @GetStatusDisplay(Model.Status)
                         </span>
                     </div>
+                </div>
 
-                    <!-- Deposit -->
-                    @if (Model.DepositAmount.HasValue)
-                    {
-                        <div class="col-md-6 mb-3">
-                            <small class="text-muted d-block">Tiền cọc</small>
-                            <strong class="text-warning">
-                                @Model.DepositAmount.Value.ToString("N0") ₫
-                            </strong>
-                        </div>
-                    }
-
-                    <!-- Created Date -->
-                    <div class="col-md-6 mb-3">
-                        <small class="text-muted d-block">Ngày tạo</small>
-                        <strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
+                <div class="detail-item">
+                    <label>Ngày tạo</label>
+                    <div class="detail-value">
+                        <i class="bi bi-calendar3"></i>
+                        <span>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                     </div>
                 </div>
             </div>
@@ -94,63 +130,476 @@
             <!-- Landlord Info -->
             @if (Model.Landlord != null)
             {
-                <div class="bg-light p-3 rounded mb-3">
-                    <h6 class="mb-2">Chủ BDS</h6>
-                    <div>
-                        <strong class="d-block">@Model.Landlord.FullName</strong>
-                        <small class="text-muted">@Model.Landlord.Email</small>
+                <div class="divider"></div>
+                <div class="landlord-section">
+                    <label>Chủ bất động sản</label>
+                    <div class="landlord-info">
+                        <div class="landlord-avatar">
+                            @Model.Landlord.FullName.Substring(0, 1).ToUpper()
+                        </div>
+                        <div class="landlord-details">
+                            <strong>@Model.Landlord.FullName</strong>
+                            <span>@Model.Landlord.Email</span>
+                        </div>
                     </div>
                 </div>
             }
-
-            <!-- Action Buttons -->
-            <form asp-action="Delete" method="post" class="mt-4">
-                <input type="hidden" asp-for="PropertyId" />
-
-                <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <button type="submit" class="btn btn-danger btn-block"
-                                onclick="return confirm('Bạn có CHẮC CHẮN muốn xóa BDS này không?');">
-                            Xác nhận 
-                        </button>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <a asp-action="Index" class="btn btn-secondary btn-block">
-                            Hủy bỏ
-                        </a>
-                    </div>
-                </div>
-
-                <div class="text-center mt-3">
-                    <small class="text-muted">
-                        Hoặc quay lại
-                        <a asp-action="Details" asp-route-id="@Model.PropertyId">
-                            xem chi tiết BDS
-                        </a>
-                    </small>
-                </div>
-            </form>
         </div>
     </div>
 
-    <!-- Additional Warning -->
-    <div class="alert alert-danger">
-        <strong>Lưu ý:</strong>
-        Hành động xóa này sẽ xóa tất cả dữ liệu liên quan bao gồm
-        hợp đồng, yêu cầu bảo trì, lịch xem nhà, và ứng tuyển thuê.
-    </div>
+    <!-- Action Buttons -->
+    <form asp-action="Delete" method="post" class="action-form">
+        <input type="hidden" asp-for="PropertyId" />
+
+        <div class="action-buttons">
+            <button type="submit" class="btn-delete"
+                    onclick="return confirm('⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA BẤT ĐỘNG SẢN NÀY KHÔNG?\n\nHành động này không thể hoàn tác!');">
+                <i class="bi bi-trash3"></i>
+                Xác nhận xóa vĩnh viễn
+            </button>
+            <a asp-action="Index" class="btn-cancel">
+                <i class="bi bi-x-lg"></i>
+                Hủy bỏ
+            </a>
+        </div>
+
+        <div class="form-footer">
+            <small>
+                Hoặc quay lại
+                <a asp-action="Details" asp-route-id="@Model.PropertyId" class="link">
+                    xem chi tiết bất động sản
+                </a>
+            </small>
+        </div>
+    </form>
 </div>
 
+@section Styles {
+    <style>
+        .delete-property-container {
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Warning Header */
+        .warning-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .warning-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #fef2f2;
+            border: 3px solid #fecaca;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ef4444;
+            font-size: 36px;
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .warning-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #dc2626;
+            margin: 0 0 8px 0;
+        }
+
+        .warning-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Alert Card */
+        .alert-card {
+            background: #fffbeb;
+            border: 2px solid #fcd34d;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .alert-icon {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            background: #fef3c7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f59e0b;
+            font-size: 24px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #92400e;
+            margin: 0 0 8px 0;
+        }
+
+        .alert-text {
+            font-size: 14px;
+            color: #78350f;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+            .alert-text strong {
+                font-weight: 600;
+            }
+
+        /* Property Delete Card */
+        .property-delete-card {
+            background: white;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card-header-delete {
+            background: #fef2f2;
+            padding: 20px 24px;
+            border-bottom: 2px solid #fecaca;
+        }
+
+            .card-header-delete h3 {
+                font-size: 18px;
+                font-weight: 600;
+                color: #dc2626;
+                margin: 0;
+            }
+
+        .property-content {
+            padding: 24px;
+        }
+
+        /* Property Name Section */
+        .property-name-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+            .property-name-section i {
+                font-size: 32px;
+                color: #64748b;
+            }
+
+            .property-name-section h2 {
+                font-size: 24px;
+                font-weight: 700;
+                color: #1e293b;
+                margin: 0;
+            }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 24px 0;
+        }
+
+        /* Details Grid */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .detail-item.highlight {
+                grid-column: span 2;
+                background: #f0fdf4;
+                border: 1px solid #bbf7d0;
+                border-radius: 8px;
+                padding: 16px;
+            }
+
+            .detail-item label {
+                font-size: 12px;
+                font-weight: 500;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin: 0;
+            }
+
+        .detail-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+            .detail-value i {
+                color: #94a3b8;
+                font-size: 16px;
+            }
+
+            .detail-value.specs {
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+            .spec-item i {
+                font-size: 14px;
+            }
+
+        .badge-type {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #15803d;
+        }
+
+            .price small {
+                font-size: 14px;
+                font-weight: 500;
+                color: #16a34a;
+            }
+
+        .deposit {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ca8a04;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+            .status-badge.available {
+                background: #dcfce7;
+                color: #166534;
+            }
+
+            .status-badge.rented {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .status-badge.maintenance {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .status-badge.unavailable {
+                background: #f1f5f9;
+                color: #475569;
+            }
+
+        /* Landlord Section */
+        .landlord-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .landlord-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .landlord-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .landlord-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+            .landlord-details strong {
+                font-size: 14px;
+                color: #1e293b;
+            }
+
+            .landlord-details span {
+                font-size: 13px;
+                color: #64748b;
+            }
+
+        /* Action Form */
+        .action-form {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn-delete {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-delete:hover {
+                background: #b91c1c;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+            }
+
+        .btn-cancel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+            .btn-cancel:hover {
+                background: #e2e8f0;
+                color: #1e293b;
+            }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+            .form-footer small {
+                font-size: 13px;
+                color: #64748b;
+            }
+
+            .form-footer .link {
+                color: #3b82f6;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+                .form-footer .link:hover {
+                    text-decoration: underline;
+                }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .delete-property-container {
+                padding: 20px;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-item.highlight {
+                grid-column: span 1;
+            }
+
+            .action-buttons {
+                flex-direction: column-reverse;
+            }
+        }
+    </style>
+}
+
 @functions {
-    string GetStatusBadgeClass(string status)
+    string GetStatusClass(string status)
     {
         return status switch
         {
-            "Available" => "badge-success",
-            "Rented" => "badge-warning",
-            "Maintenance" => "badge-info",
-            "Unavailable" => "badge-secondary",
-            _ => "badge-secondary"
+            "Available" => "available",
+            "Rented" => "rented",
+            "Maintenance" => "maintenance",
+            "Unavailable" => "unavailable",
+            _ => "unavailable"
         };
     }
 

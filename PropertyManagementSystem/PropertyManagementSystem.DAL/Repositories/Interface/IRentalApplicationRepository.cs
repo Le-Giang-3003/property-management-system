@@ -17,5 +17,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<IEnumerable<RentalApplication>> GetByStatusAsync(string status);
         Task<bool> UpdateAsync(RentalApplication application);
         Task<string> GenerateApplicationNumberAsync();
+        Task<List<RentalApplication>> GetRecentByLandlordAsync(int landlordId, int take = 5);
+        Task<int> GetPendingCountByLandlordAsync(int landlordId);
     }
 }

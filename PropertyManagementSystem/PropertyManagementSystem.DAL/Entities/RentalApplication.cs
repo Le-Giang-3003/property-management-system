@@ -48,7 +48,7 @@ namespace PropertyManagementSystem.DAL.Entities
         public string? AdditionalNotes { get; set; }
 
         [Required, MaxLength(20)]
-        public string Status { get; set; } = "Pending"; // Pending, UnderReview, Approved, Rejected, Withdrawn
+        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected, Withdrawn
 
         [MaxLength(1000)]
         public string? RejectionReason { get; set; }

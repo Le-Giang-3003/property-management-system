@@ -274,5 +274,24 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 { "Completed", requests.Count(r => r.Status == "Completed") }
             };
         }
+
+        public async Task<int> GetPendingCountByLandlordAsync(int landlordId)
+        {
+            return await _context.MaintenanceRequests
+                .Include(m => m.Property)
+                .CountAsync(m => m.Property.LandlordId == landlordId && m.Status == "Pending");
+        }
+
+        public async Task<List<MaintenanceRequest>> GetRecentByLandlordAsync(int landlordId, int take = 5)
+        {
+            return await _context.MaintenanceRequests
+                .Include(m => m.Property)
+                .Include(m => m.Tenant)
+                .Include(m => m.Technician)
+                .Where(m => m.Property.LandlordId == landlordId)
+                .OrderByDescending(m => m.RequestDate)
+                .Take(take)
+                .ToListAsync();
+        }
     }
 }

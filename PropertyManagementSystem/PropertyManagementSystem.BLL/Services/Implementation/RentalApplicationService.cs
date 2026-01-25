@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PropertyManagementSystem.BLL.Services.Implementation
 {
@@ -125,21 +126,21 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (!appUpdated)
                 return false;
 
-            // 4. ✅ Update Property → Status = "Rented"
-            property.Status = "Rented";
+            // 4. ✅ Update Property → Status = "PendingLease"
+            property.Status = "PendingLease";
             property.UpdatedAt = DateTime.UtcNow;
 
             var propertyUpdated = await _unitOfWork.Properties.UpdatePropertyAsync(property);
             if (!propertyUpdated)
                 return false;
 
-            // 5. ✅ Tự động REJECT tất cả đơn khác của cùng Property
+            // 5. ✅ Tự động REJECT tất cả đơn "Pending" khác
             var otherApplications = await _unitOfWork.RentalApplications.GetByPropertyIdAsync(application.PropertyId);
 
             foreach (var otherApp in otherApplications)
             {
                 if (otherApp.ApplicationId != applicationId &&
-                    (otherApp.Status == "Pending" || otherApp.Status == "UnderReview"))
+                    otherApp.Status == "Pending")  // ← CHỈ reject các đơn "Pending"
                 {
                     otherApp.Status = "Rejected";
                     otherApp.RejectionReason = "Bất động sản đã được cho thuê cho người khác";

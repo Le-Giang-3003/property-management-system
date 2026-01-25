@@ -235,6 +235,7 @@ namespace PropertyManagementSystem.Web.Controllers
             TempData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
             return RedirectToAction("Login");
         }
+        
 
 
         public IActionResult AccessDenied() => View();

@@ -100,5 +100,23 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
 
             return $"APP-{year}-{nextNumber:D4}";
         }
+
+        public async Task<List<RentalApplication>> GetRecentByLandlordAsync(int landlordId, int take = 5)
+        {
+            return await _context.RentalApplications
+                .Include(a => a.Property)
+                .Include(a => a.Applicant)
+                .Where(a => a.Property.LandlordId == landlordId)
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(take)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetPendingCountByLandlordAsync(int landlordId)
+        {
+            return await _context.RentalApplications
+                .Include(a => a.Property)
+                .CountAsync(a => a.Property.LandlordId == landlordId && a.Status == "Pending");
+        }
     }
 }
