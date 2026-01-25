@@ -1,14 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PropertyManagementSystem.BLL.DTOs.Lease;
+﻿using PropertyManagementSystem.BLL.DTOs.Lease;
 using PropertyManagementSystem.BLL.DTOs.Maintenance;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PropertyManagementSystem.BLL.Services.Implementation
 {
@@ -251,9 +245,9 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
             await _unitOfWork.LeaseSignatures.CreateAsync(signature);
 
             // Kiểm tra xem đã ký đầy đủ chưa
-            var hasLandlordSignature = dto.SignerRole == "Landlord" || 
+            var hasLandlordSignature = dto.SignerRole == "Landlord" ||
                 await _unitOfWork.LeaseSignatures.HasLandlordSignedAsync(dto.LeaseId);
-            var hasTenantSignature = dto.SignerRole == "Tenant" || 
+            var hasTenantSignature = dto.SignerRole == "Tenant" ||
                 await _unitOfWork.LeaseSignatures.HasTenantSignedAsync(dto.LeaseId);
 
             // Nếu cả 2 đã ký → Cập nhật status
@@ -276,10 +270,10 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 response.IsFullySigned = true;
             }
             else
-        {
+            {
                 response.Message = "Ký hợp đồng thành công! Đang chờ bên còn lại ký.";
                 response.IsFullySigned = false;
-        }
+            }
 
             await _unitOfWork.SaveChangesAsync();
 
@@ -288,7 +282,7 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
             response.LeaseStatus = lease.Status;
             response.SignedDate = lease.SignedDate;
             response.NewSignature = new LeaseSignatureDto
-        {
+            {
                 SignatureId = signature.SignatureId,
                 LeaseId = signature.LeaseId,
                 UserId = signature.UserId,
@@ -303,7 +297,7 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
 
         // ✅ KIỂM TRA LEASE ĐÃ KÝ ĐẦY ĐỦ CHƯA
         public async Task<bool> IsLeaseFullySignedAsync(int leaseId)
-            {
+        {
             return await _unitOfWork.LeaseSignatures.IsFullySignedAsync(leaseId);
         }
 
@@ -525,7 +519,7 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 return response;
             }
             catch (Exception ex)
-        {
+            {
                 response.Message = $"Lỗi khi gia hạn: {ex.Message}";
                 return response;
             }
@@ -539,7 +533,7 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 .Select(l => new PropertySelectDto
                 {
                     PropertyId = l.PropertyId,
-                    Name = l.Property?.Name ?? "N/A", 
+                    Name = l.Property?.Name ?? "N/A",
                     Address = l.Property?.Address ?? "N/A"
                 })
                 .ToList();

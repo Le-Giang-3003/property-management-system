@@ -57,5 +57,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<Lease?> GetLeaseWithDetailsAsync(int leaseId);
 
         Task<IEnumerable<Lease>> GetLeasesByStatusAsync(string status);
+
+        Task<IEnumerable<Lease>> GetByLandlordIdAsync(int landlordId);
     }
 }

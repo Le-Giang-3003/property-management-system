@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace PropertyManagementSystem.DAL.Repositories.Implementation
 {
-    public class LeaseRepository : ILeaseRepository
+    public class LeaseRepository : GenericRepository<Lease>, ILeaseRepository
     {
         private readonly AppDbContext _context;
 
-        public LeaseRepository(AppDbContext context)
+        public LeaseRepository(AppDbContext context) : base(context)
         {
             _context = context;
         }
@@ -181,5 +181,53 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .OrderBy(c => c.EndDate)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Lease>> GetActiveLeasesForTenantAsync(int tenantId)
+        {
+            return await _dbSet
+                .Include(l => l.Property)
+                .Where(l => l.TenantId == tenantId && l.Status == "Active")
+                .OrderByDescending(l => l.StartDate)
+                .ToListAsync();
+        }
+
+        public async Task<Lease?> GetLeaseWithPropertyAsync(int leaseId)
+        {
+            return await _dbSet
+                .Include(l => l.Property)
+                .FirstOrDefaultAsync(l => l.LeaseId == leaseId);
+        }
+
+
+        public async Task<IEnumerable<Property>> GetTenantActivePropertiesAsync(int tenantId)
+        {
+            return await _dbSet
+                .Include(l => l.Property)
+                .Where(l => l.TenantId == tenantId && l.Status == "Active")
+                .Select(l => l.Property)
+                .Distinct()
+                .ToListAsync();
+        }
+
+
+        public async Task<IEnumerable<Lease>> GetLeasesByLandlordAsync(int landlordId)
+        {
+            return await _dbSet
+                .Include(l => l.Property)
+                .Include(l => l.Tenant)
+                .Where(l => l.Property.LandlordId == landlordId)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+        }
+
+
+        public async Task<bool> HasActiveLease(int tenantId, int propertyId)
+        {
+            return await _dbSet.AnyAsync(l =>
+                l.TenantId == tenantId &&
+                l.PropertyId == propertyId &&
+                l.Status == "Active");
+        }
+
     }
 }
