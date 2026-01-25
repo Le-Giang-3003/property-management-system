@@ -540,15 +540,11 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
 
             return result;
         }
-        public async Task<Lease?> GetByIdAsync(int leaseId)
+        public async Task<bool> ValidateTenantPropertyAccessAsync(int tenantId, int propertyId)
         {
-            return await _leaseRepository.GetLeaseWithPropertyAsync(leaseId);
+            var leases = await _unitOfWork.Leases.GetByTenantIdAsync(tenantId);
+            return leases.Any(l => l.PropertyId == propertyId && l.Status == "Active");
         }
 
-        public async Task<List<Lease>> GetByTenantAsync(int tenantId)
-        {
-            var leases = await _leaseRepository.GetActiveLeasesForTenantAsync(tenantId);
-            return leases.ToList();
-        }
     }
 }
