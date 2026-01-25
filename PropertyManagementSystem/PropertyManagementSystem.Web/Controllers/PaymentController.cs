@@ -26,7 +26,8 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Payments()
+        [Route("Payment/MakePayment")]
+        public async Task<IActionResult> MakePayment()
         {
             var tenantId = GetTenantId();
             if (tenantId == null) return RedirectToAction("Login", "Auth");
@@ -36,12 +37,12 @@ namespace PropertyManagementSystem.Web.Controllers
                 AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value)
             };
 
-            return View("MakePayment", vm);
+            return View(vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [ActionName("Payments")]
+        [Route("Payment/MakePayment")]
         public async Task<IActionResult> MakePayment(MakePaymentViewModel vm)
         {
             var tenantId = GetTenantId();
@@ -52,7 +53,6 @@ namespace PropertyManagementSystem.Web.Controllers
                 vm.AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value);
                 return View(vm);
             }
-
             try
             {
                 var dto = new MakePaymentRequestDto

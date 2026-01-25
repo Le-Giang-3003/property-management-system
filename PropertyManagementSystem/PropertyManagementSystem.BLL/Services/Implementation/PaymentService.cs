@@ -65,7 +65,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 PaymentDate = DateTime.UtcNow,
                 PaymentMethod = request.PaymentMethod,
                 Status = "Confirmed",
-                Notes = request.Notes,
+                Notes = request.Notes ?? string.Empty,
                 ConfirmedAt = DateTime.UtcNow,
 
                 AccountNumber = "DEMO-ACCOUNT",
