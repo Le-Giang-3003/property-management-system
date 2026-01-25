@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Authentication
 @using System.Security.Claims
+@model IEnumerable<PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto>
 
 @{
     ViewData["Title"] = "Trang chủ";
@@ -29,6 +30,75 @@ else
         👋 Xin chào <strong>@User.Identity!.Name</strong>
     </p>
 
+    <!-- ========== VIEWING HISTORY SECTION ========== -->
+    @if (Model != null && Model.Any())
+    {
+        <h3>Lịch xem nhà của tôi</h3>
+        <table class="table" border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Address</th>
+                    <th>Requested Date</th>
+                    <th>Scheduled Date</th>
+                    <th>Status</th>
+                    <th>Landlord</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.PropertyName</td>
+                        <td>@item.PropertyAddress</td>
+                        <td>@item.PreferredDate1?.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (item.ScheduledDate.HasValue)
+                            {
+                                @item.ScheduledDate.Value.ToString("dd/MM/yyyy HH:mm")
+                            }
+                            else
+                            {
+                                <em>Not scheduled</em>
+                            }
+                        </td>
+                        <td>@item.Status</td>
+                        <td>
+                            @item.LandlordName<br />
+                            @item.LandlordPhone
+                        </td>
+                        <td>
+                             <a asp-controller="PropertyViewing" asp-action="Details" asp-route-id="@item.ViewingId">Details</a>
+
+                            @if (item.Status == "Requested" || item.Status == "Confirmed")
+                            {
+                                <span> | </span>
+                                <form asp-controller="PropertyViewing" asp-action="Cancel" asp-route-id="@item.ViewingId" method="post" style="display:inline;"
+                                      onsubmit="return confirm('Are you sure you want to cancel?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit">Cancel</button>
+                                </form>
+                            }
+
+                            @if (item.Status == "Completed" && !item.Rating.HasValue)
+                            {
+                                <span> | </span>
+                                <a asp-controller="PropertyViewing" asp-action="Feedback" asp-route-id="@item.ViewingId">Give Feedback</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <hr />
+    }
+    else
+    {
+         <p>Bạn chưa có lịch xem nhà nào.</p>
+         <hr />
+    }
+
     <h3>Authentication</h3>
     <form asp-controller="Auth" asp-action="Logout" method="post" style="display:inline">
         @Html.AntiForgeryToken()
@@ -55,7 +125,12 @@ else
     <ul>
         <li><a asp-controller="Property" asp-action="Index">Danh sách bất động sản</a></li>
     </ul>
-
+    <!-- ========== RENTAL APPLICATION ========== -->
+    <h3>Rental Application</h3>
+    <ul>
+            <li><a asp-controller="RentalApplication" asp-action="MyApplications">Đơn xin thuê của tôi</a></li>
+            <li><a asp-controller="RentalApplication" asp-action="Index">Quản lý đơn xin thuê</a></li>
+    </ul>
     <!-- ========== CONTRACT ========== -->
     <h3>Contract</h3>
     <ul>
@@ -65,14 +140,13 @@ else
     <!-- ========== MAINTENANCE ========== -->
     <h3>Maintenance</h3>
     <ul>
-        <li><a asp-controller="Maintenance" asp-action="Index">Yêu cầu bảo trì</a></li>
+        <li><a asp-controller="Maintenance" asp-action="TenantIndex">Yêu cầu bảo trì</a></li>
     </ul>
 
-    <!-- ========== Property ========== -->
-
+    <!-- ========== Property Viewing ========== -->
     <h3> Property Viewing</h3>
     <ul>
-        <li><a asp-controller="PropertyViewing" asp-action="MyViewings">Lịch xem nhà của tôi</a></li>
+        <li><a asp-controller="PropertyViewing" asp-action="MyViewings">Lịch xem nhà của tôi (Full Page)</a></li>
         <li><a asp-controller="PropertyViewing" asp-action="Reschedule">Lên lịch xem nhà mới</a></li>
     </ul>
     <!-- ========== ADMIN ONLY ========== -->

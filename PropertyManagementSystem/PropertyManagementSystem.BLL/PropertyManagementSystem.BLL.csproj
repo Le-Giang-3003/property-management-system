@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PropertyManagementSystem.DAL\PropertyManagementSystem.DAL.csproj" />
+	  <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+	
 
   <ItemGroup>
 <PackageReference Include="MailKit" />

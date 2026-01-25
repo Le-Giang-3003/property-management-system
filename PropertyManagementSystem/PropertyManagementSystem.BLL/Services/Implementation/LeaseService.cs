@@ -1,4 +1,5 @@
-﻿using PropertyManagementSystem.BLL.Services.Interface;
+﻿using PropertyManagementSystem.BLL.DTOs.Maintenance;
+using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
@@ -13,14 +14,21 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             _leaseRepository = leaseRepository;
         }
 
-        public async Task<Lease?> GetByIdAsync(int leaseId)
+        public async Task<List<PropertySelectDto>> GetTenantActivePropertiesAsync(int tenantId)
         {
-            return await _leaseRepository.GetByIdAsync(leaseId);
+            var properties = await _leaseRepository.GetTenantActivePropertiesAsync(tenantId);
+
+            return properties.Select(p => new PropertySelectDto
+            {
+                PropertyId = p.PropertyId,
+                Name = p.Name,
+                Address = p.Address
+            }).ToList();
         }
 
-        public async Task<List<Lease>> GetByTenantAsync(int tenantId)
+        public async Task<bool> ValidateTenantPropertyAccessAsync(int tenantId, int propertyId)
         {
-            return await _leaseRepository.GetByTenantAsync(tenantId);
+            return await _leaseRepository.HasActiveLease(tenantId, propertyId);
         }
     }
 }

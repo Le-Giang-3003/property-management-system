@@ -939,8 +939,8 @@ namespace PropertyManagementSystem.DAL.Migrations
                     b.Property<decimal?>("ActualCost")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime?>("AssignedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly?>("AssignedDate")
+                        .HasColumnType("date");
 
                     b.Property<int?>("AssignedTo")
                         .HasColumnType("int");
@@ -983,6 +983,19 @@ namespace PropertyManagementSystem.DAL.Migrations
                     b.Property<int?>("Rating")
                         .HasColumnType("int");
 
+                    b.Property<string>("ReasonRejectLandlord")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("nvarchar(3000)");
+
+                    b.Property<string>("ReasonRejectTechnician")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("nvarchar(3000)");
+
+                    b.Property<DateTime?>("RepairDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("RequestDate")
                         .HasColumnType("datetime2");
 
@@ -999,10 +1012,17 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<DateTime?>("StartedDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TechnicianNote")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("nvarchar(3000)");
+
+                    b.Property<string>("TechnicianStatus")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -1011,6 +1031,12 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
+
+                    b.Property<TimeOnly?>("TimeFrom")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("TimeTo")
+                        .HasColumnType("time");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1695,7 +1721,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApplicationId"));
 
                     b.Property<string>("AdditionalNotes")
-                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
@@ -1733,7 +1758,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PetDetails")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -1756,7 +1780,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("RejectionReason")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -1819,21 +1842,21 @@ namespace PropertyManagementSystem.DAL.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedAt = new DateTime(2026, 1, 22, 8, 16, 47, 36, DateTimeKind.Utc).AddTicks(2839),
+                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3157),
                             Description = "System Administrator",
                             RoleName = "Admin"
                         },
                         new
                         {
                             RoleId = 2,
-                            CreatedAt = new DateTime(2026, 1, 22, 8, 16, 47, 36, DateTimeKind.Utc).AddTicks(2843),
+                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3160),
                             Description = "Landlord and Tenant",
                             RoleName = "Member"
                         },
                         new
                         {
                             RoleId = 3,
-                            CreatedAt = new DateTime(2026, 1, 22, 8, 16, 47, 36, DateTimeKind.Utc).AddTicks(2844),
+                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3161),
                             Description = "Maintenance Technician",
                             RoleName = "Technician"
                         });

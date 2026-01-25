@@ -87,7 +87,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 {
                     new UserRole
                     {
-                        RoleId = 2, // cho mặc định là Landlord
+                        RoleId = 2, // cho mặc định là Member
                         AssignedAt = DateTime.UtcNow
                     }
                 },

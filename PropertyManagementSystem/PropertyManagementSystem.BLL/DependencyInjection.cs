@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PropertyManagementSystem.BLL.Identity;
 using PropertyManagementSystem.BLL.Services.Implementation;
 using PropertyManagementSystem.BLL.Services.Interface;
+using PropertyManagementSystem.DAL.Data;
 namespace PropertyManagementSystem.BLL
 {
     public static class DependencyInjection
@@ -28,6 +29,12 @@ namespace PropertyManagementSystem.BLL
             services.AddScoped<IProfileService, ProfileService>();
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             services.AddScoped<IPropertyViewingService, PropertyViewingService>();
+            services.AddScoped<IMaintenanceService, MaintenanceService>();
+            services.AddScoped<ILeaseService, LeaseService>();
+            services.AddScoped<AppDbContext, AppDbContext>();
+            services.AddScoped<IFavoritePropertyService, FavoritePropertyService>();
+            services.AddScoped<IDocumentService, DocumentService>();
+            services.AddScoped<IRentalApplicationService, RentalApplicationService>();
 
 
             return services;

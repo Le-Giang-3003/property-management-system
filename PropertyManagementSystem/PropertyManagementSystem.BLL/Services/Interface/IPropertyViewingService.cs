@@ -18,5 +18,7 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         Task<IEnumerable<PropertyViewingDto>> GetUpcomingViewingsAsync(int userId, string role);
         Task<IEnumerable<PropertyViewingDto>> GetViewingsByPropertyAsync(int propertyId);
         Task<bool> CheckTimeSlotAvailabilityAsync(int propertyId, DateTime scheduledDate, int? excludeViewingId = null);
+        Task<PagedViewingResultDto> GetViewingHistoryAsync(int? userId, string? role, ViewingHistoryFilterDto filter);
+        Task<PagedViewingResultDto> GetAllViewingsAsync(ViewingHistoryFilterDto filter);
     }
 }

@@ -53,14 +53,15 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 };
             }
 
-            if (!_passwordService.VerifyPassword(model.Password, user.PasswordHash))
-            {
-                return new LoginResult
-                {
-                    Success = false,
-                    Message = "Mật khẩu không chính xác"
-                };
-            }
+            // Thiên: Tạm ẩn
+            //if (!_passwordService.VerifyPassword(model.Password, user.PasswordHash))
+            //{
+            //    return new LoginResult
+            //    {
+            //        Success = false,
+            //        Message = "Mật khẩu không chính xác"
+            //    };
+            //}
 
             // Cập nhật LastLoginAt - dùng trực tiếp context
             user.LastLoginAt = DateTime.UtcNow;
@@ -73,7 +74,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             {
                 Success = true,
                 Message = "Đăng nhập thành công",
-                User = new UserDto
+                User = new DTOs.Auth.UserDto
                 {
                     UserId = user.UserId,
                     Email = user.Email,
@@ -89,7 +90,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return Task.CompletedTask;
         }
 
-        public async Task<UserDto?> GetCurrentUserAsync(int userId)
+        public async Task<DTOs.Auth.UserDto?> GetCurrentUserAsync(int userId)
         {
             // Dùng GetUserByIdAsync thay vì GetUserWithRolesAsync
             var user = await _userGenericRepository.GetByIdAsync(userId);
@@ -97,7 +98,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 
             var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();
 
-            return new UserDto
+            return new DTOs.Auth.UserDto
             {
                 UserId = user.UserId,
                 Email = user.Email,
@@ -210,6 +211,9 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return true;
         }
 
-
+        Task<Interface.UserDto?> IAuthService.GetCurrentUserAsync(int userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
