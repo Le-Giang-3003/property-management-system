@@ -14,6 +14,7 @@
         public string PaymentMethod { get; set; } = null!;
         public DateTime PaymentDate { get; set; }
         public string Status { get; set; } = null!;
+        public string? TenantName { get; set; }
+        public string? PropertyName { get; set; }
     }
-
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Payments;
 using PropertyManagementSystem.Web.ViewModels.Payment;
 using QRCoder;
@@ -113,34 +114,35 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Report(DateTime? fromDate, DateTime? toDate)
+        public async Task<IActionResult> Report(DateTime? fromDate, DateTime? toDate, string? paymentMethod)
         {
-            var tenantId = GetTenantId();
-            if (tenantId == null) return RedirectToAction("Login", "Auth");
+            bool isAdmin = User.IsInRole("Admin") ||
+                           User.FindFirst("RoleId")?.Value == "1" ||
+                           User.FindFirst(ClaimTypes.Role)?.Value == "Admin" ||
+                           User.FindFirst("role")?.Value == "Admin";
 
-            // Mặc định: Lấy dữ liệu trong 1 tháng gần đây
+            int roleId = isAdmin ? 1 : 0;
+
+            var tenantIdClaim = User.FindFirst("TenantId")?.Value;
+            int tenantId = string.IsNullOrEmpty(tenantIdClaim) ? 0 : int.Parse(tenantIdClaim);
+
             var start = fromDate ?? DateTime.Today.AddMonths(-1);
             var end = toDate ?? DateTime.Today;
 
-            // Lấy lịch sử từ Service và lọc theo ngày
-            var allHistory = await _paymentService.GetPaymentHistoryAsync(tenantId.Value);
-            var filteredHistory = allHistory
-                .Where(p => p.PaymentDate.Date >= start.Date && p.PaymentDate.Date <= end.Date)
-                .OrderByDescending(p => p.PaymentDate)
-                .ToList();
+            var reportData = await _paymentService.GetPaymentReportAsync(tenantId, roleId, start, end, paymentMethod);
 
             var vm = new PaymentReportViewModel
             {
-                FromDate = start,
-                ToDate = end,
-                TotalAmountPaid = filteredHistory.Sum(p => p.Amount),
-                TransactionCount = filteredHistory.Count,
-                PaymentHistory = filteredHistory,
-                TenantName = User.Identity?.Name ?? "Người thuê"
+                FromDate = reportData.FromDate,
+                ToDate = reportData.ToDate,
+                SelectedPaymentMethod = reportData.SelectedMethod,
+                TotalAmountPaid = reportData.TotalPaid,
+                TransactionCount = reportData.TotalTransactions,
+                PaymentHistory = reportData.Payments,
+                TenantName = reportData.TenantName
             };
 
             return View(vm);
         }
-
     }
 }

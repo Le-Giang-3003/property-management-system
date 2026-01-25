@@ -104,31 +104,52 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Status = p.Status
             }).ToList();
         }
-        public async Task<PaymentReportDto> GetPaymentReportAsync(int tenantId, DateTime fromDate, DateTime? toDate = null)
+        public async Task<PaymentReportDto> GetPaymentReportAsync(int tenantId, int roleId, DateTime fromDate, DateTime toDate, string? paymentMethod = null)
         {
-            var end = toDate ?? DateTime.UtcNow;
-            var allPayments = await _paymentRepository.GetByTenantAsync(tenantId);
+            IEnumerable<Payment> allPayments;
 
-            // Lọc theo ngày
+            if (roleId == 1) // Admin
+            {
+                // Admin: Lấy tất cả. 
+                // Lưu ý: Đảm bảo Repository đã Include Invoice -> Lease -> Tenant
+                allPayments = await _paymentRepository.GetAllAsync();
+            }
+            else
+            {
+                // Tenant: Lấy theo cá nhân
+                allPayments = await _paymentRepository.GetByTenantAsync(tenantId);
+            }
+
+            // Lọc dữ liệu
             var filtered = allPayments
-                .Where(p => p.PaymentDate >= fromDate && p.PaymentDate <= end)
+                .Where(p => p.PaymentDate.Date >= fromDate.Date && p.PaymentDate.Date <= toDate.Date)
+                .Where(p => string.IsNullOrEmpty(paymentMethod) || p.PaymentMethod == paymentMethod)
                 .OrderByDescending(p => p.PaymentDate)
                 .ToList();
 
             return new PaymentReportDto
             {
+                FromDate = fromDate,
+                ToDate = toDate,
+                SelectedMethod = paymentMethod,
                 TotalPaid = filtered.Sum(p => p.Amount),
                 TotalTransactions = filtered.Count,
-                FromDate = fromDate,
-                ToDate = end,
+
+                // Thêm thông tin tên để hiển thị trên tiêu đề báo cáo
+                TenantName = roleId == 1 ? "Toàn hệ thống" : (filtered.FirstOrDefault()?.Invoice?.Lease?.Tenant?.FullName ?? "Người thuê"),
+
+                // Mapping chi tiết từng dòng (QUAN TRỌNG)
                 Payments = filtered.Select(p => new PaymentDto
                 {
                     PaymentId = p.PaymentId,
-                    Amount = p.Amount,
+                    InvoiceId = p.InvoiceId,
+                    Amount = p.Amount, // Nếu cột này ra 0, hãy kiểm tra lại bảng Payments trong DB có dữ liệu không
                     PaymentMethod = p.PaymentMethod,
                     PaymentDate = p.PaymentDate,
                     Status = p.Status,
-                    InvoiceId = p.InvoiceId
+                    // Lấy tên người thuê để Admin biết ai đóng tiền
+                    TenantName = p.Invoice?.Lease?.Tenant?.FullName ?? "N/A",
+                    PropertyName = p.Invoice?.Lease?.Property?.Name ?? "N/A"
                 }).ToList()
             };
         }

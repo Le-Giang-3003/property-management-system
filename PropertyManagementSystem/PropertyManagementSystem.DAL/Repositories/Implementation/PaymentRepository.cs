@@ -49,6 +49,14 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
         }
-
+        public async Task<IEnumerable<Payment>> GetAllAsync()
+        {
+            return await _context.Payments
+                .Include(p => p.Invoice)
+                    .ThenInclude(i => i.Lease)
+                        .ThenInclude(l => l.Tenant)
+                .OrderByDescending(p => p.PaymentDate)
+                .ToListAsync();
+        }
     }
 }
