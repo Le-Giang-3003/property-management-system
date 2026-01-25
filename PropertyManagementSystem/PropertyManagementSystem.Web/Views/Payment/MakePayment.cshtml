@@ -46,6 +46,14 @@
                         <option value="BankTransfer">Chuyển khoản ngân hàng</option>
                         <option value="CreditCard">Thẻ tín dụng</option>
                     </select>
+                    <!-- QR cho chuyển khoản -->
+                    <div id="qrArea" class="mb-3" style="display:none;">
+                        <label class="form-label">Quét mã QR để chuyển khoản</label>
+                        <div>
+                            <img id="qrImage" src="" alt="QR Code" style="max-width:250px;" />
+                        </div>
+                    </div>
+
                     <span asp-validation-for="PaymentMethod" class="text-danger"></span>
                 </div>
 
@@ -91,4 +99,35 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        const methodSelect = document.getElementById('PaymentMethod');
+        const invoiceSelect = document.getElementById('InvoiceId');
+        const amountInput = document.getElementById('Amount');
+        const qrArea = document.getElementById('qrArea');
+        const qrImage = document.getElementById('qrImage');
+
+        function updateQr() {
+            if (methodSelect.value === 'BankTransfer' &&
+                invoiceSelect.value &&
+                amountInput.value > 0) {
+
+                qrArea.style.display = 'block';
+
+                const url = '@Url.Action("GenerateBankTransferQr", "Payment")'
+                    + '?invoiceId=' + encodeURIComponent(invoiceSelect.value)
+                    + '&amount=' + encodeURIComponent(amountInput.value);
+
+                qrImage.src = url;
+            } else {
+                qrArea.style.display = 'none';
+                qrImage.src = '';
+            }
+        }
+
+        methodSelect.addEventListener('change', updateQr);
+        invoiceSelect.addEventListener('change', updateQr);
+        amountInput.addEventListener('input', updateQr);
+    </script>
+}
 }

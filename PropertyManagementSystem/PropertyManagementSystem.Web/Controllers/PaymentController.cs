@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Payments;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.Payment;
+using QRCoder;
+using System.Drawing.Imaging;
 using System.Security.Claims;
 
 namespace PropertyManagementSystem.Web.Controllers
@@ -81,5 +83,25 @@ namespace PropertyManagementSystem.Web.Controllers
             return View(history);
         }
 
+        public IActionResult GenerateBankTransferQr(int invoiceId, decimal amount)
+        {
+            // TODO: lấy thông tin invoice, tenant, nội dung chuyển khoản, số tài khoản thực tế
+            var accountNumber = "1025755773 ";
+            var bankName = "Vietcombank";
+            var content = $"Thanh toan hoa don {invoiceId}";
+
+            // Chuỗi đơn giản, sau này đổi sang format VietQR
+            var qrContent = $"BANK:{bankName}|ACC:{accountNumber}|AMT:{amount}|MSG:{content}";
+
+            using var qrGenerator = new QRCodeGenerator();
+            using var qrData = qrGenerator.CreateQrCode(qrContent, QRCodeGenerator.ECCLevel.Q);
+            using var qrCode = new QRCode(qrData);
+            using var qrImage = qrCode.GetGraphic(20);
+
+            using var ms = new MemoryStream();
+            qrImage.Save(ms, ImageFormat.Png);
+            ms.Position = 0;
+            return File(ms.ToArray(), "image/png");
+        }
     }
 }

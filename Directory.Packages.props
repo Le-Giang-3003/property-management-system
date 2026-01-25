@@ -28,6 +28,7 @@
     <!-- ================= Mail and Verification ================= -->
     <PackageVersion Include="MailKit" Version="4.7.0" />
     <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageVersion Include="QRCoder" Version="1.7.0" />
     <PackageVersion Include="QuestPDF" Version="2025.12.3" />
   </ItemGroup>
 </Project>
