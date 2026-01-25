@@ -1,236 +1,260 @@
-﻿@{
+@model PropertyManagementSystem.Web.ViewModels.Dashboard.TenantDashboardViewModel
+@{
     ViewData["Title"] = "Dashboard";
     Layout = "_AuthLayout";
+    var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "User";
 }
 
-<div class="container-fluid py-4">
-    <!-- Welcome Banner -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h1 class="display-4">Chào mừng đến với Property Management System</h1>
-                    <p class="lead mb-0">Hệ thống quản lý bất động sản hiện đại và tiện lợi</p>
-                </div>
+<div class="pm-dashboard">
+    <!-- Welcome Section -->
+    <div class="pm-welcome-banner">
+        <div class="pm-welcome-content">
+            <h1>Welcome back, @userName!</h1>
+            <p>Here's what's happening with your rentals today</p>
+        </div>
+        <div class="pm-welcome-actions">
+            <a asp-controller="Property" asp-action="SearchProperties" class="pm-btn pm-btn-primary">
+                <i class="bi bi-search"></i>
+                Browse Properties
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="pm-stats-grid">
+        <div class="pm-stat-card">
+            <div class="pm-stat-icon primary">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div class="pm-stat-content">
+                <span class="pm-stat-label">Active Leases</span>
+                <span class="pm-stat-value">@Model.ActiveLeasesCount</span>
+                <span class="pm-stat-change">Currently renting</span>
+            </div>
+        </div>
+
+        <div class="pm-stat-card">
+            <div class="pm-stat-icon warning">
+                <i class="bi bi-credit-card"></i>
+            </div>
+            <div class="pm-stat-content">
+                <span class="pm-stat-label">Pending Payments</span>
+                <span class="pm-stat-value">@Model.PendingPaymentsCount</span>
+                <span class="pm-stat-change">Due this month</span>
+            </div>
+        </div>
+
+        <div class="pm-stat-card">
+            <div class="pm-stat-icon info">
+                <i class="bi bi-tools"></i>
+            </div>
+            <div class="pm-stat-content">
+                <span class="pm-stat-label">Maintenance</span>
+                <span class="pm-stat-value">@Model.OpenMaintenanceCount</span>
+                <span class="pm-stat-change">Open requests</span>
+            </div>
+        </div>
+
+        <div class="pm-stat-card">
+            <div class="pm-stat-icon success">
+                <i class="bi bi-heart"></i>
+            </div>
+            <div class="pm-stat-content">
+                <span class="pm-stat-label">Saved Properties</span>
+                <span class="pm-stat-value">@Model.SavedPropertiesCount</span>
+                <span class="pm-stat-change">In favorites</span>
             </div>
         </div>
     </div>
 
-    <!-- Quick Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fas fa-building fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">1,234</h5>
-                    <p class="text-muted">Bất động sản</p>
-                </div>
+    <!-- Quick Actions & Content -->
+    <div class="pm-dashboard-grid">
+        <!-- Quick Actions -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-lightning"></i> Quick Actions</h4>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fas fa-users fa-3x text-success mb-3"></i>
-                    <h5 class="card-title">5,678</h5>
-                    <p class="text-muted">Người thuê</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fas fa-file-contract fa-3x text-info mb-3"></i>
-                    <h5 class="card-title">3,456</h5>
-                    <p class="text-muted">Hợp đồng đang hoạt động</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
-                    <h5 class="card-title">98%</h5>
-                    <p class="text-muted">Tỷ lệ lấp đầy</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- News & Updates Section -->
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header bg-white">
-                    <h4 class="mb-0"><i class="fas fa-newspaper"></i> Tin tức nhà đất</h4>
-                </div>
-                <div class="card-body">
-                    <!-- News Item 1 -->
-                    <div class="d-flex mb-3 pb-3 border-bottom">
-                        <img src="https://via.placeholder.com/120x80" alt="News" class="me-3 rounded">
-                        <div>
-                            <h5>Thị trường bất động sản Q1/2026 tăng trưởng 15%</h5>
-                            <p class="text-muted small mb-2">
-                                <i class="far fa-calendar"></i> 24/01/2026 |
-                                <i class="far fa-clock"></i> 2 giờ trước
-                            </p>
-                            <p class="mb-0">
-                                Theo báo cáo mới nhất, thị trường bất động sản Việt Nam tiếp tục xu hướng tích cực với mức tăng trưởng ấn tượng...
-                            </p>
-                            <a href="#" class="btn btn-sm btn-link p-0">Đọc thêm →</a>
+            <div class="pm-card-body">
+                <div class="pm-quick-actions">
+                    <a asp-controller="Property" asp-action="SearchProperties" class="pm-quick-action-item">
+                        <div class="pm-quick-action-icon primary">
+                            <i class="bi bi-search"></i>
                         </div>
-                    </div>
-
-                    <!-- News Item 2 -->
-                    <div class="d-flex mb-3 pb-3 border-bottom">
-                        <img src="https://via.placeholder.com/120x80" alt="News" class="me-3 rounded">
-                        <div>
-                            <h5>Chính sách mới về thuế nhà đất có hiệu lực từ tháng 2</h5>
-                            <p class="text-muted small mb-2">
-                                <i class="far fa-calendar"></i> 23/01/2026 |
-                                <i class="far fa-clock"></i> 1 ngày trước
-                            </p>
-                            <p class="mb-0">
-                                Chính phủ vừa ban hành nghị định mới về thuế tài sản, giúp giảm gánh nặng cho người cho thuê nhà...
-                            </p>
-                            <a href="#" class="btn btn-sm btn-link p-0">Đọc thêm →</a>
+                        <div class="pm-quick-action-text">
+                            <h5>Find Properties</h5>
+                            <p>Search available rentals</p>
                         </div>
-                    </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
 
-                    <!-- News Item 3 -->
-                    <div class="d-flex mb-3">
-                        <img src="https://via.placeholder.com/120x80" alt="News" class="me-3 rounded">
-                        <div>
-                            <h5>Top 10 khu vực cho thuê nhà hot nhất TP.HCM</h5>
-                            <p class="text-muted small mb-2">
-                                <i class="far fa-calendar"></i> 22/01/2026 |
-                                <i class="far fa-clock"></i> 2 ngày trước
-                            </p>
-                            <p class="mb-0">
-                                Quận 1, Quận 2 và Quận 7 tiếp tục dẫn đầu về nhu cầu thuê nhà trong năm 2026...
-                            </p>
-                            <a href="#" class="btn btn-sm btn-link p-0">Đọc thêm →</a>
+                    <a asp-controller="Payment" asp-action="History" class="pm-quick-action-item">
+                        <div class="pm-quick-action-icon success">
+                            <i class="bi bi-credit-card"></i>
                         </div>
-                    </div>
+                        <div class="pm-quick-action-text">
+                            <h5>Make Payment</h5>
+                            <p>Pay rent or bills</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
 
-                    <div class="text-center mt-3">
-                        <a href="#" class="btn btn-outline-primary">Xem tất cả tin tức</a>
-                    </div>
+                    <a asp-controller="Maintenance" asp-action="CreateRequest" class="pm-quick-action-item">
+                        <div class="pm-quick-action-icon warning">
+                            <i class="bi bi-wrench"></i>
+                        </div>
+                        <div class="pm-quick-action-text">
+                            <h5>Request Maintenance</h5>
+                            <p>Report an issue</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a asp-controller="Document" asp-action="MyDocuments" class="pm-quick-action-item">
+                        <div class="pm-quick-action-icon info">
+                            <i class="bi bi-folder"></i>
+                        </div>
+                        <div class="pm-quick-action-text">
+                            <h5>My Documents</h5>
+                            <p>View contracts & files</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Right Sidebar -->
-        <div class="col-lg-4">
-            <!-- Market Trends -->
-            <div class="card mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Xu hướng thị trường</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Giá thuê trung bình</span>
-                            <span class="text-success">↑ 5%</span>
-                        </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-success" style="width: 75%"></div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Tỷ lệ lấp đầy</span>
-                            <span class="text-success">↑ 3%</span>
-                        </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-info" style="width: 92%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Hợp đồng mới</span>
-                            <span class="text-warning">↑ 8%</span>
-                        </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-warning" style="width: 68%"></div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Upcoming Payments -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-calendar-check"></i> Upcoming Payments</h4>
+                <a asp-controller="Payment" asp-action="History" class="pm-btn pm-btn-ghost pm-btn-sm">
+                    View All
+                </a>
             </div>
+            <div class="pm-card-body">
+                @if (Model.UpcomingPayments.Any())
+                {
+                    <div class="pm-payment-list">
+                        @foreach (var payment in Model.UpcomingPayments)
+                        {
+                            <div class="pm-payment-item">
+                                <div class="pm-payment-icon">
+                                    <i class="bi bi-house-door"></i>
+                                </div>
+                                <div class="pm-payment-info">
+                                    <h5>@payment.Description</h5>
+                                    <p>Due: @payment.DueDate.ToString("MMMM d, yyyy")</p>
+                                </div>
+                                <div class="pm-payment-amount">
+                                    <span class="amount">@payment.Amount.ToString("N0") ₫</span>
+                                    <a asp-controller="Payment" asp-action="MakePayment" asp-route-invoiceId="@payment.InvoiceId" class="pm-btn pm-btn-primary pm-btn-sm">Pay Now</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <h4>All caught up!</h4>
+                        <p>No upcoming payments</p>
+                    </div>
+                }
+            </div>
+        </div>
 
-            <!-- Quick Links -->
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-link"></i> Liên kết nhanh</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
-                            <a href="#" class="text-decoration-none">
-                                <i class="fas fa-home text-primary"></i> Tìm kiếm nhà cho thuê
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="text-decoration-none">
-                                <i class="fas fa-file-alt text-success"></i> Mẫu hợp đồng chuẩn
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="text-decoration-none">
-                                <i class="fas fa-calculator text-info"></i> Tính toán chi phí thuê
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="text-decoration-none">
-                                <i class="fas fa-book text-warning"></i> Hướng dẫn sử dụng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-decoration-none">
-                                <i class="fas fa-headset text-danger"></i> Hỗ trợ khách hàng
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+        <!-- My Leases -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-file-earmark-check"></i> My Active Leases</h4>
+                <a asp-controller="Lease" asp-action="MyLeases" class="pm-btn pm-btn-ghost pm-btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="pm-card-body">
+                @if (Model.ActiveLeases.Any())
+                {
+                    <div class="pm-lease-list">
+                        @foreach (var lease in Model.ActiveLeases)
+                        {
+                            <div class="pm-lease-item">
+                                <div class="pm-lease-property">
+                                    <div class="pm-lease-image">
+                                        @if (!string.IsNullOrEmpty(lease.PropertyImageUrl))
+                                        {
+                                            <img src="@lease.PropertyImageUrl" alt="@lease.PropertyName" />
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-building"></i>
+                                        }
+                                    </div>
+                                    <div class="pm-lease-info">
+                                        <h5>@lease.PropertyName</h5>
+                                        <p><i class="bi bi-geo-alt"></i> @lease.PropertyAddress</p>
+                                        <div class="pm-lease-meta">
+                                            <span><i class="bi bi-calendar"></i> Ends: @lease.EndDate.ToString("MMM dd, yyyy")</span>
+                                            <span class="pm-badge @(lease.Status == "Active" ? "pm-badge-success" : "pm-badge-secondary")">@lease.Status</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a asp-controller="Lease" asp-action="Details" asp-route-id="@lease.LeaseId" class="pm-btn pm-btn-secondary pm-btn-sm">
+                                    View Details
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon">
+                            <i class="bi bi-file-earmark-x"></i>
+                        </div>
+                        <h4>No active leases</h4>
+                        <p>Start by browsing available properties</p>
+                        <a asp-controller="Property" asp-action="SearchProperties" class="pm-btn pm-btn-primary pm-btn-sm">
+                            Find Properties
+                        </a>
+                    </div>
+                }
             </div>
         </div>
-    </div>
 
-    <!-- Features Section -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <h3 class="mb-4">Tính năng nổi bật</h3>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-search-location fa-3x text-primary mb-3"></i>
-                    <h5>Tìm kiếm thông minh</h5>
-                    <p class="text-muted">
-                        Tìm kiếm nhà cho thuê theo khu vực, giá cả, diện tích với công cụ lọc thông minh
-                    </p>
-                </div>
+        <!-- Recent Activity -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-clock-history"></i> Recent Activity</h4>
             </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
-                    <h5>Bảo mật cao</h5>
-                    <p class="text-muted">
-                        Thông tin cá nhân và hợp đồng được mã hóa, đảm bảo an toàn tuyệt đối
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-mobile-alt fa-3x text-info mb-3"></i>
-                    <h5>Quản lý dễ dàng</h5>
-                    <p class="text-muted">
-                        Quản lý hợp đồng, thanh toán, bảo trì mọi lúc mọi nơi trên mọi thiết bị
-                    </p>
-                </div>
+            <div class="pm-card-body">
+                @if (Model.RecentActivities.Any())
+                {
+                    <div class="pm-timeline">
+                        @foreach (var activity in Model.RecentActivities)
+                        {
+                            <div class="pm-timeline-item">
+                                <div class="pm-timeline-time">@FormatActivityTime(activity.Timestamp)</div>
+                                <div class="pm-timeline-content">
+                                    <h4>@activity.Title</h4>
+                                    <p>@activity.Description</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <h4>No recent activity</h4>
+                        <p>Your recent activities will appear here</p>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -238,13 +262,351 @@
 
 @section Styles {
     <style>
-        .card {
-            transition: transform 0.2s, box-shadow 0.2s;
+        .pm-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-            .card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+        /* Welcome Banner */
+        .pm-welcome-banner {
+            background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-dark) 100%);
+            border-radius: var(--pm-radius-xl);
+            padding: var(--pm-space-8);
+            margin-bottom: var(--pm-space-6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .pm-welcome-content h1 {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            margin: 0 0 var(--pm-space-2);
+            color: white;
+        }
+
+        .pm-welcome-content p {
+            margin: 0;
+            opacity: 0.9;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .pm-welcome-actions .pm-btn {
+            background: white;
+            color: var(--pm-primary);
+            box-shadow: none;
+        }
+
+        .pm-welcome-actions .pm-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            color: var(--pm-primary);
+        }
+
+        /* Stats Grid */
+        .pm-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--pm-space-5);
+            margin-bottom: var(--pm-space-6);
+        }
+
+        /* Dashboard Grid */
+        .pm-dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-6);
+        }
+
+        /* Quick Actions */
+        .pm-quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-quick-action-item {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+            padding: var(--pm-space-4);
+            background: var(--pm-slate-50);
+            border-radius: var(--pm-radius-lg);
+            text-decoration: none;
+            transition: all var(--pm-transition-fast);
+        }
+
+        .pm-quick-action-item:hover {
+            background: var(--pm-slate-100);
+            transform: translateX(4px);
+        }
+
+        .pm-quick-action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .pm-quick-action-icon.primary {
+            background: var(--pm-primary-100);
+            color: var(--pm-primary);
+        }
+
+        .pm-quick-action-icon.success {
+            background: var(--pm-success-100);
+            color: var(--pm-success);
+        }
+
+        .pm-quick-action-icon.warning {
+            background: var(--pm-warning-100);
+            color: var(--pm-warning);
+        }
+
+        .pm-quick-action-icon.info {
+            background: var(--pm-info-100);
+            color: var(--pm-info);
+        }
+
+        .pm-quick-action-text {
+            flex: 1;
+        }
+
+        .pm-quick-action-text h5 {
+            margin: 0;
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-quick-action-text p {
+            margin: 0;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-quick-action-item > i {
+            color: var(--pm-text-muted);
+        }
+
+        /* Payment List */
+        .pm-payment-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-payment-item {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+            padding: var(--pm-space-4);
+            background: var(--pm-slate-50);
+            border-radius: var(--pm-radius-lg);
+            border-left: 4px solid var(--pm-warning);
+        }
+
+        .pm-payment-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--pm-warning-100);
+            color: var(--pm-warning);
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .pm-payment-info {
+            flex: 1;
+        }
+
+        .pm-payment-info h5 {
+            margin: 0 0 var(--pm-space-1);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-payment-info p {
+            margin: 0;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-payment-amount {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-payment-amount .amount {
+            font-size: var(--pm-text-lg);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+        }
+
+        /* Lease List */
+        .pm-lease-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-lease-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--pm-space-4);
+            background: var(--pm-slate-50);
+            border-radius: var(--pm-radius-lg);
+        }
+
+        .pm-lease-property {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-lease-image {
+            width: 64px;
+            height: 64px;
+            background: var(--pm-primary-100);
+            color: var(--pm-primary);
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .pm-lease-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pm-lease-info h5 {
+            margin: 0 0 var(--pm-space-1);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-lease-info > p {
+            margin: 0 0 var(--pm-space-2);
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-1);
+        }
+
+        .pm-lease-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-lease-meta span {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-1);
+        }
+
+        /* Empty Compact */
+        .pm-empty-compact {
+            padding: var(--pm-space-6);
+        }
+
+        .pm-empty-compact .pm-empty-icon {
+            width: 60px;
+            height: 60px;
+        }
+
+        .pm-empty-compact .pm-empty-icon i {
+            font-size: 28px;
+        }
+
+        /* Responsive */
+        @@media (max-width: 1200px) {
+            .pm-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
+        }
+
+        @@media (max-width: 1024px) {
+            .pm-dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .pm-welcome-banner {
+                flex-direction: column;
+                gap: var(--pm-space-4);
+                text-align: center;
+                padding: var(--pm-space-6);
+            }
+
+            .pm-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-payment-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .pm-payment-amount {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: var(--pm-space-3);
+                padding-top: var(--pm-space-3);
+                border-top: 1px solid var(--pm-border);
+            }
+
+            .pm-lease-item {
+                flex-direction: column;
+                gap: var(--pm-space-4);
+            }
+
+            .pm-lease-item .pm-btn {
+                width: 100%;
+            }
+        }
     </style>
+}
+
+@functions {
+    string FormatActivityTime(DateTime timestamp)
+    {
+        var now = DateTime.Now;
+        var diff = now - timestamp;
+
+        if (diff.TotalMinutes < 60)
+            return "Just now";
+        if (diff.TotalHours < 24 && timestamp.Date == now.Date)
+            return $"Today, {timestamp:h:mm tt}";
+        if (diff.TotalDays < 2 && timestamp.Date == now.Date.AddDays(-1))
+            return $"Yesterday, {timestamp:h:mm tt}";
+        if (diff.TotalDays < 7)
+            return timestamp.ToString("dddd, h:mm tt");
+        
+        return timestamp.ToString("MMM d, yyyy");
+    }
 }

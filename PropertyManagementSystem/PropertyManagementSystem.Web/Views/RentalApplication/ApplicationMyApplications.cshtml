@@ -1,6 +1,8 @@
-﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.RentalApplication>
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.RentalApplication>
 @{
-    ViewData["Title"] = "Đơn xin thuê của tôi";
+    ViewData["Title"] = "My Applications";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Tenant";
 }
 
 <div class="container mt-4">

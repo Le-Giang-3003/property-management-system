@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Viewing Schedule";
     Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Tenant";
 
     var totalViewings = Model.Count();
     var confirmedViewings = Model.Count(v => v.Status == "Confirmed");

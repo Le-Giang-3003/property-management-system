@@ -1,18 +1,19 @@
-﻿@model PropertyManagementSystem.DAL.Entities.Property
+@model PropertyManagementSystem.DAL.Entities.Property
 
 @{
-    ViewData["Title"] = "Chỉnh sửa BDS";
+    ViewData["Title"] = "Edit Property";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Landlord";
     var propertyTypes = ViewBag.PropertyTypes as List<SelectListItem> ?? new();
     var statuses = new List<SelectListItem>
     {
-        new() { Value = "Available", Text = "Có sẵn" },
-        new() { Value = "Rented", Text = "Đã thuê" },
-        new() { Value = "Maintenance", Text = "Bảo trì" },
-        new() { Value = "Unavailable", Text = "Không khả dụng" }
+        new() { Value = "Available", Text = "Available" },
+        new() { Value = "Rented", Text = "Rented" },
+        new() { Value = "Maintenance", Text = "Maintenance" },
+        new() { Value = "Unavailable", Text = "Unavailable" }
     };
     var images = ViewBag.PropertyImages as List<PropertyManagementSystem.DAL.Entities.PropertyImage>
                  ?? new List<PropertyManagementSystem.DAL.Entities.PropertyImage>();
-    Layout = "_AuthLayout";
 }
 
 <div class="edit-property-container">

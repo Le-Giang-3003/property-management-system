@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.DAL.Data;
+using PropertyManagementSystem.DAL.Data;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -35,17 +35,18 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         {
             return await _context.Payments
                 .Include(p => p.Invoice)
-                .ThenInclude(i => i.Lease)
-                .Where(p => p.Invoice.Lease.TenantId == tenantId)
+                    .ThenInclude(i => i.Lease)
+                .Where(p => p.Invoice != null && p.Invoice.Lease != null && p.Invoice.Lease.TenantId == tenantId)
                 .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
         }
+
         public async Task<List<Payment>> GetByTenantAsync(int tenantId)
         {
             return await _context.Payments
                 .Include(p => p.Invoice)
                     .ThenInclude(i => i.Lease)
-                .Where(p => p.Invoice.Lease.TenantId == tenantId)
+                .Where(p => p.Invoice != null && p.Invoice.Lease != null && p.Invoice.Lease.TenantId == tenantId)
                 .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
         }

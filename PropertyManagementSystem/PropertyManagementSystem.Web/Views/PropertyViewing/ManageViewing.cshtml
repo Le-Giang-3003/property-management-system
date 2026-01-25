@@ -1,6 +1,8 @@
-﻿@model IEnumerable<PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto>
+@model IEnumerable<PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto>
 @{
     ViewData["Title"] = "Manage Viewings";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Landlord";
 }
 
 <h2>Manage Property Viewings (Landlord)</h2>

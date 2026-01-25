@@ -758,7 +758,7 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: '@TempData["Success"]',
+                text: @Html.Raw(Json.Serialize(TempData["Success"])),
                 timer: 3000,
                 showConfirmButton: false
             });

@@ -709,12 +709,10 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("ContractFilePath")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ContractFileUrl")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -753,7 +751,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SpecialConditions")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -772,7 +769,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("TerminationReason")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -822,8 +818,7 @@ namespace PropertyManagementSystem.DAL.Migrations
 
                     b.Property<string>("SignatureData")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("SignedAt")
                         .HasColumnType("datetime2");
@@ -1842,21 +1837,21 @@ namespace PropertyManagementSystem.DAL.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3157),
+                            CreatedAt = new DateTime(2026, 1, 25, 18, 37, 36, 966, DateTimeKind.Utc).AddTicks(3759),
                             Description = "System Administrator",
                             RoleName = "Admin"
                         },
                         new
                         {
                             RoleId = 2,
-                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3160),
+                            CreatedAt = new DateTime(2026, 1, 25, 18, 37, 36, 966, DateTimeKind.Utc).AddTicks(3762),
                             Description = "Landlord and Tenant",
                             RoleName = "Member"
                         },
                         new
                         {
                             RoleId = 3,
-                            CreatedAt = new DateTime(2026, 1, 24, 13, 32, 46, 948, DateTimeKind.Utc).AddTicks(3161),
+                            CreatedAt = new DateTime(2026, 1, 25, 18, 37, 36, 966, DateTimeKind.Utc).AddTicks(3763),
                             Description = "Maintenance Technician",
                             RoleName = "Technician"
                         });

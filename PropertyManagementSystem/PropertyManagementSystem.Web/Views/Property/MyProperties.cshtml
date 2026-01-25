@@ -1,8 +1,9 @@
-﻿@model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
 
 @{
-    ViewData["Title"] = "BDS của tôi";
+    ViewData["Title"] = "My Properties";
     Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Landlord";
     var totalProperties = ViewBag.TotalProperties as int? ?? 0;
     var availableCount = ViewBag.AvailableCount as int? ?? 0;
     var rentedCount = ViewBag.RentedCount as int? ?? 0;

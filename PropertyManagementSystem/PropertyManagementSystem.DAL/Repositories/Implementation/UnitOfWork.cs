@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.DAL.Data;
+using PropertyManagementSystem.DAL.Data;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
@@ -16,8 +16,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         private IRentalApplicationRepository? _rentalApplications;
         private ILeaseRepository? _leases;
         private IMaintenanceRepository? _maintenanceRequests;
-        private IPropertyImageRepository _propertyImage;
-        private ILeaseSignatureRepository _leaseSignatures;
+        private IPropertyImageRepository? _propertyImage;
+        private ILeaseSignatureRepository? _leaseSignatures;
+        private IFavoritePropertyRepository? _favoriteProperties;
+        private IInvoiceRepository? _invoices;
+        private IPaymentRepository? _payments;
 
         public UnitOfWork(AppDbContext context)
         {
@@ -30,16 +33,14 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         public IPropertyRepository Properties => _properties ??= new PropertyRepository(_context);
         public IPropertyViewingRepository PropertyViewings => _propertyViewings ??= new PropertyViewingRepository(_context);
         public IDocumentRepository Documents => _documents ??= new DocumentRepository(_context);
-
         public IRentalApplicationRepository RentalApplications => _rentalApplications ??= new RentalApplicationRepository(_context);
         public ILeaseRepository Leases => _leases ??= new LeaseRepository(_context);
-
         public IMaintenanceRepository MaintenanceRequests => _maintenanceRequests ??= new MaintenanceRepository(_context);
-
         public IPropertyImageRepository PropertyImages => _propertyImage ??= new PropertyImageRepository(_context);
-
-
         public ILeaseSignatureRepository LeaseSignatures => _leaseSignatures ??= new LeaseSignatureRepository(_context);
+        public IFavoritePropertyRepository FavoriteProperties => _favoriteProperties ??= new FavoritePropertyRepository(_context);
+        public IInvoiceRepository Invoices => _invoices ??= new InvoiceRepository(_context);
+        public IPaymentRepository Payments => _payments ??= new PaymentRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

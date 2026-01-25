@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Payments;
 using PropertyManagementSystem.BLL.Services.Interface;
@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
-    //[Authorize(Roles = "Tenant")]
+    [Authorize]
     public class PaymentController : Controller
     {
         private readonly IPaymentService _paymentService;
@@ -17,22 +17,42 @@ namespace PropertyManagementSystem.Web.Controllers
             _paymentService = paymentService;
         }
 
+        private int? GetTenantId()
+        {
+            var tenantClaim = User.FindFirst("TenantId");
+            if (tenantClaim != null && int.TryParse(tenantClaim.Value, out var tenantId))
+                return tenantId;
+            return null;
+        }
+
+        private async Task<MakePaymentViewModel> PrepareViewModelAsync(MakePaymentViewModel? existingVm = null)
+        {
+            var tenantId = GetTenantId();
+            var invoices = tenantId.HasValue 
+                ? await _paymentService.GetAvailableInvoicesAsync(tenantId.Value) 
+                : new List<BLL.DTOs.Invoice.InvoiceDto>();
+
+            return new MakePaymentViewModel
+            {
+                InvoiceId = existingVm?.InvoiceId ?? 0,
+                Amount = existingVm?.Amount ?? 0,
+                PaymentMethod = existingVm?.PaymentMethod ?? string.Empty,
+                Notes = existingVm?.Notes ?? string.Empty,
+                AvailableInvoices = invoices
+            };
+        }
+
         [HttpGet]
         public async Task<IActionResult> MakePayment()
         {
-            var tenantClaim = User.FindFirst("TenantId");
-            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+            var tenantId = GetTenantId();
+            if (!tenantId.HasValue)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            var invoices = await _paymentService.GetAvailableInvoicesAsync(tenantId);
-
-            var vm = new MakePaymentViewModel
-            {
-                AvailableInvoices = invoices
-            };
-
+            ViewData["PortalMode"] = "Tenant";
+            var vm = await PrepareViewModelAsync();
             return View(vm);
         }
 
@@ -40,13 +60,18 @@ namespace PropertyManagementSystem.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MakePayment(MakePaymentViewModel vm)
         {
-            if (!ModelState.IsValid)
-                return View(vm);
-
-            var tenantClaim = User.FindFirst("TenantId");
-            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+            ViewData["PortalMode"] = "Tenant";
+            var tenantId = GetTenantId();
+            if (!tenantId.HasValue)
             {
                 return RedirectToAction("Login", "Auth");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Repopulate available invoices on validation error
+                vm = await PrepareViewModelAsync(vm);
+                return View(vm);
             }
 
             try
@@ -59,27 +84,93 @@ namespace PropertyManagementSystem.Web.Controllers
                     Notes = vm.Notes
                 };
 
-                var result = await _paymentService.MakePaymentAsync(tenantId, dto);
+                var result = await _paymentService.MakePaymentAsync(tenantId.Value, dto);
 
-                TempData["SuccessMessage"] = $"Thanh toán thành công. Mã thanh toán: {result.PaymentId}";
-                return RedirectToAction("History", new { invoiceId = vm.InvoiceId });
+                TempData["SuccessMessage"] = $"Payment successful! Payment ID: #{result.PaymentId}";
+                return RedirectToAction("History");
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = ex.Message;
+                // Repopulate available invoices on error
+                vm = await PrepareViewModelAsync(vm);
                 return View(vm);
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> History()
         {
-            var tenantClaim = User.FindFirst("TenantId");
-            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+            ViewData["PortalMode"] = "Tenant";
+            var tenantId = GetTenantId();
+            if (!tenantId.HasValue)
                 return RedirectToAction("Login", "Auth");
 
-            var history = await _paymentService.GetPaymentHistoryAsync(tenantId);
+            var history = await _paymentService.GetPaymentHistoryAsync(tenantId.Value);
             return View(history);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            ViewData["PortalMode"] = "Tenant";
+            var tenantId = GetTenantId();
+            if (!tenantId.HasValue)
+                return RedirectToAction("Login", "Auth");
+
+            var payment = await _paymentService.GetPaymentByIdAsync(id);
+            if (payment == null)
+            {
+                TempData["ErrorMessage"] = "Payment not found.";
+                return RedirectToAction("History");
+            }
+
+            return View(payment);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadReceipt(int id)
+        {
+            var tenantId = GetTenantId();
+            if (!tenantId.HasValue)
+                return RedirectToAction("Login", "Auth");
+
+            var payment = await _paymentService.GetPaymentByIdAsync(id);
+            if (payment == null)
+            {
+                TempData["ErrorMessage"] = "Payment not found.";
+                return RedirectToAction("History");
+            }
+
+            // Generate a simple receipt as text for now
+            // In production, you would use a PDF library
+            var receiptContent = $@"
+=====================================
+        PAYMENT RECEIPT
+=====================================
+
+Payment ID: #{payment.PaymentId}
+Date: {payment.PaymentDate:dd/MM/yyyy HH:mm}
+
+Invoice: {payment.InvoiceNumber}
+Amount Paid: {payment.Amount:N0} VND
+Payment Method: {payment.PaymentMethod}
+Status: {payment.Status}
+
+-------------------------------------
+Invoice Summary
+-------------------------------------
+Total Amount: {payment.InvoiceTotalAmount:N0} VND
+Total Paid: {payment.InvoicePaidAmount:N0} VND
+Remaining: {payment.InvoiceRemainingAmount:N0} VND
+
+=====================================
+Thank you for your payment!
+=====================================
+";
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(receiptContent);
+            return File(bytes, "text/plain", $"receipt-{payment.PaymentId}.txt");
+        }
     }
 }

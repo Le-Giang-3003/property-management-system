@@ -1,29 +1,256 @@
-﻿@using PropertyManagementSystem.BLL.DTOs.Payments
+@using PropertyManagementSystem.BLL.DTOs.Payments
 @model List<PaymentDto>
+@{
+    ViewData["Title"] = "Payment History";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Tenant";
+}
 
-<h2>Lịch sử thanh toán</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Mã thanh toán</th>
-            <th>Mã hóa đơn</th>
-            <th>Số tiền</th>
-            <th>Phương thức</th>
-            <th>Ngày thanh toán</th>
-            <th>Trạng thái</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model)
-        {
-            <tr>
-                <td>@p.PaymentId</td>
-                <td>@p.InvoiceId</td>
-                <td>@p.Amount.ToString("N0")</td>
-                <td>@p.PaymentMethod</td>
-                <td>@p.PaymentDate.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>@p.Status</td>
-            </tr>
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-credit-card"></i>
+                Payment History
+            </h1>
+            <p class="pm-page-subtitle">View and manage all your payment transactions</p>
+        </div>
+        <div class="pm-page-actions">
+            <a asp-action="MakePayment" class="pm-btn pm-btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Make Payment
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="pm-alert pm-alert-success" style="margin-bottom: var(--pm-space-5);">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="pm-alert pm-alert-danger" style="margin-bottom: var(--pm-space-5);">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Stats Cards -->
+        <div class="pm-stats-row">
+            <div class="pm-stat-card">
+                <div class="pm-stat-icon primary">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div class="pm-stat-content">
+                    <span class="pm-stat-label">Total Payments</span>
+                    <span class="pm-stat-value">@Model.Count</span>
+                </div>
+            </div>
+            <div class="pm-stat-card">
+                <div class="pm-stat-icon success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="pm-stat-content">
+                    <span class="pm-stat-label">Completed</span>
+                    <span class="pm-stat-value">@Model.Count(p => p.Status == "Completed" || p.Status == "Confirmed")</span>
+                </div>
+            </div>
+            <div class="pm-stat-card">
+                <div class="pm-stat-icon warning">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="pm-stat-content">
+                    <span class="pm-stat-label">Pending</span>
+                    <span class="pm-stat-value">@Model.Count(p => p.Status == "Pending")</span>
+                </div>
+            </div>
+            <div class="pm-stat-card">
+                <div class="pm-stat-icon info">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="pm-stat-content">
+                    <span class="pm-stat-label">Total Amount</span>
+                    <span class="pm-stat-value" style="font-size: var(--pm-text-lg);">@Model.Sum(p => p.Amount).ToString("N0") ₫</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-list-ul"></i> All Transactions</h4>
+            </div>
+            <div class="pm-table-wrapper" style="border: none; border-radius: 0;">
+                <table class="pm-table">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Invoice</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th class="pm-text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model.OrderByDescending(p => p.PaymentDate))
+                        {
+                            <tr>
+                                <td>
+                                    <strong class="pm-text-primary">#@payment.PaymentId</strong>
+                                </td>
+                                <td>
+                                    <span class="pm-badge pm-badge-secondary">INV-@payment.InvoiceId</span>
+                                </td>
+                                <td>
+                                    <strong>@payment.Amount.ToString("N0") ₫</strong>
+                                </td>
+                                <td>
+                                    <span class="pm-flex pm-items-center pm-gap-2">
+                                        @if (payment.PaymentMethod == "BankTransfer")
+                                        {
+                                            <i class="bi bi-bank"></i>
+                                        }
+                                        else if (payment.PaymentMethod == "CreditCard")
+                                        {
+                                            <i class="bi bi-credit-card-2-front"></i>
+                                        }
+                                        else if (payment.PaymentMethod == "Cash")
+                                        {
+                                            <i class="bi bi-cash"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-wallet2"></i>
+                                        }
+                                        @payment.PaymentMethod
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="pm-text-secondary">
+                                        @payment.PaymentDate.ToString("dd/MM/yyyy")
+                                    </span>
+                                    <br />
+                                    <small class="pm-text-muted">@payment.PaymentDate.ToString("HH:mm")</small>
+                                </td>
+                                <td>
+                                    @switch (payment.Status)
+                                    {
+                                        case "Completed":
+                                        case "Confirmed":
+                                            <span class="pm-badge pm-badge-success">Completed</span>
+                                            break;
+                                        case "Pending":
+                                            <span class="pm-badge pm-badge-warning">Pending</span>
+                                            break;
+                                        case "Failed":
+                                            <span class="pm-badge pm-badge-danger">Failed</span>
+                                            break;
+                                        default:
+                                            <span class="pm-badge pm-badge-secondary">@payment.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="pm-text-center">
+                                    <div class="pm-flex pm-justify-center pm-gap-2">
+                                        <a asp-action="Details" asp-route-id="@payment.PaymentId" class="pm-btn pm-btn-ghost pm-btn-sm" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="DownloadReceipt" asp-route-id="@payment.PaymentId" class="pm-btn pm-btn-ghost pm-btn-sm" title="Download Receipt">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="pm-card">
+            <div class="pm-card-body">
+                <div class="pm-empty">
+                    <div class="pm-empty-icon">
+                        <i class="bi bi-credit-card"></i>
+                    </div>
+                    <h4>No Payment History</h4>
+                    <p>You haven't made any payments yet.</p>
+                    <a asp-action="MakePayment" class="pm-btn pm-btn-primary">
+                        <i class="bi bi-plus-lg"></i>
+                        Make Your First Payment
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .pm-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .pm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--pm-space-6);
+        padding-bottom: var(--pm-space-6);
+        border-bottom: 1px solid var(--pm-border);
+    }
+
+    .pm-page-title {
+        font-size: var(--pm-text-2xl);
+        font-weight: var(--pm-font-bold);
+        color: var(--pm-text);
+        margin: 0 0 var(--pm-space-2);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-3);
+    }
+
+    .pm-page-title i {
+        color: var(--pm-primary);
+    }
+
+    .pm-page-subtitle {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-secondary);
+        margin: 0;
+    }
+
+    .pm-stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--pm-space-5);
+        margin-bottom: var(--pm-space-6);
+    }
+
+    @@media (max-width: 1024px) {
+        .pm-stats-row {
+            grid-template-columns: repeat(2, 1fr);
         }
-    </tbody>
-</table>
+    }
+
+    @@media (max-width: 768px) {
+        .pm-page-header {
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-stats-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

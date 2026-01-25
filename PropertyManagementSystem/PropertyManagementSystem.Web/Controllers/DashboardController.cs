@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.Dashboard;
 using System.Security.Claims;
@@ -81,9 +81,39 @@ namespace PropertyManagementSystem.Web.Controllers
         /// Tenant Dashboard View.
         /// </summary>
         /// <returns></returns>
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int tenantId))
+            {
+                TempData["Error"] = "User information not found";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            try
+            {
+                var dto = await _dashboardService.GetTenantDashboardAsync(tenantId);
+
+                var viewModel = new TenantDashboardViewModel
+                {
+                    ActiveLeasesCount = dto.ActiveLeasesCount,
+                    PendingPaymentsCount = dto.PendingPaymentsCount,
+                    OpenMaintenanceCount = dto.OpenMaintenanceCount,
+                    SavedPropertiesCount = dto.SavedPropertiesCount,
+                    UpcomingPayments = dto.UpcomingPayments,
+                    ActiveLeases = dto.ActiveLeases,
+                    RecentActivities = dto.RecentActivities
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Tenant Dashboard ERROR: {ex.Message}");
+                TempData["Error"] = "Error loading dashboard data";
+                // Return empty view model to avoid null reference
+                return View(new TenantDashboardViewModel());
+            }
         }
     }
 }

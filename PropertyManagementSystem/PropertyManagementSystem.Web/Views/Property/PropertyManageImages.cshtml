@@ -1,10 +1,11 @@
-﻿@model List<PropertyManagementSystem.DAL.Entities.PropertyImage>
+@model List<PropertyManagementSystem.DAL.Entities.PropertyImage>
 
 @{
-    ViewData["Title"] = "Quản lý hình ảnh";
+    ViewData["Title"] = "Manage Images";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Landlord";
     var property = ViewBag.Property as PropertyManagementSystem.DAL.Entities.Property;
     var propertyId = ViewBag.PropertyId as int?;
-    Layout = "_AuthLayout";
 }
 
 <div class="manage-images-container">

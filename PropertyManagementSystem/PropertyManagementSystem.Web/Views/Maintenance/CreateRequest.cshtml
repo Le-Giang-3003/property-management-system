@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Create Maintenance Request";
     Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Tenant";
     var properties = ViewBag.Properties as List<PropertyManagementSystem.BLL.DTOs.Maintenance.PropertySelectDto>;
 }
 

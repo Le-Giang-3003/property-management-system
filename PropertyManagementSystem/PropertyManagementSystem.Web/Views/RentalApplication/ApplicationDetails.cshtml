@@ -1,7 +1,8 @@
 @model PropertyManagementSystem.DAL.Entities.RentalApplication
 @{
-    ViewData["Title"] = "Chi tiết đơn xin thuê";
-
+    ViewData["Title"] = "Application Details";
+    Layout = "_AuthLayout";
+    
     // ✅ VALIDATE: Chỉ cho approve/reject nếu Property thuộc về user này
     var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
     var isPropertyOwner = Model.Property?.LandlordId == userId;
@@ -10,6 +11,9 @@
     // ✅ FIX: Thêm check ExistingLease từ ViewBag
     var hasExistingLease = ViewBag.ExistingLease != null;
     var canCreateLease = isPropertyOwner && Model.Status == "Approved" && !hasExistingLease;
+    
+    // Set portal mode based on whether user owns the property
+    ViewData["PortalMode"] = isPropertyOwner ? "Landlord" : "Tenant";
 }
 
 <div class="container mt-4">

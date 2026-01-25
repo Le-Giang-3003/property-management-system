@@ -9,23 +9,74 @@
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
 
-    // Determine display role based on current page
-    string displayRole = "Tenant"; // Default
+    // Check for explicit portal mode set by view
+    string displayRole = ViewData["PortalMode"]?.ToString() ?? "";
 
-    // Landlord pages detection
-    if (currentAction == "LandlordIndex" && currentController == "Dashboard")
+    // If not explicitly set, detect from route
+    if (string.IsNullOrEmpty(displayRole))
     {
-        displayRole = "Landlord";
-    }
-    // Tenant pages detection
-    else if (currentAction == "Index" && currentController == "Dashboard")
-    {
-        displayRole = "Tenant";
-    }
-    // Technician detection (if needed later)
-    else if (currentAction == "TechnicianIndex")
-    {
-        displayRole = "Technician";
+        // Landlord pages detection - all landlord-specific pages
+        var landlordPages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Dashboard/LandlordIndex",
+            "Property/MyProperties",
+            "Property/Create",
+            "Property/Edit",
+            "Property/ManageImages",
+            "Property/ChangeStatus",
+            "RentalApplication/Index",
+            "RentalApplication/Details",
+            "RentalApplication/ByProperty",
+            "Lease/Index",
+            "Lease/Create",
+            "Lease/Edit",
+            "Lease/Details",
+            "Lease/Terminate",
+            "Lease/Renew",
+            "Maintenance/LandlordIndex",
+            "PropertyViewing/ManageViewing",
+            "PropertyViewing/PendingRequest",
+            "Invoice/Index"
+        };
+
+        // Tenant pages detection
+        var tenantPages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Dashboard/Index",
+            "Property/SearchProperties",
+            "Property/PropertyFavorite",
+            "Property/Details",
+            "RentalApplication/MyApplications",
+            "RentalApplication/Create",
+            "Lease/MyLeases",
+            "Payment/History",
+            "Payment/MakePayment",
+            "Maintenance/TenantIndex",
+            "Maintenance/CreateRequest",
+            "PropertyViewing/MyViewings",
+            "PropertyViewing/Request",
+            "Document/MyDocuments"
+        };
+
+        var currentPage = $"{currentController}/{currentAction}";
+
+        if (landlordPages.Contains(currentPage))
+        {
+            displayRole = "Landlord";
+        }
+        else if (tenantPages.Contains(currentPage))
+        {
+            displayRole = "Tenant";
+        }
+        else if (currentAction == "TechnicianIndex")
+        {
+            displayRole = "Technician";
+        }
+        else
+        {
+            // Default to Tenant
+            displayRole = "Tenant";
+        }
     }
 
     var isMemberRole = User.IsInRole("Member");
@@ -39,675 +90,762 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ========== LAYOUT STRUCTURE ========== */
+        .pm-layout {
+            min-height: 100vh;
+            background: var(--pm-bg);
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #f8fafc;
-            overflow-x: hidden;
-        }
-
-        /* Header */
-        .main-header {
+        /* ========== HEADER ========== */
+        .pm-header {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 70px;
-            background: white;
-            border-bottom: 1px solid #e2e8f0;
+            height: var(--pm-header-height);
+            background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-dark) 100%);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 30px;
-            z-index: 1000;
+            padding: 0 var(--pm-space-6);
+            z-index: var(--pm-z-fixed);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .header-left {
+        .pm-header-left {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: var(--pm-space-4);
         }
 
-        .brand {
+        .pm-mobile-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--pm-radius-lg);
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--pm-transition-fast);
+        }
+
+        .pm-mobile-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .pm-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: var(--pm-space-3);
             text-decoration: none;
         }
 
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            border-radius: 10px;
+        .pm-brand-icon {
+            width: 42px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--pm-radius-lg);
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
+            font-size: 22px;
+        }
+
+        .pm-brand-text h1 {
+            font-size: var(--pm-text-lg);
+            font-weight: var(--pm-font-bold);
+            color: white;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .pm-brand-text p {
+            font-size: var(--pm-text-xs);
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+        }
+
+        .pm-header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+        }
+
+        /* Notification Button */
+        .pm-notification-btn {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            border-radius: var(--pm-radius-full);
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
             color: white;
             font-size: 20px;
-        }
-
-        .brand-text h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0;
-        }
-
-        .brand-text p {
-            font-size: 12px;
-            color: #64748b;
-            margin: 0;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .notification-btn {
-            position: relative;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            border: none;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all var(--pm-transition-fast);
         }
 
-            .notification-btn:hover {
-                background: #e2e8f0;
-            }
+        .pm-notification-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
 
-        .notification-badge {
+        .pm-notification-badge {
             position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 18px;
+            top: 2px;
+            right: 2px;
+            min-width: 18px;
             height: 18px;
-            background: #ef4444;
-            border-radius: 50%;
+            padding: 0 5px;
+            background: var(--pm-danger);
+            border-radius: var(--pm-radius-full);
+            font-size: 10px;
+            font-weight: var(--pm-font-bold);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
-            color: white;
+            border: 2px solid var(--pm-primary);
         }
 
-        .user-menu {
+        /* User Menu */
+        .pm-user-menu {
             position: relative;
         }
 
-        .user-menu-btn {
+        .pm-user-btn {
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: transparent;
-            border: none;
+            gap: var(--pm-space-3);
+            padding: var(--pm-space-2) var(--pm-space-3);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--pm-radius-xl);
             cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 10px;
-            transition: all 0.2s ease;
+            transition: all var(--pm-transition-fast);
         }
 
-            .user-menu-btn:hover {
-                background: #f1f5f9;
-            }
+        .pm-user-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        .pm-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--pm-radius-full);
+            background: white;
+            color: var(--pm-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
+            font-weight: var(--pm-font-bold);
+            font-size: var(--pm-text-sm);
         }
 
-        .user-info {
+        .pm-user-info {
             text-align: left;
         }
 
-        .user-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1e293b;
+        .pm-user-name {
             display: block;
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: white;
         }
 
-        .user-role {
+        .pm-user-role {
+            font-size: var(--pm-text-xs);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .pm-dropdown-icon {
+            color: rgba(255, 255, 255, 0.8);
             font-size: 12px;
-            color: #64748b;
+            transition: transform var(--pm-transition-fast);
         }
 
-        .dropdown-icon {
-            color: #94a3b8;
-            font-size: 12px;
-            transition: transform 0.2s ease;
-        }
-
-        .user-menu.active .dropdown-icon {
+        .pm-user-menu.active .pm-dropdown-icon {
             transform: rotate(180deg);
         }
 
-        .user-dropdown {
+        /* User Dropdown */
+        .pm-user-dropdown {
             position: absolute;
             top: calc(100% + 10px);
             right: 0;
-            width: 280px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
-            display: none;
+            width: 300px;
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-xl);
+            box-shadow: var(--pm-shadow-xl);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all var(--pm-transition);
+            z-index: var(--pm-z-dropdown);
             overflow: hidden;
         }
 
-        .user-menu.active .user-dropdown {
-            display: block;
-            animation: fadeInDown 0.2s ease;
+        .pm-user-menu.active .pm-user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
 
-        @@keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .pm-dropdown-header {
+            padding: var(--pm-space-4) var(--pm-space-5);
+            border-bottom: 1px solid var(--pm-border);
         }
 
-        .dropdown-header {
-            padding: 16px;
-            border-bottom: 1px solid #e2e8f0;
+        .pm-dropdown-header p {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin: 0 0 var(--pm-space-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-            .dropdown-header p {
-                margin: 0;
-                font-size: 12px;
-                color: #64748b;
-                margin-bottom: 8px;
-            }
-
-        .role-switch {
+        .pm-role-switch {
             display: flex;
-            gap: 8px;
+            gap: var(--pm-space-2);
         }
 
-        .role-switch-btn {
+        .pm-role-btn {
             flex: 1;
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            background: #f1f5f9;
-            color: #64748b;
-            text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: var(--pm-space-2);
+            padding: var(--pm-space-2) var(--pm-space-3);
+            background: var(--pm-slate-100);
+            border: 1px solid transparent;
+            border-radius: var(--pm-radius-lg);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--pm-transition-fast);
         }
 
-            .role-switch-btn:hover {
-                background: #e2e8f0;
-                color: #1e293b;
-            }
-
-            .role-switch-btn.active {
-                background: #2563eb;
-                color: white;
-            }
-
-                .role-switch-btn.active:hover {
-                    background: #1e40af;
-                    color: white;
-                }
-
-        .dropdown-menu-items {
-            padding: 8px;
+        .pm-role-btn:hover {
+            background: var(--pm-slate-200);
+            color: var(--pm-text);
         }
 
-        .dropdown-item {
+        .pm-role-btn.active {
+            background: var(--pm-primary);
+            color: white;
+            border-color: var(--pm-primary);
+        }
+
+        .pm-role-btn.active:hover {
+            background: var(--pm-primary-dark);
+            color: white;
+        }
+
+        .pm-dropdown-body {
+            padding: var(--pm-space-2);
+        }
+
+        .pm-dropdown-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 8px;
+            gap: var(--pm-space-3);
+            padding: var(--pm-space-3) var(--pm-space-4);
+            border-radius: var(--pm-radius-lg);
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-secondary);
             text-decoration: none;
-            color: #475569;
-            transition: all 0.2s ease;
+            transition: all var(--pm-transition-fast);
+            border: none;
+            background: none;
+            width: 100%;
             cursor: pointer;
         }
 
-            .dropdown-item:hover {
-                background: #f1f5f9;
-                color: #1e293b;
-            }
-
-            .dropdown-item i {
-                font-size: 18px;
-                width: 20px;
-            }
-
-            .dropdown-item.logout {
-                color: #ef4444;
-            }
-
-                .dropdown-item.logout:hover {
-                    background: #fef2f2;
-                }
-
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 70px;
-            width: 250px;
-            height: calc(100vh - 70px);
-            background: white;
-            border-right: 1px solid #e2e8f0;
-            padding: 20px 0;
-            overflow-y: auto;
-            z-index: 999;
+        .pm-dropdown-item:hover {
+            background: var(--pm-slate-50);
+            color: var(--pm-text);
         }
 
-            .sidebar::-webkit-scrollbar {
-                width: 6px;
-            }
+        .pm-dropdown-item i {
+            font-size: 18px;
+            width: 20px;
+        }
 
-            .sidebar::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 3px;
-            }
+        .pm-dropdown-item.logout {
+            color: var(--pm-danger);
+        }
 
-        .nav-menu {
+        .pm-dropdown-item.logout:hover {
+            background: var(--pm-danger-50);
+        }
+
+        .pm-dropdown-divider {
+            height: 1px;
+            background: var(--pm-border);
+            margin: var(--pm-space-2) 0;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .pm-sidebar {
+            position: fixed;
+            left: 0;
+            top: var(--pm-header-height);
+            width: var(--pm-sidebar-width);
+            height: calc(100vh - var(--pm-header-height));
+            background: var(--pm-surface);
+            border-right: 1px solid var(--pm-border);
+            padding: var(--pm-space-5) 0;
+            overflow-y: auto;
+            z-index: var(--pm-z-sticky);
+            transition: transform var(--pm-transition);
+        }
+
+        .pm-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .pm-sidebar::-webkit-scrollbar-thumb {
+            background: var(--pm-slate-300);
+            border-radius: 3px;
+        }
+
+        .pm-nav-section {
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-nav-title {
+            padding: 0 var(--pm-space-5);
+            margin-bottom: var(--pm-space-2);
+            font-size: var(--pm-text-xs);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pm-nav-menu {
             list-style: none;
-            padding: 0 12px;
+            padding: 0 var(--pm-space-3);
             margin: 0;
         }
 
-        .nav-item {
-            margin-bottom: 4px;
+        .pm-nav-item {
+            margin-bottom: var(--pm-space-1);
         }
 
-        .nav-link {
+        .pm-nav-link {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-radius: 10px;
+            gap: var(--pm-space-3);
+            padding: var(--pm-space-3) var(--pm-space-4);
+            border-radius: var(--pm-radius-lg);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-text-secondary);
             text-decoration: none;
-            color: #64748b;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
+            transition: all var(--pm-transition-fast);
         }
 
-            .nav-link:hover {
-                background: #f1f5f9;
-                color: #1e293b;
-            }
-
-            .nav-link.active {
-                background: #2563eb;
-                color: white;
-            }
-
-            .nav-link i {
-                font-size: 18px;
-                width: 20px;
-            }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 250px;
-            margin-top: 70px;
-            min-height: calc(100vh - 70px);
+        .pm-nav-link:hover {
+            background: var(--pm-slate-100);
+            color: var(--pm-text);
         }
 
-        /* Mobile Responsive */
-        .mobile-menu-btn {
-            display: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: #f1f5f9;
-            border: none;
+        .pm-nav-link.active {
+            background: var(--pm-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .pm-nav-link i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .pm-nav-badge {
+            margin-left: auto;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            background: var(--pm-danger);
+            border-radius: var(--pm-radius-full);
+            font-size: 10px;
+            font-weight: var(--pm-font-bold);
+            color: white;
+            display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
         }
 
-        @@media (max-width: 768px) {
-            .mobile-menu-btn {
-                display: flex;
-            }
+        .pm-nav-link.active .pm-nav-badge {
+            background: white;
+            color: var(--pm-primary);
+        }
 
-            .sidebar {
+        /* ========== MAIN CONTENT ========== */
+        .pm-main {
+            margin-left: var(--pm-sidebar-width);
+            margin-top: var(--pm-header-height);
+            min-height: calc(100vh - var(--pm-header-height));
+            padding: var(--pm-space-6);
+        }
+
+        /* Alerts */
+        .pm-main > .pm-alert {
+            animation: pm-fadeInDown var(--pm-transition-slow);
+        }
+
+        /* ========== OVERLAY ========== */
+        .pm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: calc(var(--pm-z-sticky) - 1);
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--pm-transition);
+        }
+
+        .pm-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @@media (max-width: 1024px) {
+            .pm-sidebar {
                 transform: translateX(-100%);
-                transition: transform 0.3s ease;
             }
 
-                .sidebar.active {
-                    transform: translateX(0);
-                }
+            .pm-sidebar.active {
+                transform: translateX(0);
+            }
 
-            .main-content {
+            .pm-main {
                 margin-left: 0;
             }
 
-            .brand-text {
-                display: none;
-            }
-
-            .user-info {
-                display: none;
+            .pm-mobile-toggle {
+                display: flex;
             }
         }
 
-        .alert {
-            margin: 20px;
-            border-radius: 10px;
+        @@media (max-width: 768px) {
+            .pm-header {
+                padding: 0 var(--pm-space-4);
+            }
+
+            .pm-brand-text {
+                display: none;
+            }
+
+            .pm-user-info {
+                display: none;
+            }
+
+            .pm-main {
+                padding: var(--pm-space-4);
+            }
+
+            .pm-user-dropdown {
+                width: calc(100vw - 32px);
+                right: -8px;
+            }
         }
     </style>
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <!-- Header -->
-    <header class="main-header">
-        <div class="header-left">
-            <button class="mobile-menu-btn" onclick="toggleSidebar()">
-                <i class="bi bi-list"></i>
-            </button>
-            <a href="@Url.Action("Index", "Home")" class="brand">
-                <div class="brand-icon">
-                    <i class="bi bi-building"></i>
-                </div>
-                <div class="brand-text">
-                    <h1>Property Manager</h1>
-                    <p id="portalTitle">@(displayRole == "Landlord" ? "Landlord Portal" : displayRole == "Technician" ? "Technician Portal" : "Tenant Portal")</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="header-right">
-            <button class="notification-btn">
-                <i class="bi bi-bell"></i>
-                <span class="notification-badge">3</span>
-            </button>
-
-            <div class="user-menu" id="userMenu">
-                <button class="user-menu-btn" onclick="toggleUserMenu()">
-                    <div class="user-avatar">@userName.Substring(0, 1).ToUpper()</div>
-                    <div class="user-info">
-                        <span class="user-name">@userName</span>
-                        <span class="user-role" id="userRoleDisplay">@displayRole</span>
+    <div class="pm-layout">
+        <!-- Header -->
+        <header class="pm-header">
+            <div class="pm-header-left">
+                <button class="pm-mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+                    <i class="bi bi-list"></i>
+                </button>
+                <a href="@Url.Action("Index", "Home")" class="pm-brand">
+                    <div class="pm-brand-icon">
+                        <i class="bi bi-building"></i>
                     </div>
-                    <i class="bi bi-chevron-down dropdown-icon"></i>
+                    <div class="pm-brand-text">
+                        <h1>Property Manager</h1>
+                        <p>@(displayRole == "Landlord" ? "Landlord Portal" : displayRole == "Technician" ? "Technician Portal" : "Tenant Portal")</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="pm-header-right">
+                <button class="pm-notification-btn" aria-label="Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span class="pm-notification-badge">3</span>
                 </button>
 
-                <div class="user-dropdown">
-                    <!-- Switch Dashboard View -->
-                    <div class="dropdown-header">
-                        <p>Switch Dashboard View</p>
-                        <div class="role-switch">
-                            <a href="@Url.Action("Index", "Dashboard")"
-                               class="role-switch-btn @(displayRole == "Tenant" ? "active" : "")">
-                                <i class="bi bi-person"></i>
-                                Tenant
-                            </a>
-                            <a href="@Url.Action("LandlordIndex", "Dashboard")"
-                               class="role-switch-btn @(displayRole == "Landlord" ? "active" : "")">
-                                <i class="bi bi-building"></i>
-                                Landlord
-                            </a>
+                <div class="pm-user-menu" id="userMenu">
+                    <button class="pm-user-btn" onclick="toggleUserMenu()">
+                        <div class="pm-user-avatar">@userName.Substring(0, 1).ToUpper()</div>
+                        <div class="pm-user-info">
+                            <span class="pm-user-name">@userName</span>
+                            <span class="pm-user-role">@displayRole</span>
                         </div>
-                    </div>
+                        <i class="bi bi-chevron-down pm-dropdown-icon"></i>
+                    </button>
 
-                    <!-- Menu Items -->
-                    <div class="dropdown-menu-items">
-                        <a href="@Url.Action("ManageProfile", "Profile")" class="dropdown-item">
-                            <i class="bi bi-gear"></i>
-                            <span>Manage Profile</span>
-                        </a>
-                        <a href="@Url.Action("Settings", "Account")" class="dropdown-item">
-                            <i class="bi bi-sliders"></i>
-                            <span>Settings</span>
-                        </a>
-                        <form id="logoutForm" method="post" asp-action="Logout" asp-controller="Auth" style="margin: 0;">
-                            <button type="submit" class="dropdown-item logout"
-                                    style="width: 100%; border: none; background: none; text-align: left;">
-                                <i class="bi bi-box-arrow-right"></i>
-                                <span>Logout</span>
-                            </button>
-                        </form>
+                    <div class="pm-user-dropdown">
+                        <div class="pm-dropdown-header">
+                            <p>Switch Dashboard</p>
+                            <div class="pm-role-switch">
+                                <a href="@Url.Action("Index", "Dashboard")" 
+                                   class="pm-role-btn @(displayRole == "Tenant" ? "active" : "")">
+                                    <i class="bi bi-person"></i>
+                                    Tenant
+                                </a>
+                                <a href="@Url.Action("LandlordIndex", "Dashboard")" 
+                                   class="pm-role-btn @(displayRole == "Landlord" ? "active" : "")">
+                                    <i class="bi bi-building"></i>
+                                    Landlord
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="pm-dropdown-body">
+                            <a href="@Url.Action("ManageProfile", "Profile")" class="pm-dropdown-item">
+                                <i class="bi bi-person-circle"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="@Url.Action("ChangePassword", "Auth")" class="pm-dropdown-item">
+                                <i class="bi bi-key"></i>
+                                <span>Change Password</span>
+                            </a>
+                            <div class="pm-dropdown-divider"></div>
+                            <form id="logoutForm" method="post" asp-action="Logout" asp-controller="Auth" style="margin: 0;">
+                                <button type="submit" class="pm-dropdown-item logout">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sign Out</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <nav class="nav-menu">
+        <!-- Sidebar -->
+        <aside class="pm-sidebar" id="sidebar">
             @if (displayRole == "Tenant")
             {
-                <li class="nav-item">
-                    <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
-                        <i class="bi bi-house-door"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("SearchProperties", "Property")" class="nav-link">
-                        <i class="bi bi-search"></i>
-                        <span>Search Properties</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("MyFavorites", "Property")" class="nav-link">
-                        <i class="bi bi-heart"></i>
-                        <span>Favorites</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("MyApplications", "RentalApplication")" class="nav-link">
-                        <i class="bi bi-file-text"></i>
-                        <span>My Applications</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("MyLeases", "Lease")" class="nav-link">
-                        <i class="bi bi-file-earmark-check"></i>
-                        <span>My Leases</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Payments", "Payment")" class="nav-link">
-                        <i class="bi bi-currency-dollar"></i>
-                        <span>Payments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("TenantIndex", "Maintenance")" class="nav-link">
-                        <i class="bi bi-wrench"></i>
-                        <span>Maintenance</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("MyViewings", "PropertyViewing")" class="nav-link">
-                        <i class="bi bi-calendar-check"></i>
-                        <span>Viewing Schedule</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Messages", "Message")" class="nav-link">
-                        <i class="bi bi-chat"></i>
-                        <span>Messages</span>
-                    </a>
-                </li>
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Main Menu</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "Dashboard")" class="pm-nav-link">
+                                <i class="bi bi-house-door"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("SearchProperties", "Property")" class="pm-nav-link">
+                                <i class="bi bi-search"></i>
+                                <span>Browse Properties</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyFavorites", "Property")" class="pm-nav-link">
+                                <i class="bi bi-heart"></i>
+                                <span>Favorites</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">My Rentals</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyApplications", "RentalApplication")" class="pm-nav-link">
+                                <i class="bi bi-file-text"></i>
+                                <span>My Applications</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyLeases", "Lease")" class="pm-nav-link">
+                                <i class="bi bi-file-earmark-check"></i>
+                                <span>My Leases</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyViewings", "PropertyViewing")" class="pm-nav-link">
+                                <i class="bi bi-calendar-check"></i>
+                                <span>Scheduled Viewings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Payments & Services</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("History", "Payment")" class="pm-nav-link">
+                                <i class="bi bi-credit-card"></i>
+                                <span>Payments</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("TenantIndex", "Maintenance")" class="pm-nav-link">
+                                <i class="bi bi-tools"></i>
+                                <span>Maintenance</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyDocuments", "Document")" class="pm-nav-link">
+                                <i class="bi bi-folder"></i>
+                                <span>Documents</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             }
             else if (displayRole == "Landlord")
             {
-                <li class="nav-item">
-                    <a href="@Url.Action("LandlordIndex", "Dashboard")" class="nav-link">
-                        <i class="bi bi-house-door"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("MyProperties", "Property")" class="nav-link">
-                        <i class="bi bi-building"></i>
-                        <span>Properties</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Tenants", "Tenant")" class="nav-link">
-                        <i class="bi bi-people"></i>
-                        <span>Tenants</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Index", "RentalApplication")" class="nav-link">
-                        <i class="bi bi-clipboard-check"></i>
-                        <span>Manage Applications</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Index", "Lease")" class="nav-link">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span>Manage Leases</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("MyProperties", "Lease")" class="nav-link">
-                        <i class="bi bi-building-check"></i>
-                        <span>Leased Properties</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Payments", "Payment")" class="nav-link">
-                        <i class="bi bi-currency-dollar"></i>
-                        <span>Payments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("LandlordIndex", "Maintenance")" class="nav-link">
-                        <i class="bi bi-wrench"></i>
-                        <span>Maintenance</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a href="@Url.Action("Viewings", "Viewing")" class="nav-link">
-                        <i class="bi bi-calendar-check"></i>
-                        <span>Viewings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Reports", "Report")" class="nav-link">
-                        <i class="bi bi-bar-chart-line"></i>
-                        <span>Reports</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("AIInsights", "AI")" class="nav-link">
-                        <i class="bi bi-stars"></i>
-                        <span>AI Insights</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Index", "File")" class="nav-link">
-                        <i class="bi bi-folder"></i>
-                        <span>Files</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Messages", "Message")" class="nav-link">
-                        <i class="bi bi-chat"></i>
-                        <span>Messages</span>
-                    </a>
-                </li>
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Main Menu</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("LandlordIndex", "Dashboard")" class="pm-nav-link">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyProperties", "Property")" class="pm-nav-link">
+                                <i class="bi bi-buildings"></i>
+                                <span>My Properties</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Tenant Management</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "RentalApplication")" class="pm-nav-link">
+                                <i class="bi bi-person-lines-fill"></i>
+                                <span>Applications</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "Lease")" class="pm-nav-link">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <span>Lease Contracts</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("ManageViewing", "PropertyViewing")" class="pm-nav-link">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>Viewing Schedule</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Finance & Operations</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("History", "Payment")" class="pm-nav-link">
+                                <i class="bi bi-cash-stack"></i>
+                                <span>Payments</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "Invoice")" class="pm-nav-link">
+                                <i class="bi bi-receipt"></i>
+                                <span>Invoices</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("LandlordIndex", "Maintenance")" class="pm-nav-link">
+                                <i class="bi bi-wrench-adjustable"></i>
+                                <span>Maintenance</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Resources</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyDocuments", "Document")" class="pm-nav-link">
+                                <i class="bi bi-folder2-open"></i>
+                                <span>Documents</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             }
             else if (displayRole == "Technician")
             {
-                <li class="nav-item">
-                    <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
-                        <i class="bi bi-house-door"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("TechnicianIndex", "Maintenance")" class="nav-link">
-                        <i class="bi bi-list-task"></i>
-                        <span>Assignments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Schedule", "Schedule")" class="nav-link">
-                        <i class="bi bi-calendar"></i>
-                        <span>Schedule</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("CompletedJobs", "Maintenance")" class="nav-link">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Completed Jobs</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="@Url.Action("Messages", "Message")" class="nav-link">
-                        <i class="bi bi-chat"></i>
-                        <span>Messages</span>
-                    </a>
-                </li>
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Main Menu</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "Dashboard")" class="pm-nav-link">
+                                <i class="bi bi-house-door"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("TechnicianIndex", "Maintenance")" class="pm-nav-link">
+                                <i class="bi bi-list-task"></i>
+                                <span>My Assignments</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             }
-        </nav>
-    </aside>
+        </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i>
-                @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
+        <!-- Overlay for mobile -->
+        <div class="pm-overlay" id="overlay" onclick="closeSidebar()"></div>
 
-        @RenderBody()
-    </main>
+        <!-- Main Content -->
+        <main class="pm-main">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="pm-alert pm-alert-success pm-animate-fadeInDown">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div>@TempData["SuccessMessage"]</div>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="pm-alert pm-alert-danger pm-animate-fadeInDown">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>@TempData["ErrorMessage"]</div>
+                </div>
+            }
+
+            @RenderBody()
+        </main>
+    </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
@@ -730,19 +868,41 @@
         // Toggle sidebar for mobile
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
             sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Close sidebar
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
         }
 
         // Highlight active nav link
         document.addEventListener('DOMContentLoaded', function() {
-            const currentPath = window.location.pathname;
-            const navLinks = document.querySelectorAll('.nav-link');
+            const currentPath = window.location.pathname.toLowerCase();
+            const navLinks = document.querySelectorAll('.pm-nav-link');
 
             navLinks.forEach(link => {
-                if (link.getAttribute('href') === currentPath) {
+                const linkPath = link.getAttribute('href')?.toLowerCase();
+                if (linkPath && currentPath === linkPath) {
+                    link.classList.add('active');
+                } else if (linkPath && currentPath.startsWith(linkPath) && linkPath !== '/') {
                     link.classList.add('active');
                 }
             });
+
+            // Auto-dismiss alerts after 5 seconds
+            setTimeout(() => {
+                document.querySelectorAll('.pm-alert').forEach(alert => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-10px)';
+                    setTimeout(() => alert.remove(), 300);
+                });
+            }, 5000);
         });
     </script>
 

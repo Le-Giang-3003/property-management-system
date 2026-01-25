@@ -1,131 +1,124 @@
-﻿@using PropertyManagementSystem.Web.ViewModels.User
+@using PropertyManagementSystem.Web.ViewModels.User
 @model RegisterViewModel
 @{
-    ViewData["Title"] = "Register";
-    Layout = "_LoginLayout";  
+    ViewData["Title"] = "Create Account";
+    Layout = "_LoginLayout";
 }
 
-<div class="login-card">
-    <div class="brand-section">
-        <div class="brand-icon">
-            <i class="bi bi-person-plus-fill"></i>
+<div class="pm-auth-card">
+    <div class="pm-auth-header">
+        <div class="pm-auth-icon">
+            <i class="bi bi-person-plus"></i>
         </div>
-        <h1 class="brand-title">Tạo tài khoản mới</h1>
-        <p class="brand-subtitle">Đăng ký để quản lý bất động sản</p>
+        <h1>Create Account</h1>
+        <p>Register to start managing properties</p>
     </div>
 
-    @if (!ViewData.ModelState.IsValid)
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Vui lòng kiểm tra lại:</strong>
-            <ul class="mb-0 mt-2 small">
-                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    <li>@error.ErrorMessage</li>
-                }
-            </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="pm-alert pm-alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Please fix the following errors:</strong>
+                <ul style="margin: 8px 0 0; padding-left: 20px;">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
         </div>
     }
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="pm-alert pm-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["Success"]</span>
         </div>
     }
 
-    <form asp-action="Register" method="post">
+    <form asp-action="Register" method="post" class="pm-auth-form">
         @Html.AntiForgeryToken()
 
-        <!-- Email -->
-        <div class="form-group">
-            <label asp-for="Email" class="form-label">Email</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+        <div class="pm-form-group">
+            <label asp-for="Email" class="pm-label">Email Address</label>
+            <div class="pm-input-icon">
+                <i class="bi bi-envelope"></i>
                 <input asp-for="Email"
                        type="email"
-                       class="form-control"
-                       placeholder="example@email.com"
+                       class="pm-input"
+                       placeholder="you@example.com"
                        autocomplete="email" />
             </div>
-            <span asp-validation-for="Email" class="text-danger"></span>
+            <span asp-validation-for="Email" class="pm-error"></span>
         </div>
 
-        <!-- Username -->
-        <div class="form-group">
-            <label asp-for="UserName" class="form-label">Tên hiển thị</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <div class="pm-form-group">
+            <label asp-for="UserName" class="pm-label">Display Name</label>
+            <div class="pm-input-icon">
+                <i class="bi bi-person"></i>
                 <input asp-for="UserName"
                        type="text"
-                       class="form-control"
-                       placeholder="Nguyễn Văn A"
+                       class="pm-input"
+                       placeholder="John Doe"
                        autocomplete="name" />
             </div>
-            <span asp-validation-for="UserName" class="text-danger"></span>
+            <span asp-validation-for="UserName" class="pm-error"></span>
         </div>
 
-        <!-- Password -->
-        <div class="form-group">
-            <label asp-for="Password" class="form-label">Mật khẩu</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+        <div class="pm-form-group">
+            <label asp-for="Password" class="pm-label">Password</label>
+            <div class="pm-input-icon pm-input-icon-right">
+                <i class="bi bi-lock"></i>
                 <input asp-for="Password"
                        id="passwordInput"
                        type="password"
-                       class="form-control"
-                       placeholder="Nhập mật khẩu mạnh"
+                       class="pm-input"
+                       placeholder="Create a strong password"
                        autocomplete="new-password" />
-                <button class="password-toggle-btn"
-                        type="button"
-                        id="togglePassword"
-                        aria-label="Show/hide password">
+                <button type="button" class="pm-password-toggle" id="togglePassword" aria-label="Toggle password">
                     <i class="bi bi-eye" id="passwordIcon"></i>
                 </button>
             </div>
-            <span asp-validation-for="Password" class="text-danger"></span>
+            <span asp-validation-for="Password" class="pm-error"></span>
         </div>
 
-        <!-- Confirm Password -->
-        <div class="form-group">
-            <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+        <div class="pm-form-group">
+            <label asp-for="ConfirmPassword" class="pm-label">Confirm Password</label>
+            <div class="pm-input-icon pm-input-icon-right">
+                <i class="bi bi-shield-lock"></i>
                 <input asp-for="ConfirmPassword"
                        id="confirmPasswordInput"
                        type="password"
-                       class="form-control"
-                       placeholder="Nhập lại mật khẩu"
+                       class="pm-input"
+                       placeholder="Confirm your password"
                        autocomplete="new-password" />
-                <button class="password-toggle-btn"
-                        type="button"
-                        id="toggleConfirmPassword"
-                        aria-label="Show/hide password">
+                <button type="button" class="pm-password-toggle" id="toggleConfirmPassword" aria-label="Toggle password">
                     <i class="bi bi-eye" id="confirmPasswordIcon"></i>
                 </button>
             </div>
-            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            <span asp-validation-for="ConfirmPassword" class="pm-error"></span>
         </div>
 
-        <button type="submit" class="btn-login">
-            Đăng ký tài khoản
+        <button type="submit" class="pm-auth-submit">
+            <i class="bi bi-person-plus"></i>
+            Create Account
         </button>
     </form>
 
-    <div class="register-section">
-        Đã có tài khoản?
-        <a asp-controller="Auth" asp-action="Login" class="register-link">Đăng nhập ngay</a>
+    <div class="pm-auth-divider">
+        <span>Already have an account?</span>
+    </div>
+
+    <div class="pm-auth-footer">
+        <a asp-controller="Auth" asp-action="Login">Sign in instead</a>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
     <script>
-        // Toggle password visibility
         function setupPasswordToggle(btnId, inputId, iconId) {
             const btn = document.getElementById(btnId);
             const input = document.getElementById(inputId);
@@ -134,12 +127,10 @@
             btn?.addEventListener('click', function() {
                 if (input.type === 'password') {
                     input.type = 'text';
-                    icon.classList.remove('bi-eye');
-                    icon.classList.add('bi-eye-slash');
+                    icon.classList.replace('bi-eye', 'bi-eye-slash');
                 } else {
                     input.type = 'password';
-                    icon.classList.remove('bi-eye-slash');
-                    icon.classList.add('bi-eye');
+                    icon.classList.replace('bi-eye-slash', 'bi-eye');
                 }
             });
         }

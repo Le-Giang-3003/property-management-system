@@ -1,12 +1,15 @@
-﻿@model PropertyManagementSystem.DAL.Entities.Lease
+@model PropertyManagementSystem.DAL.Entities.Lease
 @{
-    ViewData["Title"] = "Chi tiết hợp đồng";
+    ViewData["Title"] = "Lease Details";
+    Layout = "_AuthLayout";
     var isLandlord = ViewBag.IsLandlord ?? false;
     var isTenant = ViewBag.IsTenant ?? false;
     var canSign = ViewBag.CanSign ?? false;
     var signatures = ViewBag.Signatures as IEnumerable<PropertyManagementSystem.BLL.DTOs.Lease.LeaseSignatureDto>;
     var hasLandlordSigned = ViewBag.HasLandlordSigned ?? false;
     var hasTenantSigned = ViewBag.HasTenantSigned ?? false;
+    // Set portal mode based on whether user is landlord or tenant
+    ViewData["PortalMode"] = isLandlord ? "Landlord" : "Tenant";
 }
 
 <div class="container mt-4">

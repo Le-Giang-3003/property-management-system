@@ -1,61 +1,61 @@
-﻿@using PropertyManagementSystem.Web.ViewModels.User
+@using PropertyManagementSystem.Web.ViewModels.User
 @model VerifyOtpViewModel
 @{
     ViewData["Title"] = "Verify OTP";
     Layout = "_LoginLayout";
 }
 
-<div class="login-card">
-    <div class="brand-section">
-        <div class="brand-icon">
-            <i class="bi bi-shield-lock-fill"></i>
+<div class="pm-auth-card">
+    <a asp-controller="User" asp-action="Register" class="pm-auth-back">
+        <i class="bi bi-arrow-left"></i>
+        Back to Register
+    </a>
+
+    <div class="pm-auth-header">
+        <div class="pm-auth-icon">
+            <i class="bi bi-shield-check"></i>
         </div>
-        <h1 class="brand-title">Xác thực OTP</h1>
-        <p class="brand-subtitle">Mã đã được gửi tới <strong>@Model.Email</strong></p>
+        <h1>Verify Your Email</h1>
+        <p>Enter the code sent to <strong>@Model.Email</strong></p>
     </div>
 
-    @if (!ViewData.ModelState.IsValid)
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Lỗi:</strong>
-            @Html.ValidationSummary(false, "", new { @class = "mb-0 mt-2" })
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="pm-alert pm-alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>@Html.ValidationSummary(false)</div>
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="pm-alert pm-alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["ErrorMessage"]</span>
         </div>
     }
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="pm-alert pm-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["SuccessMessage"]</span>
         </div>
     }
 
-    <form asp-action="VerifyOtp" method="post">
+    <form asp-action="VerifyOtp" method="post" class="pm-auth-form">
         @Html.AntiForgeryToken()
 
-        <!-- Hidden fields -->
         <input type="hidden" asp-for="Email" />
         <input type="hidden" asp-for="OtpHash" />
 
-        <div class="form-group">
-            <label asp-for="Otp" class="form-label">Mã OTP (6 số)</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-key"></i></span>
+        <div class="pm-form-group">
+            <label asp-for="Otp" class="pm-label">Verification Code</label>
+            <div class="pm-otp-input-wrapper">
                 <input asp-for="Otp"
                        id="otpInput"
                        type="text"
-                       class="form-control text-center fw-bold"
-                       style="letter-spacing: 0.5rem; font-size: 1.5rem;"
+                       class="pm-input pm-otp-input"
                        placeholder="000000"
                        maxlength="6"
                        inputmode="numeric"
@@ -63,57 +63,70 @@
                        autocomplete="one-time-code"
                        autofocus />
             </div>
-            <span asp-validation-for="Otp" class="text-danger"></span>
+            <span asp-validation-for="Otp" class="pm-error"></span>
+            <span class="pm-hint">
+                <i class="bi bi-info-circle"></i>
+                Enter the 6-digit code from your email
+            </span>
         </div>
 
-        <button type="submit" class="btn-login">
-            <i class="bi bi-check-circle me-2"></i>Xác nhận
+        <button type="submit" class="pm-btn pm-btn-primary pm-auth-submit">
+            <i class="bi bi-check-circle"></i>
+            Verify Email
         </button>
     </form>
 
-    <div class="register-section">
-        Không nhận được mã?
-        <a asp-action="ResendOtp" asp-route-email="@Model.Email" class="register-link">Gửi lại OTP</a>
+    <div class="pm-auth-divider">
+        <span>Didn't receive the code?</span>
+    </div>
+
+    <div class="pm-auth-footer">
+        <a asp-action="ResendOtp" asp-route-email="@Model.Email">Resend verification code</a>
     </div>
 </div>
 
+<style>
+    .pm-otp-input-wrapper {
+        max-width: 240px;
+        margin: 0 auto;
+    }
+
+    .pm-otp-input {
+        text-align: center;
+        font-size: var(--pm-text-2xl) !important;
+        font-weight: var(--pm-font-bold);
+        letter-spacing: 0.5rem;
+        height: 60px !important;
+    }
+
+    .pm-hint {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--pm-space-2);
+        margin-top: var(--pm-space-3);
+    }
+</style>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
     <script>
-        // Auto-format OTP input (only numbers, max 6 digits)
         const otpInput = document.getElementById('otpInput');
 
+        // Only allow numbers
         otpInput.addEventListener('input', function(e) {
-            // Remove non-numeric characters
-            this.value = this.value.replace(/[^0-9]/g, '');
-
-            // Limit to 6 digits
-            if (this.value.length > 6) {
-                this.value = this.value.slice(0, 6);
-            }
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
         });
 
-        // Auto-submit when 6 digits entered (optional)
-        otpInput.addEventListener('input', function() {
-            if (this.value.length === 6) {
-                // Optional: Auto-submit form
-                // this.form.submit();
-            }
-        });
-
-        // Auto-focus on load
-        otpInput.focus();
-
-        // Paste handler - extract only numbers
+        // Handle paste
         otpInput.addEventListener('paste', function(e) {
             e.preventDefault();
             const pastedText = (e.clipboardData || window.clipboardData).getData('text');
             const numbers = pastedText.replace(/[^0-9]/g, '').slice(0, 6);
             this.value = numbers;
-
-            // Trigger input event for validation
-            this.dispatchEvent(new Event('input'));
         });
+
+        // Auto focus
+        otpInput.focus();
     </script>
 }

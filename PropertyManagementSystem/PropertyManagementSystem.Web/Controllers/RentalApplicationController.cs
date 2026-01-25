@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PropertyManagementSystem.BLL.DTOs.Application;
 using PropertyManagementSystem.BLL.Services.Implementation;
@@ -46,8 +46,8 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (!propertyList.Any())
             {
-                TempData["Error"] = "Hiện không có bất động sản nào để cho thuê";
-                return RedirectToAction("Index", "Property");
+                TempData["Error"] = "There are no properties available for rent at the moment";
+                return RedirectToAction("SearchProperties", "Property");
             }
 
             var viewModel = new CreateRentalApplicationViewModel
@@ -72,7 +72,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 }
                 else if (property?.LandlordId == userId)
                 {
-                    TempData["Warning"] = "Bạn không thể gửi đơn xin thuê bất động sản của chính mình";
+                    TempData["Warning"] = "You cannot submit a rental application for your own property";
                 }
             }
 
@@ -120,7 +120,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (application == null)
             {
-                TempData["Error"] = "Không thể gửi đơn xin thuê. Bất động sản có thể không còn sẵn.";
+                TempData["Error"] = "Unable to submit rental application. The property may no longer be available.";
 
                 var availableProperties = await _propertyService.GetAllPropertiesAsync();
                 model.AvailableProperties = availableProperties
@@ -134,7 +134,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 return View("ApplicationCreate", model);
             }
 
-            TempData["Success"] = $"Đơn xin thuê {application.ApplicationNumber} đã được gửi thành công!";
+            TempData["Success"] = $"Application {application.ApplicationNumber} has been submitted successfully!";
             return RedirectToAction("MyApplications");
         }
 
@@ -168,7 +168,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var application = await _applicationService.GetApplicationByIdAsync(id);
             if (application == null)
             {
-                TempData["Error"] = "Không tìm thấy đơn xin thuê";
+                TempData["Error"] = "Rental application not found";
                 return RedirectToAction("Index");
             }
 
@@ -179,7 +179,7 @@ namespace PropertyManagementSystem.Web.Controllers
             {
                 if (application.ApplicantId != userId)
                 {
-                    TempData["Error"] = "Bạn không có quyền xem đơn này";
+                    TempData["Error"] = "You do not have permission to view this application";
                     return RedirectToAction("MyApplications");
                 }
             }
@@ -202,17 +202,17 @@ namespace PropertyManagementSystem.Web.Controllers
             var application = await _applicationService.GetApplicationByIdAsync(id);
             if (application == null)
             {
-                TempData["Error"] = "Không tìm thấy đơn xin thuê";
+                TempData["Error"] = "Rental application not found";
                 return RedirectToAction("Index");
             }
 
-            // ✅ VALIDATE: Chỉ Property Owner mới approve được
+            // ✅ VALIDATE: Only Property Owner can approve
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var property = await _propertyService.GetPropertyByIdAsync(application.PropertyId);
 
             if (property == null || property.LandlordId != userId)
             {
-                TempData["Error"] = "Bạn không có quyền duyệt đơn này";
+                TempData["Error"] = "You do not have permission to approve this application";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -220,11 +220,11 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (success)
             {
-                TempData["Success"] = "Đã duyệt đơn xin thuê thành công!";
+                TempData["Success"] = "Application approved successfully!";
             }
             else
             {
-                TempData["Error"] = "Không thể duyệt đơn xin thuê này";
+                TempData["Error"] = "Unable to approve this application";
             }
 
             return RedirectToAction("Details", new { id });
@@ -236,24 +236,24 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             if (string.IsNullOrWhiteSpace(rejectionReason))
             {
-                TempData["Error"] = "Vui lòng nhập lý do từ chối";
+                TempData["Error"] = "Please enter a rejection reason";
                 return RedirectToAction("Details", new { id });
             }
 
             var application = await _applicationService.GetApplicationByIdAsync(id);
             if (application == null)
             {
-                TempData["Error"] = "Không tìm thấy đơn xin thuê";
+                TempData["Error"] = "Rental application not found";
                 return RedirectToAction("Index");
             }
 
-            // ✅ VALIDATE: Chỉ Property Owner mới reject được
+            // ✅ VALIDATE: Only Property Owner can reject
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var property = await _propertyService.GetPropertyByIdAsync(application.PropertyId);
 
             if (property == null || property.LandlordId != userId)
             {
-                TempData["Error"] = "Bạn không có quyền từ chối đơn này";
+                TempData["Error"] = "You do not have permission to reject this application";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -261,11 +261,11 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (success)
             {
-                TempData["Success"] = "Đã từ chối đơn xin thuê";
+                TempData["Success"] = "Application rejected";
             }
             else
             {
-                TempData["Error"] = "Không thể từ chối đơn xin thuê này";
+                TempData["Error"] = "Unable to reject this application";
             }
 
             return RedirectToAction("Details", new { id });
@@ -282,11 +282,11 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (withdrawn)
             {
-                TempData["Success"] = "Đã rút đơn xin thuê thành công";
+                TempData["Success"] = "Application withdrawn successfully";
             }
             else
             {
-                TempData["Error"] = "Không thể rút đơn xin thuê. Đơn có thể đã được xử lý.";
+                TempData["Error"] = "Unable to withdraw application. It may have already been processed.";
             }
 
             return RedirectToAction("MyApplications");
@@ -299,7 +299,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var property = await _propertyService.GetPropertyByIdAsync(propertyId);
             if (property == null)
             {
-                TempData["Error"] = "Không tìm thấy bất động sản";
+                TempData["Error"] = "Property not found";
                 return RedirectToAction("Index", "Property");
             }
 

@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
 @model PropertyManagementSystem.DAL.Entities.Property
 
 @{
@@ -21,14 +21,14 @@
     <div class="details-header">
         <a asp-controller="Property" asp-action="SearchProperties" class="btn-back">
             <i class="bi bi-arrow-left"></i>
-            Quay lại danh sách
+            Back to Properties
         </a>
         @if (User.Identity?.IsAuthenticated == true)
         {
             <button type="button" class="btn-favorite @(isFavorited ? "active" : "")"
                     data-property-id="@Model.PropertyId">
                 <i class="@(isFavorited ? "bi bi-heart-fill" : "bi bi-heart")"></i>
-                <span>@(isFavorited ? "Đã yêu thích" : "Yêu thích")</span>
+                <span>@(isFavorited ? "Saved" : "Save")</span>
             </button>
         }
     </div>
@@ -47,7 +47,7 @@
                     {
                         <div class="thumbnail-badge">
                             <i class="bi bi-star-fill"></i>
-                            <span>Ảnh đại diện</span>
+                            <span>Featured</span>
                         </div>
                     }
                 </div>
@@ -63,7 +63,7 @@
                         {
                             <div class="thumbnail-badge">
                                 <i class="bi bi-star-fill"></i>
-                                <span>Ảnh đại diện</span>
+                                <span>Featured</span>
                             </div>
                         }
                     </div>
@@ -92,12 +92,12 @@
     {
         <div class="no-images-section">
             <i class="bi bi-image"></i>
-            <p>Chưa có hình ảnh</p>
+            <p>No images available</p>
             @if (isOwner)
             {
                 <a asp-action="ManageImages" asp-route-id="@Model.PropertyId" class="btn-upload-first">
                     <i class="bi bi-cloud-upload"></i>
-                    Upload ảnh
+                    Upload Images
                 </a>
             }
         </div>
@@ -123,7 +123,7 @@
                     <i class="bi bi-geo-alt"></i>
                 </div>
                 <div class="section-content">
-                    <h3>Địa chỉ</h3>
+                    <h3>Location</h3>
                     <p class="address-main">@Model.Address</p>
                     <p class="address-sub">
                         @if (!string.IsNullOrEmpty(Model.District))
@@ -145,27 +145,27 @@
                     <i class="bi bi-house-door"></i>
                 </div>
                 <div class="section-content">
-                    <h3>Thông số</h3>
+                    <h3>Property Details</h3>
                     <div class="specs-grid">
                         <div class="spec-card">
                             <i class="bi bi-door-closed"></i>
                             <div>
                                 <strong>@Model.Bedrooms</strong>
-                                <span>Phòng ngủ</span>
+                                <span>Bedrooms</span>
                             </div>
                         </div>
                         <div class="spec-card">
                             <i class="bi bi-droplet"></i>
                             <div>
                                 <strong>@Model.Bathrooms</strong>
-                                <span>Phòng tắm</span>
+                                <span>Bathrooms</span>
                             </div>
                         </div>
                         <div class="spec-card">
                             <i class="bi bi-rulers"></i>
                             <div>
                                 <strong>@Model.SquareFeet.ToString("N0")</strong>
-                                <span>ft²</span>
+                                <span>sqft</span>
                             </div>
                         </div>
                     </div>
@@ -180,7 +180,7 @@
                         <i class="bi bi-card-text"></i>
                     </div>
                     <div class="section-content">
-                        <h3>Mô tả</h3>
+                        <h3>Description</h3>
                         <p class="description-text">@Model.Description</p>
                     </div>
                 </div>
@@ -192,28 +192,28 @@
                     <i class="bi bi-star"></i>
                 </div>
                 <div class="section-content">
-                    <h3>Tiện nghi</h3>
+                    <h3>Amenities</h3>
                     <div class="amenities-grid">
                         <div class="amenity-item @(Model.IsFurnished ? "available" : "unavailable")">
                             <i class="bi @(Model.IsFurnished ? "bi-check-circle-fill" : "bi-x-circle-fill")"></i>
-                            <span>@(Model.IsFurnished ? "Có nội thất" : "Không nội thất")</span>
+                            <span>@(Model.IsFurnished ? "Furnished" : "Unfurnished")</span>
                         </div>
                         <div class="amenity-item @(Model.PetsAllowed ? "available" : "unavailable")">
                             <i class="bi @(Model.PetsAllowed ? "bi-check-circle-fill" : "bi-x-circle-fill")"></i>
-                            <span>@(Model.PetsAllowed ? "Cho phép thú cưng" : "Không cho phép thú cưng")</span>
+                            <span>@(Model.PetsAllowed ? "Pets Allowed" : "No Pets")</span>
                         </div>
                     </div>
                     @if (!string.IsNullOrEmpty(Model.Amenities))
                     {
                         <div class="amenity-list">
-                            <strong>Tiện ích:</strong>
+                            <strong>Features:</strong>
                             <p>@Model.Amenities</p>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(Model.UtilitiesIncluded))
                     {
                         <div class="amenity-list">
-                            <strong>Dịch vụ đi kèm:</strong>
+                            <strong>Utilities Included:</strong>
                             <p>@Model.UtilitiesIncluded</p>
                         </div>
                     }
@@ -222,10 +222,10 @@
 
             <!-- Timestamps -->
             <div class="timestamps">
-                <span><i class="bi bi-calendar-plus"></i> Tạo: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                <span><i class="bi bi-calendar-plus"></i> Listed: @Model.CreatedAt.ToString("MMM dd, yyyy")</span>
                 @if (Model.UpdatedAt.HasValue)
                 {
-                    <span><i class="bi bi-clock-history"></i> Cập nhật: @Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                    <span><i class="bi bi-clock-history"></i> Updated: @Model.UpdatedAt.Value.ToString("MMM dd, yyyy")</span>
                 }
             </div>
         </div>
@@ -236,18 +236,18 @@
             <div class="sidebar-card pricing-card">
                 <div class="price-main">
                     <span class="price-amount">@FormatVNCurrency(Model.RentAmount)</span>
-                    <span class="price-period">/tháng</span>
+                    <span class="price-period">/month</span>
                 </div>
                 @if (Model.DepositAmount.HasValue)
                 {
                     <div class="price-item">
-                        <span>Tiền cọc</span>
+                        <span>Security Deposit</span>
                         <strong>@FormatVNCurrency(Model.DepositAmount.Value)</strong>
                     </div>
                 }
                 <div class="price-item">
-                    <span>Có sẵn từ</span>
-                    <strong>@Model.AvailableFrom?.ToString("dd/MM/yyyy")</strong>
+                    <span>Available From</span>
+                    <strong>@Model.AvailableFrom?.ToString("MMM dd, yyyy")</strong>
                 </div>
             </div>
 
@@ -255,7 +255,7 @@
             @if (Model.Landlord != null)
             {
                 <div class="sidebar-card landlord-card">
-                    <h4>Chủ nhà</h4>
+                    <h4>Property Owner</h4>
                     <div class="landlord-info">
                         <div class="landlord-avatar">@Model.Landlord.FullName.Substring(0, 1).ToUpper()</div>
                         <div class="landlord-details">
@@ -270,25 +270,41 @@
                 </div>
             }
 
-            <!-- Actions -->
+            <!-- Actions for Owner -->
             @if (isOwner)
             {
                 <div class="sidebar-card actions-card">
-                    <h4>Quản lý</h4>
+                    <h4>Management</h4>
                     <div class="action-buttons">
                         <a asp-action="Edit" asp-route-id="@Model.PropertyId" class="btn-action edit">
-                            <i class="bi bi-pencil"></i> Chỉnh sửa
+                            <i class="bi bi-pencil"></i> Edit Property
                         </a>
                         <a asp-action="ManageImages" asp-route-id="@Model.PropertyId" class="btn-action images">
-                            <i class="bi bi-images"></i> Quản lý ảnh
+                            <i class="bi bi-images"></i> Manage Images
                         </a>
                         <button type="button" class="btn-action status" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
-                            <i class="bi bi-arrow-repeat"></i> Đổi trạng thái
+                            <i class="bi bi-arrow-repeat"></i> Change Status
                         </button>
                         <a asp-action="Delete" asp-route-id="@Model.PropertyId" class="btn-action delete">
-                            <i class="bi bi-trash3"></i> Xóa bất động sản
+                            <i class="bi bi-trash3"></i> Delete Property
                         </a>
                     </div>
+                </div>
+            }
+            else if (User.Identity?.IsAuthenticated == true && Model.Status == "Available")
+            {
+                <!-- Apply Now for Tenants -->
+                <div class="sidebar-card apply-card">
+                    <h4>Interested in this property?</h4>
+                    <p class="apply-card-text">Submit your rental application now and get a response within 24-48 hours.</p>
+                    <a asp-controller="RentalApplication" asp-action="Create" asp-route-propertyId="@Model.PropertyId" class="btn-apply-now">
+                        <i class="bi bi-send"></i>
+                        Apply Now
+                    </a>
+                    <a asp-controller="PropertyViewing" asp-action="Schedule" asp-route-propertyId="@Model.PropertyId" class="btn-schedule-viewing">
+                        <i class="bi bi-calendar-event"></i>
+                        Schedule Viewing
+                    </a>
                 </div>
             }
         </div>
@@ -317,7 +333,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5>Tất cả hình ảnh (@sortedImages.Count)</h5>
+                    <h5>All Images (@sortedImages.Count)</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -351,7 +367,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5><i class="bi bi-arrow-repeat"></i> Thay đổi trạng thái</h5>
+                <h5><i class="bi bi-arrow-repeat"></i> Change Status</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="ChangeStatus" method="post">
@@ -361,30 +377,30 @@
 
                 <div class="modal-body">
                     <div class="current-status-info">
-                        <strong>Bất động sản:</strong> @Model.Name<br>
-                        <strong>Trạng thái hiện tại:</strong>
+                        <strong>Property:</strong> @Model.Name<br>
+                        <strong>Current Status:</strong>
                         <span class="status-badge @GetStatusClass(Model.Status)">@GetStatusDisplay(Model.Status)</span>
                     </div>
 
                     <div class="form-group">
-                        <label for="statusSelect">Trạng thái mới <span class="text-danger">*</span></label>
+                        <label for="statusSelect">New Status <span class="text-danger">*</span></label>
                         <select name="NewStatus" id="statusSelect" class="form-select" required>
-                            <option value="">-- Chọn trạng thái --</option>
-                            <option value="Available">Available - Có sẵn</option>
-                            <option value="Rented">Rented - Đã cho thuê</option>
-                            <option value="Maintenance">Maintenance - Bảo trì</option>
-                            <option value="Unavailable">Unavailable - Không khả dụng</option>
+                            <option value="">-- Select Status --</option>
+                            <option value="Available">Available</option>
+                            <option value="Rented">Rented</option>
+                            <option value="Maintenance">Under Maintenance</option>
+                            <option value="Unavailable">Unavailable</option>
                         </select>
                     </div>
 
                     <div id="statusPreview" class="status-preview">
-                        <p class="text-muted">Chọn trạng thái để xem trước</p>
+                        <p class="text-muted">Select a status to preview</p>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" id="submitBtn" class="btn btn-primary" disabled>Cập nhật trạng thái</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary" disabled>Update Status</button>
                 </div>
             </form>
         </div>
@@ -999,6 +1015,68 @@
                     background: #fecaca;
                 }
 
+        /* Apply Card for Tenants */
+        .apply-card {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-color: #93c5fd;
+        }
+
+        .apply-card-text {
+            font-size: 14px;
+            color: #1e40af;
+            margin: 0 0 16px 0;
+            line-height: 1.5;
+        }
+
+        .btn-apply-now {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+            .btn-apply-now:hover {
+                background: #2563eb;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            }
+
+        .btn-schedule-viewing {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 24px;
+            background: white;
+            color: #3b82f6;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-schedule-viewing:hover {
+                background: #eff6ff;
+                color: #2563eb;
+            }
+
         /* Modal Styles */
         .all-images-grid {
             display: grid;
@@ -1201,11 +1279,11 @@
                     if (result.isFavorited) {
                         btn.addClass('active');
                         btn.find('i').removeClass('bi-heart').addClass('bi-heart-fill');
-                        btn.find('span').text('Đã yêu thích');
+                        btn.find('span').text('Saved');
                     } else {
                         btn.removeClass('active');
                         btn.find('i').removeClass('bi-heart-fill').addClass('bi-heart');
-                        btn.find('span').text('Yêu thích');
+                        btn.find('span').text('Save');
                     }
                 }
             } catch (error) {
@@ -1223,13 +1301,13 @@
                 const value = this.value;
 
                 if (!value) {
-                    statusPreview.innerHTML = '<p class="text-muted">Chọn trạng thái để xem trước</p>';
+                    statusPreview.innerHTML = '<p class="text-muted">Select a status to preview</p>';
                     submitBtn.disabled = true;
                 } else if (value === currentStatus) {
-                    statusPreview.innerHTML = '<p class="text-warning">⚠️ Trạng thái giống hiện tại</p>';
+                    statusPreview.innerHTML = '<p class="text-warning">This is the same as the current status</p>';
                     submitBtn.disabled = true;
                 } else {
-                    statusPreview.innerHTML = `<p class="text-success">✅ Sẵn sàng cập nhật sang: <strong>${value}</strong></p>`;
+                    statusPreview.innerHTML = `<p class="text-success">Ready to update to: <strong>${value}</strong></p>`;
                     submitBtn.disabled = false;
                 }
             });
@@ -1248,10 +1326,10 @@
 
     string GetStatusDisplay(string status) => status switch
     {
-        "Available" => "Có sẵn",
-        "Rented" => "Đã thuê",
-        "Maintenance" => "Bảo trì",
-        "Unavailable" => "Không khả dụng",
+        "Available" => "Available",
+        "Rented" => "Rented",
+        "Maintenance" => "Under Maintenance",
+        "Unavailable" => "Unavailable",
         _ => status
     };
 

@@ -1,4 +1,4 @@
-﻿namespace PropertyManagementSystem.DAL.Repositories.Interface
+namespace PropertyManagementSystem.DAL.Repositories.Interface
 {
     public interface IUnitOfWork : IDisposable
     {
@@ -12,8 +12,10 @@
         ILeaseRepository Leases { get; }
         IMaintenanceRepository MaintenanceRequests { get; }
         IPropertyImageRepository PropertyImages { get; }
-
         ILeaseSignatureRepository LeaseSignatures { get; }
+        IFavoritePropertyRepository FavoriteProperties { get; }
+        IInvoiceRepository Invoices { get; }
+        IPaymentRepository Payments { get; }
 
         Task<int> SaveChangesAsync();
         int SaveChanges();

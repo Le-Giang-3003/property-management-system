@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
 @model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
 
 @{
@@ -1115,8 +1115,8 @@
                 <text>
                 Swal.fire({
                     icon: 'success',
-                    title: 'Thành công!',
-                    text: '@TempData["Success"]',
+                    title: 'Success!',
+                    text: @Html.Raw(Json.Serialize(TempData["Success"])),
                     timer: 3000,
                     showConfirmButton: false,
                     toast: true,
@@ -1130,9 +1130,9 @@
                 <text>
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi!',
-                    text: '@TempData["Error"]',
-                    timer: 3000,
+                    title: 'Error!',
+                    text: @Html.Raw(Json.Serialize(TempData["Error"])),
+                    timer: 4000,
                     showConfirmButton: false,
                     toast: true,
                     position: 'top-end'
@@ -1145,9 +1145,9 @@
                 <text>
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Cảnh báo!',
-                    text: '@TempData["Warning"]',
-                    timer: 3000,
+                    title: 'Warning!',
+                    text: @Html.Raw(Json.Serialize(TempData["Warning"])),
+                    timer: 4000,
                     showConfirmButton: false,
                     toast: true,
                     position: 'top-end'

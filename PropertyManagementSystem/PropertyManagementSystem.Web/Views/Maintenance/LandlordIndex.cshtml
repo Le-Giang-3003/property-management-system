@@ -1,7 +1,8 @@
-﻿@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
+@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
 @{
     ViewData["Title"] = "Maintenance Requests - Landlord";
     Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Landlord";
     var stats = ViewBag.Stats as PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceStatsDto;
     var technicians = ViewBag.Technicians as List<PropertyManagementSystem.BLL.Services.Interface.UserDto>;
 }

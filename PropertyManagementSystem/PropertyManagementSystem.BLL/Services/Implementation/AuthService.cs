@@ -53,15 +53,14 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 };
             }
 
-            // Thiên: Tạm ẩn
-            //if (!_passwordService.VerifyPassword(model.Password, user.PasswordHash))
-            //{
-            //    return new LoginResult
-            //    {
-            //        Success = false,
-            //        Message = "Mật khẩu không chính xác"
-            //    };
-            //}
+            if (!_passwordService.VerifyPassword(model.Password, user.PasswordHash))
+            {
+                return new LoginResult
+                {
+                    Success = false,
+                    Message = "Mật khẩu không chính xác"
+                };
+            }
 
             // Cập nhật LastLoginAt - dùng trực tiếp context
             user.LastLoginAt = DateTime.UtcNow;

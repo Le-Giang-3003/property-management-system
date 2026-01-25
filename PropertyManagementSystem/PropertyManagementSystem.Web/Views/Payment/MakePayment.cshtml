@@ -1,94 +1,452 @@
-﻿@using PropertyManagementSystem.Web.ViewModels.Payment
+@using PropertyManagementSystem.Web.ViewModels.Payment
 @model MakePaymentViewModel
 
 @{
-    ViewData["Title"] = "Thanh toán hóa đơn";
+    ViewData["Title"] = "Make Payment";
     Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Tenant";
 }
 
-<div class="container mt-5">
-    <h2>Thanh toán hóa đơn</h2>
-    <hr />
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-credit-card"></i>
+                Make Payment
+            </h1>
+            <p class="pm-page-subtitle">Pay your outstanding invoices</p>
+        </div>
+        <div class="pm-page-actions">
+            <a asp-action="History" class="pm-btn pm-btn-outline">
+                <i class="bi bi-arrow-left"></i>
+                Back to History
+            </a>
+        </div>
+    </div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <form asp-action="MakePayment" method="post">
-                @Html.AntiForgeryToken()
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="pm-alert pm-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
 
-                <!-- Invoice Selection -->  
-                <div class="mb-3">
-                    <label asp-for="InvoiceId" class="form-label">Hóa đơn</label>
-                    <select asp-for="InvoiceId" class="form-select">
-                        <option value="">-- Chọn hóa đơn --</option>
-                        @foreach (var invoice in Model.AvailableInvoices)
-                        {
-                            <option value="@invoice.InvoiceId">
-                                @invoice.InvoiceNumber - Còn nợ: @invoice.RemainingAmount.ToString("N0") VND (Hạn: @invoice.DueDate.ToString("dd/MM/yyyy"))
-                            </option>
-                        }
-                    </select>
-                    <span asp-validation-for="InvoiceId" class="text-danger"></span>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="pm-alert pm-alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    <div class="pm-grid pm-grid-cols-3 pm-gap-6">
+        <div class="pm-col-span-2">
+            <div class="pm-card">
+                <div class="pm-card-header">
+                    <h4><i class="bi bi-receipt"></i> Payment Details</h4>
                 </div>
-
-                <!-- Amount -->
-                <div class="mb-3">
-                    <label asp-for="Amount" class="form-label">Số tiền thanh toán (VND)</label>
-                    <input asp-for="Amount" type="number" class="form-control" step="0.01" placeholder="0.00" />
-                    <span asp-validation-for="Amount" class="text-danger"></span>
-                </div>
-
-                <!-- Payment Method -->
-                <div class="mb-3">
-                    <label asp-for="PaymentMethod" class="form-label">Phương thức thanh toán</label>
-                    <select asp-for="PaymentMethod" class="form-select">
-                        <option value="">-- Chọn phương thức --</option>
-                        <option value="Cash">Tiền mặt</option>
-                        <option value="BankTransfer">Chuyển khoản ngân hàng</option>
-                        <option value="CreditCard">Thẻ tín dụng</option>
-                    </select>
-                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
-                </div>
-
-                <!-- Notes -->
-                <div class="mb-3">
-                    <label asp-for="Notes" class="form-label">Ghi chú (tùy chọn)</label>
-                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
-                </div>
-
-                <!-- Buttons -->
-                <div class="mb-3">
-                    <button type="submit" class="btn btn-primary">Thanh toán</button>
-                    <a asp-action="History" class="btn btn-secondary">Hủy</a>
-                </div>
-
-                <!-- Display validation summary -->
-                        @if (TempData["ErrorMessage"] != null)
+                <div class="pm-card-body">
+                    @if (Model.AvailableInvoices == null || !Model.AvailableInvoices.Any())
                     {
-                    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+                        <div class="pm-empty">
+                            <div class="pm-empty-icon">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <h4>No Outstanding Invoices</h4>
+                            <p>You have no invoices pending payment.</p>
+                            <a asp-action="History" class="pm-btn pm-btn-primary">
+                                View Payment History
+                            </a>
+                        </div>
                     }
-            </form>
+                    else
+                    {
+                        <form asp-action="MakePayment" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div asp-validation-summary="ModelOnly" class="pm-alert pm-alert-danger" style="@(!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0 ? "" : "display: none;")"></div>
+
+                            <!-- Invoice Selection -->
+                            <div class="pm-form-group">
+                                <label asp-for="InvoiceId" class="pm-label">Select Invoice <span class="pm-text-danger">*</span></label>
+                                <select asp-for="InvoiceId" class="pm-input pm-select" id="invoiceSelect">
+                                    <option value="">-- Select an invoice --</option>
+                                    @foreach (var invoice in Model.AvailableInvoices)
+                                    {
+                                        <option value="@invoice.InvoiceId" 
+                                                data-remaining="@invoice.RemainingAmount"
+                                                data-total="@invoice.TotalAmount"
+                                                data-paid="@invoice.PaidAmount">
+                                            @invoice.InvoiceNumber - Due: @invoice.RemainingAmount.ToString("N0") ₫ (Deadline: @invoice.DueDate.ToString("dd/MM/yyyy"))
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="InvoiceId" class="pm-error"></span>
+                            </div>
+
+                            <!-- Invoice Summary -->
+                            <div id="invoiceSummary" class="pm-alert pm-alert-info" style="display: none;">
+                                <div class="pm-flex pm-justify-between pm-items-center">
+                                    <div>
+                                        <strong>Invoice Total:</strong> <span id="invoiceTotal">0</span> ₫
+                                    </div>
+                                    <div>
+                                        <strong>Paid:</strong> <span id="invoicePaid">0</span> ₫
+                                    </div>
+                                    <div>
+                                        <strong>Remaining:</strong> <span id="invoiceRemaining" class="pm-text-primary">0</span> ₫
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Amount -->
+                            <div class="pm-form-group">
+                                <label asp-for="Amount" class="pm-label">Payment Amount (VND) <span class="pm-text-danger">*</span></label>
+                                <div class="pm-input-group">
+                                    <span class="pm-input-group-text">₫</span>
+                                    <input asp-for="Amount" type="number" class="pm-input" step="1000" min="1000" placeholder="Enter amount" />
+                                </div>
+                                <span asp-validation-for="Amount" class="pm-error"></span>
+                                <small class="pm-hint">
+                                    <a href="#" id="payFullBtn" style="display: none;">Pay full remaining amount</a>
+                                </small>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="pm-form-group">
+                                <label asp-for="PaymentMethod" class="pm-label">Payment Method <span class="pm-text-danger">*</span></label>
+                                <div class="pm-radio-group">
+                                    <label class="pm-radio-card">
+                                        <input type="radio" asp-for="PaymentMethod" value="BankTransfer" />
+                                        <div class="pm-radio-card-content">
+                                            <i class="bi bi-bank"></i>
+                                            <span>Bank Transfer</span>
+                                        </div>
+                                    </label>
+                                    <label class="pm-radio-card">
+                                        <input type="radio" asp-for="PaymentMethod" value="CreditCard" />
+                                        <div class="pm-radio-card-content">
+                                            <i class="bi bi-credit-card-2-front"></i>
+                                            <span>Credit Card</span>
+                                        </div>
+                                    </label>
+                                    <label class="pm-radio-card">
+                                        <input type="radio" asp-for="PaymentMethod" value="Cash" />
+                                        <div class="pm-radio-card-content">
+                                            <i class="bi bi-cash"></i>
+                                            <span>Cash</span>
+                                        </div>
+                                    </label>
+                                    <label class="pm-radio-card">
+                                        <input type="radio" asp-for="PaymentMethod" value="Momo" />
+                                        <div class="pm-radio-card-content">
+                                            <i class="bi bi-wallet2"></i>
+                                            <span>Momo</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <span asp-validation-for="PaymentMethod" class="pm-error"></span>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="pm-form-group">
+                                <label asp-for="Notes" class="pm-label">Notes (Optional)</label>
+                                <textarea asp-for="Notes" class="pm-input" rows="3" placeholder="Add any notes about this payment..."></textarea>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="pm-form-actions">
+                                <button type="submit" class="pm-btn pm-btn-primary pm-btn-lg">
+                                    <i class="bi bi-check-circle"></i>
+                                    Make Payment
+                                </button>
+                                <a asp-action="History" class="pm-btn pm-btn-outline pm-btn-lg">Cancel</a>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5>Hướng dẫn</h5>
+        <div>
+            <div class="pm-card">
+                <div class="pm-card-header">
+                    <h4><i class="bi bi-info-circle"></i> Instructions</h4>
                 </div>
-                <div class="card-body">
-                    <p><strong>Bước 1:</strong> Chọn hóa đơn cần thanh toán</p>
-                    <p><strong>Bước 2:</strong> Nhập số tiền thanh toán</p>
-                    <p><strong>Bước 3:</strong> Chọn phương thức thanh toán</p>
-                    <p><strong>Bước 4:</strong> Bấm "Thanh toán"</p>
-                    <hr />
-                    <p class="text-muted small">Bạn có thể thanh toán một phần hoặc toàn bộ số tiền còn nợ.</p>
+                <div class="pm-card-body">
+                    <div class="pm-steps">
+                        <div class="pm-step">
+                            <div class="pm-step-number">1</div>
+                            <div class="pm-step-content">
+                                <strong>Select Invoice</strong>
+                                <p class="pm-text-muted pm-text-sm">Choose the invoice you want to pay</p>
+                            </div>
+                        </div>
+                        <div class="pm-step">
+                            <div class="pm-step-number">2</div>
+                            <div class="pm-step-content">
+                                <strong>Enter Amount</strong>
+                                <p class="pm-text-muted pm-text-sm">Enter the amount you wish to pay</p>
+                            </div>
+                        </div>
+                        <div class="pm-step">
+                            <div class="pm-step-number">3</div>
+                            <div class="pm-step-content">
+                                <strong>Choose Method</strong>
+                                <p class="pm-text-muted pm-text-sm">Select your preferred payment method</p>
+                            </div>
+                        </div>
+                        <div class="pm-step">
+                            <div class="pm-step-number">4</div>
+                            <div class="pm-step-content">
+                                <strong>Confirm Payment</strong>
+                                <p class="pm-text-muted pm-text-sm">Review and submit your payment</p>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="pm-divider" />
+                    <p class="pm-text-muted pm-text-sm">
+                        <i class="bi bi-lightbulb"></i>
+                        You can make partial payments if needed. The remaining balance will be shown on subsequent invoices.
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+<style>
+    .pm-page {
+        max-width: 1200px;
+        margin: 0 auto;
     }
+
+    .pm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--pm-space-6);
+        padding-bottom: var(--pm-space-6);
+        border-bottom: 1px solid var(--pm-border);
+    }
+
+    .pm-page-title {
+        font-size: var(--pm-text-2xl);
+        font-weight: var(--pm-font-bold);
+        color: var(--pm-text);
+        margin: 0 0 var(--pm-space-2);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-3);
+    }
+
+    .pm-page-title i {
+        color: var(--pm-primary);
+    }
+
+    .pm-page-subtitle {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-secondary);
+        margin: 0;
+    }
+
+    .pm-grid {
+        display: grid;
+    }
+
+    .pm-grid-cols-3 {
+        grid-template-columns: 2fr 1fr;
+    }
+
+    .pm-gap-6 {
+        gap: var(--pm-space-6);
+    }
+
+    .pm-col-span-2 {
+        grid-column: span 1;
+    }
+
+    .pm-input-group {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .pm-input-group-text {
+        display: flex;
+        align-items: center;
+        padding: 0 var(--pm-space-4);
+        background: var(--pm-background);
+        border: 1px solid var(--pm-border);
+        border-right: none;
+        border-radius: var(--pm-radius-lg) 0 0 var(--pm-radius-lg);
+        color: var(--pm-text-secondary);
+        font-weight: var(--pm-font-semibold);
+    }
+
+    .pm-input-group .pm-input {
+        border-radius: 0 var(--pm-radius-lg) var(--pm-radius-lg) 0;
+    }
+
+    .pm-radio-group {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--pm-space-3);
+    }
+
+    .pm-radio-card {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .pm-radio-card input {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .pm-radio-card-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--pm-space-2);
+        padding: var(--pm-space-4);
+        border: 2px solid var(--pm-border);
+        border-radius: var(--pm-radius-lg);
+        transition: all var(--pm-transition-fast);
+        text-align: center;
+    }
+
+    .pm-radio-card-content i {
+        font-size: 24px;
+        color: var(--pm-text-secondary);
+    }
+
+    .pm-radio-card-content span {
+        font-size: var(--pm-text-sm);
+        font-weight: var(--pm-font-medium);
+    }
+
+    .pm-radio-card input:checked + .pm-radio-card-content {
+        border-color: var(--pm-primary);
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    .pm-radio-card input:checked + .pm-radio-card-content i {
+        color: var(--pm-primary);
+    }
+
+    .pm-radio-card:hover .pm-radio-card-content {
+        border-color: var(--pm-primary-300);
+    }
+
+    .pm-form-actions {
+        display: flex;
+        gap: var(--pm-space-3);
+        margin-top: var(--pm-space-6);
+        padding-top: var(--pm-space-6);
+        border-top: 1px solid var(--pm-border);
+    }
+
+    .pm-steps {
+        display: flex;
+        flex-direction: column;
+        gap: var(--pm-space-4);
+    }
+
+    .pm-step {
+        display: flex;
+        gap: var(--pm-space-3);
+    }
+
+    .pm-step-number {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        background: var(--pm-primary);
+        color: white;
+        border-radius: var(--pm-radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--pm-text-sm);
+        font-weight: var(--pm-font-bold);
+    }
+
+    .pm-step-content p {
+        margin: 0;
+    }
+
+    .pm-divider {
+        border: none;
+        border-top: 1px solid var(--pm-border);
+        margin: var(--pm-space-4) 0;
+    }
+
+    @@media (max-width: 1024px) {
+        .pm-grid-cols-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .pm-page-header {
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-radio-group {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const invoiceSelect = document.getElementById('invoiceSelect');
+            const invoiceSummary = document.getElementById('invoiceSummary');
+            const invoiceTotal = document.getElementById('invoiceTotal');
+            const invoicePaid = document.getElementById('invoicePaid');
+            const invoiceRemaining = document.getElementById('invoiceRemaining');
+            const amountInput = document.getElementById('Amount');
+            const payFullBtn = document.getElementById('payFullBtn');
+
+            function formatNumber(num) {
+                return num.toLocaleString('vi-VN');
+            }
+
+            invoiceSelect?.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (this.value) {
+                    const remaining = parseFloat(selectedOption.dataset.remaining);
+                    const total = parseFloat(selectedOption.dataset.total);
+                    const paid = parseFloat(selectedOption.dataset.paid);
+
+                    invoiceTotal.textContent = formatNumber(total);
+                    invoicePaid.textContent = formatNumber(paid);
+                    invoiceRemaining.textContent = formatNumber(remaining);
+                    invoiceSummary.style.display = 'block';
+                    payFullBtn.style.display = 'inline';
+                    payFullBtn.dataset.amount = remaining;
+                } else {
+                    invoiceSummary.style.display = 'none';
+                    payFullBtn.style.display = 'none';
+                }
+            });
+
+            payFullBtn?.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (this.dataset.amount) {
+                    amountInput.value = this.dataset.amount;
+                }
+            });
+
+            // Trigger change if invoice is already selected
+            if (invoiceSelect?.value) {
+                invoiceSelect.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
 }

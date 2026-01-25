@@ -1,109 +1,106 @@
 @model PropertyManagementSystem.BLL.DTOs.Auth.LoginRequestDto
 @{
-    ViewData["Title"] = "Đăng nhập";
+    ViewData["Title"] = "Sign In";
     Layout = "_LoginLayout";
 }
 
-<div class="login-card">
-    <div class="brand-section">
-        <div class="brand-icon">
-            <i class="bi bi-building"></i>
+<div class="pm-auth-card">
+    <div class="pm-auth-header">
+        <div class="pm-auth-icon">
+            <i class="bi bi-person-check"></i>
         </div>
-        <h1 class="brand-title">Property Manager</h1>
-        <p class="brand-subtitle">Sign in to your account</p>
+        <h1>Welcome Back</h1>
+        <p>Sign in to continue to your account</p>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="pm-alert pm-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["SuccessMessage"]</span>
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="pm-alert pm-alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["ErrorMessage"]</span>
         </div>
     }
 
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <div asp-validation-summary="ModelOnly" class="pm-alert pm-alert-danger" style="display: none;"></div>
 
-    <form asp-action="Login" method="post">
+    <form asp-action="Login" method="post" class="pm-auth-form">
         @Html.AntiForgeryToken()
         <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
 
-        <div class="form-group">
-            <label asp-for="Email" class="form-label">Email</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+        <div class="pm-form-group">
+            <label asp-for="Email" class="pm-label">Email Address</label>
+            <div class="pm-input-icon">
+                <i class="bi bi-envelope"></i>
                 <input asp-for="Email"
                        type="email"
-                       class="form-control"
-                       placeholder="Enter your email"
+                       class="pm-input"
+                       placeholder="you@example.com"
                        autocomplete="email" />
             </div>
-            <span asp-validation-for="Email" class="text-danger"></span>
+            <span asp-validation-for="Email" class="pm-error"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Password" class="form-label">Password</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+        <div class="pm-form-group">
+            <label asp-for="Password" class="pm-label">Password</label>
+            <div class="pm-input-icon pm-input-icon-right">
+                <i class="bi bi-lock"></i>
                 <input asp-for="Password"
                        id="passwordInput"
                        type="password"
-                       class="form-control"
+                       class="pm-input"
                        placeholder="Enter your password"
                        autocomplete="current-password" />
-                <button class="password-toggle-btn"
-                        type="button"
-                        id="togglePassword"
-                        aria-label="Show/hide password">
+                <button type="button" class="pm-password-toggle" id="togglePassword" aria-label="Toggle password">
                     <i class="bi bi-eye" id="passwordIcon"></i>
                 </button>
             </div>
-            <span asp-validation-for="Password" class="text-danger"></span>
+            <span asp-validation-for="Password" class="pm-error"></span>
         </div>
 
-        <div class="remember-forgot">
-            <div class="form-check">
-                <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
-                <label asp-for="RememberMe" class="form-check-label">Remember me</label>
-            </div>
-            <a asp-controller="Auth" asp-action="ForgotPassword" class="forgot-link">Forgot password?</a>
+        <div class="pm-auth-options">
+            <label class="pm-checkbox">
+                <input asp-for="RememberMe" type="checkbox" />
+                <span>Remember me</span>
+            </label>
+            <a asp-controller="Auth" asp-action="ForgotPassword" class="pm-auth-forgot">Forgot password?</a>
         </div>
 
-        <button type="submit" class="btn-login">
+        <button type="submit" class="pm-auth-submit">
+            <i class="bi bi-box-arrow-in-right"></i>
             Sign In
         </button>
     </form>
 
-    <div class="register-section">
-        Don't have an account?
-        <a asp-controller="User" asp-action="Register" class="register-link">Register now</a>
+    <div class="pm-auth-divider">
+        <span>New to Property Manager?</span>
+    </div>
+
+    <div class="pm-auth-footer">
+        <a asp-controller="User" asp-action="Register">Create an account</a>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
     <script>
-        // Toggle show/hide password
         document.getElementById('togglePassword')?.addEventListener('click', function() {
             const input = document.getElementById('passwordInput');
             const icon = document.getElementById('passwordIcon');
-
+            
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
             } else {
                 input.type = 'password';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
             }
         });
     </script>

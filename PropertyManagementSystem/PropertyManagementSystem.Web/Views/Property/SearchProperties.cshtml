@@ -789,7 +789,7 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: '@TempData["Success"]',
+                text: @Html.Raw(Json.Serialize(TempData["Success"])),
                 timer: 3000,
                 showConfirmButton: false,
                 toast: true,
@@ -804,8 +804,8 @@
             Swal.fire({
                 icon: 'error',
                 title: 'Error!',
-                text: '@TempData["Error"]',
-                timer: 3000,
+                text: @Html.Raw(Json.Serialize(TempData["Error"])),
+                timer: 4000,
                 showConfirmButton: false,
                 toast: true,
                 position: 'top-end'
