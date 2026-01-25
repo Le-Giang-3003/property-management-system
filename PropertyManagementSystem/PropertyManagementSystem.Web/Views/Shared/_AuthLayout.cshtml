@@ -4,7 +4,30 @@
     var title = ViewData["Title"] as string ?? "Property Management";
     var userName = User.FindFirstValue(ClaimTypes.Name) ?? "User";
     var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? "";
-    var userRole = User.IsInRole("Landlord") ? "Landlord" : User.IsInRole("Technician") ? "Technician" : "Tenant";
+
+    // Detect current view mode dynamically from route
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    // Determine display role based on current page
+    string displayRole = "Tenant"; // Default
+
+    // Landlord pages detection
+    if (currentAction == "LandlordIndex" && currentController == "Dashboard")
+    {
+        displayRole = "Landlord";
+    }
+    // Tenant pages detection
+    else if (currentAction == "Index" && currentController == "Dashboard")
+    {
+        displayRole = "Tenant";
+    }
+    // Technician detection (if needed later)
+    else if (currentAction == "TechnicianIndex")
+    {
+        displayRole = "Technician";
+    }
+
     var isMemberRole = User.IsInRole("Member");
 }
 <!DOCTYPE html>
@@ -104,9 +127,9 @@
             transition: all 0.2s ease;
         }
 
-        .notification-btn:hover {
-            background: #e2e8f0;
-        }
+            .notification-btn:hover {
+                background: #e2e8f0;
+            }
 
         .notification-badge {
             position: absolute;
@@ -140,9 +163,9 @@
             transition: all 0.2s ease;
         }
 
-        .user-menu-btn:hover {
-            background: #f1f5f9;
-        }
+            .user-menu-btn:hover {
+                background: #f1f5f9;
+            }
 
         .user-avatar {
             width: 40px;
@@ -206,6 +229,7 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -217,12 +241,12 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        .dropdown-header p {
-            margin: 0;
-            font-size: 12px;
-            color: #64748b;
-            margin-bottom: 8px;
-        }
+            .dropdown-header p {
+                margin: 0;
+                font-size: 12px;
+                color: #64748b;
+                margin-bottom: 8px;
+            }
 
         .role-switch {
             display: flex;
@@ -233,19 +257,32 @@
             flex: 1;
             padding: 8px;
             border-radius: 8px;
-            border: none;
             font-size: 13px;
             font-weight: 500;
-            cursor: pointer;
             transition: all 0.2s ease;
             background: #f1f5f9;
             color: #64748b;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
-        .role-switch-btn.active {
-            background: #2563eb;
-            color: white;
-        }
+            .role-switch-btn:hover {
+                background: #e2e8f0;
+                color: #1e293b;
+            }
+
+            .role-switch-btn.active {
+                background: #2563eb;
+                color: white;
+            }
+
+                .role-switch-btn.active:hover {
+                    background: #1e40af;
+                    color: white;
+                }
 
         .dropdown-menu-items {
             padding: 8px;
@@ -263,23 +300,23 @@
             cursor: pointer;
         }
 
-        .dropdown-item:hover {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
+            .dropdown-item:hover {
+                background: #f1f5f9;
+                color: #1e293b;
+            }
 
-        .dropdown-item i {
-            font-size: 18px;
-            width: 20px;
-        }
+            .dropdown-item i {
+                font-size: 18px;
+                width: 20px;
+            }
 
-        .dropdown-item.logout {
-            color: #ef4444;
-        }
+            .dropdown-item.logout {
+                color: #ef4444;
+            }
 
-        .dropdown-item.logout:hover {
-            background: #fef2f2;
-        }
+                .dropdown-item.logout:hover {
+                    background: #fef2f2;
+                }
 
         /* Sidebar */
         .sidebar {
@@ -295,14 +332,14 @@
             z-index: 999;
         }
 
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
+            .sidebar::-webkit-scrollbar {
+                width: 6px;
+            }
 
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
+            .sidebar::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
 
         .nav-menu {
             list-style: none;
@@ -327,20 +364,20 @@
             transition: all 0.2s ease;
         }
 
-        .nav-link:hover {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
+            .nav-link:hover {
+                background: #f1f5f9;
+                color: #1e293b;
+            }
 
-        .nav-link.active {
-            background: #2563eb;
-            color: white;
-        }
+            .nav-link.active {
+                background: #2563eb;
+                color: white;
+            }
 
-        .nav-link i {
-            font-size: 18px;
-            width: 20px;
-        }
+            .nav-link i {
+                font-size: 18px;
+                width: 20px;
+            }
 
         /* Main Content */
         .main-content {
@@ -372,9 +409,9 @@
                 transition: transform 0.3s ease;
             }
 
-            .sidebar.active {
-                transform: translateX(0);
-            }
+                .sidebar.active {
+                    transform: translateX(0);
+                }
 
             .main-content {
                 margin-left: 0;
@@ -410,7 +447,7 @@
                 </div>
                 <div class="brand-text">
                     <h1>Property Manager</h1>
-                    <p>@(userRole == "Landlord" ? "Landlord Portal" : userRole == "Technician" ? "Technician Portal" : "Tenant Portal")</p>
+                    <p id="portalTitle">@(displayRole == "Landlord" ? "Landlord Portal" : displayRole == "Technician" ? "Technician Portal" : "Tenant Portal")</p>
                 </div>
             </a>
         </div>
@@ -426,26 +463,30 @@
                     <div class="user-avatar">@userName.Substring(0, 1).ToUpper()</div>
                     <div class="user-info">
                         <span class="user-name">@userName</span>
-                        <span class="user-role">@userRole</span>
+                        <span class="user-role" id="userRoleDisplay">@displayRole</span>
                     </div>
                     <i class="bi bi-chevron-down dropdown-icon"></i>
                 </button>
 
                 <div class="user-dropdown">
-                    @if (isMemberRole)
-                    {
-                        <div class="dropdown-header">
-                            <p>Switch View</p>
-                            <div class="role-switch">
-                                <button class="role-switch-btn @(userRole == "Tenant" ? "active" : "")" onclick="switchRole('Tenant')">
-                                    Tenant
-                                </button>
-                                <button class="role-switch-btn @(userRole == "Landlord" ? "active" : "")" onclick="switchRole('Landlord')">
-                                    Landlord
-                                </button>
-                            </div>
+                    <!-- Switch Dashboard View -->
+                    <div class="dropdown-header">
+                        <p>Switch Dashboard View</p>
+                        <div class="role-switch">
+                            <a href="@Url.Action("Index", "Dashboard")"
+                               class="role-switch-btn @(displayRole == "Tenant" ? "active" : "")">
+                                <i class="bi bi-person"></i>
+                                Tenant
+                            </a>
+                            <a href="@Url.Action("LandlordIndex", "Dashboard")"
+                               class="role-switch-btn @(displayRole == "Landlord" ? "active" : "")">
+                                <i class="bi bi-building"></i>
+                                Landlord
+                            </a>
                         </div>
-                    }
+                    </div>
+
+                    <!-- Menu Items -->
                     <div class="dropdown-menu-items">
                         <a href="@Url.Action("ManageProfile", "Profile")" class="dropdown-item">
                             <i class="bi bi-gear"></i>
@@ -456,7 +497,8 @@
                             <span>Settings</span>
                         </a>
                         <form id="logoutForm" method="post" asp-action="Logout" asp-controller="Auth" style="margin: 0;">
-                            <button type="submit" class="dropdown-item logout" style="width: 100%; border: none; background: none; text-align: left;">
+                            <button type="submit" class="dropdown-item logout"
+                                    style="width: 100%; border: none; background: none; text-align: left;">
                                 <i class="bi bi-box-arrow-right"></i>
                                 <span>Logout</span>
                             </button>
@@ -470,7 +512,7 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <nav class="nav-menu">
-            @if (userRole == "Tenant")
+            @if (displayRole == "Tenant")
             {
                 <li class="nav-item">
                     <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
@@ -497,7 +539,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="@Url.Action("Payments", "Payment")" class="nav-link">
+                    <a href="@Url.Action("MakePayment", "Payment")" class="nav-link">
                         <i class="bi bi-credit-card"></i>
                         <span>Payments</span>
                     </a>
@@ -509,7 +551,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="@Url.Action("Applications", "Application")" class="nav-link">
+                    <a href="@Url.Action("Applications", "RentalApplication")" class="nav-link">
                         <i class="bi bi-file-earmark-person"></i>
                         <span>Applications</span>
                     </a>
@@ -527,10 +569,10 @@
                     </a>
                 </li>
             }
-            else if (userRole == "Landlord")
+            else if (displayRole == "Landlord")
             {
                 <li class="nav-item">
-                    <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
+                    <a href="@Url.Action("LandlordIndex", "Dashboard")" class="nav-link">
                         <i class="bi bi-house-door"></i>
                         <span>Dashboard</span>
                     </a>
@@ -596,7 +638,7 @@
                     </a>
                 </li>
             }
-            else if (userRole == "Technician")
+            else if (displayRole == "Technician")
             {
                 <li class="nav-item">
                     <a href="@Url.Action("Index", "Dashboard")" class="nav-link">
@@ -653,6 +695,7 @@
 
         @RenderBody()
     </main>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script>
@@ -675,24 +718,6 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('active');
-        }
-
-        // Switch role (Tenant/Landlord)
-        function switchRole(role) {
-            // Store role in session/cookie
-            fetch('/Account/SwitchRole?role=' + role, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-                // Redirect based on role
-                if (role === 'Tenant') {
-                    window.location.href = '@Url.Action("TenantIndex", "Maintenance")';
-                } else if (role === 'Landlord') {
-                    window.location.href = '@Url.Action("LandlordIndex", "Maintenance")';
-                }
-            });
         }
 
         // Highlight active nav link

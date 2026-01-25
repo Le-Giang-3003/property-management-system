@@ -10,7 +10,8 @@
         new() { Value = "Maintenance", Text = "Bảo trì" },
         new() { Value = "Unavailable", Text = "Không khả dụng" }
     };
-    var documents = ViewBag.Documents as IEnumerable<PropertyManagementSystem.DAL.Entities.Document> ?? new List<PropertyManagementSystem.DAL.Entities.Document>();
+    var images = ViewBag.PropertyImages as List<PropertyManagementSystem.DAL.Entities.PropertyImage>
+                 ?? new List<PropertyManagementSystem.DAL.Entities.PropertyImage>();
     Layout = "_AuthLayout";
 }
 
@@ -46,9 +47,9 @@
             <h3>
                 <i class="bi bi-images"></i>
                 Hình ảnh
-                @if (documents.Any())
+                @if (images.Any())
                 {
-                    <span class="count-badge">@documents.Count()</span>
+                    <span class="count-badge">@images.Count</span>
                 }
             </h3>
             <button type="button" class="btn-upload-header" data-bs-toggle="modal" data-bs-target="#uploadModal">
@@ -57,36 +58,39 @@
             </button>
         </div>
 
-        @if (documents.Any())
+        @if (images.Any())
         {
             <div class="images-grid">
-                @foreach (var doc in documents.OrderByDescending(d => d.UploadedAt))
+                @foreach (var image in images.OrderBy(i => i.DisplayOrder))
                 {
-                    <div class="image-card">
-                        @if (doc.FileType.ToLower() is "jpg" or "jpeg" or "png" or "webp")
-                        {
-                            <div class="image-preview" onclick="showImage('@doc.FileUrl', '@doc.FileName')">
-                                <img src="@doc.FileUrl" alt="@doc.FileName">
-                                <div class="image-overlay">
-                                    <i class="bi bi-eye"></i>
+                    <div class="image-card" data-image-id="@image.ImageId">
+                        <div class="image-preview" onclick="showImage('@image.ImageUrl', '@(image.Caption ?? Model.Name)')">
+                            <img src="@image.ImageUrl" alt="@image.Caption">
+                            @if (image.IsThumbnail)
+                            {
+                                <div class="thumbnail-badge">
+                                    <i class="bi bi-star-fill"></i> Thumbnail
                                 </div>
+                            }
+                            <div class="image-overlay">
+                                <i class="bi bi-eye"></i>
                             </div>
-                        }
-                        else
-                        {
-                            <div class="image-preview file-icon">
-                                <i class="bi bi-file-earmark"></i>
-                            </div>
-                        }
+                        </div>
                         <div class="image-info">
-                            <span class="image-name" title="@doc.FileName">@doc.FileName</span>
+                            <span class="image-name" title="@image.Caption">
+                                @(string.IsNullOrEmpty(image.Caption) ? $"Ảnh {image.DisplayOrder + 1}" : image.Caption)
+                            </span>
                             <div class="image-actions">
-                                <a href="@Url.Action("Download", "Document", new { id = doc.DocumentId })"
-                                   class="btn-icon download" title="Tải xuống">
-                                    <i class="bi bi-download"></i>
-                                </a>
+                                @if (!image.IsThumbnail)
+                                {
+                                    <button type="button" class="btn-icon star"
+                                            onclick="setThumbnail(@image.ImageId)"
+                                            title="Đặt làm ảnh đại diện">
+                                        <i class="bi bi-star"></i>
+                                    </button>
+                                }
                                 <button type="button" class="btn-icon delete"
-                                        onclick="deleteImage(@doc.DocumentId, '@doc.FileName')"
+                                        onclick="deleteImage(@image.ImageId, '@(image.Caption ?? "Ảnh")')"
                                         title="Xóa">
                                     <i class="bi bi-trash3"></i>
                                 </button>
@@ -111,7 +115,7 @@
                     </button>
                     <small>JPG, PNG, WEBP • Tối đa 5MB mỗi file</small>
                 </div>
-                <input type="file" id="quickUploadInput" accept="image/*" style="display: none;" onchange="handleQuickUpload(this)">
+                <input type="file" id="quickUploadInput" accept="image/*" multiple style="display: none;" onchange="handleQuickUpload(this)">
             </div>
         }
     </div>
@@ -333,21 +337,14 @@
             </div>
             <form id="uploadForm" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="entityType" value="Property" />
-                <input type="hidden" name="entityId" value="@Model.PropertyId" />
-                <input type="hidden" name="documentType" value="Image" />
+                <input type="hidden" name="propertyId" value="@Model.PropertyId" />
 
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Chọn hình ảnh <span class="text-danger">*</span></label>
-                        <input type="file" name="file" id="fileInput" class="form-input"
-                               accept="image/*" required />
-                        <small class="form-hint">JPG, PNG, WEBP. Tối đa 5MB</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Mô tả (không bắt buộc)</label>
-                        <textarea name="description" class="form-textarea" rows="2"></textarea>
+                        <input type="file" name="files" id="fileInput" class="form-input"
+                               accept="image/*" multiple required />
+                        <small class="form-hint">Có thể chọn nhiều ảnh. JPG, PNG, WEBP. Tối đa 5MB/file</small>
                     </div>
 
                     <div id="imagePreview" class="image-preview-container"></div>
@@ -385,6 +382,27 @@
 
 @section Styles {
     <style>
+        .thumbnail-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #fbbf24;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-icon.star:hover {
+            border-color: #fbbf24;
+            background: #fef3c7;
+            color: #f59e0b;
+        }
         .edit-property-container {
             padding: 30px;
             max-width: 1200px;
@@ -1049,14 +1067,17 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        const propertyId = @Model.PropertyId;
         // Quick upload handler
         function handleQuickUpload(input) {
-            if (input.files && input.files[0]) {
+            if (input.files && input.files.length > 0) {
                 const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
                 const modalFileInput = document.getElementById('fileInput');
 
                 const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(input.files[0]);
+                for (let file of input.files) {
+                    dataTransfer.items.add(file);
+                }
                 modalFileInput.files = dataTransfer.files;
 
                 const event = new Event('change');
@@ -1064,6 +1085,161 @@
 
                 modal.show();
             }
+        }
+
+        //  Upload form
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang upload...';
+
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('@Url.Action("UploadImages", "Property")', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: result.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    location.reload();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: error.message || 'Có lỗi xảy ra'
+                });
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+            }
+        });
+
+        // Preview multiple images
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+
+            if (this.files.length > 0) {
+                preview.innerHTML = '<div class="preview-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px;"></div>';
+                const grid = preview.querySelector('.preview-grid');
+
+                Array.from(this.files).forEach((file, index) => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const div = document.createElement('div');
+                            div.innerHTML = `
+                                <img src="${e.target.result}" class="img-thumbnail" style="width: 100%; height: 100px; object-fit: cover;">
+                                <small class="d-block text-center mt-1">${file.name}</small>
+                            `;
+                            grid.appendChild(div);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+
+        // Show image
+        function showImage(url, caption) {
+            document.getElementById('imageTitle').textContent = caption;
+            document.getElementById('imageView').src = url;
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
+        }
+
+        // Set thumbnail
+        async function setThumbnail(imageId) {
+            try {
+                const response = await fetch('@Url.Action("SetThumbnail", "Property")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `imageId=${imageId}&propertyId=${propertyId}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: result.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    location.reload();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: error.message
+                });
+            }
+        }
+
+        // Delete image
+        function deleteImage(imageId, caption) {
+            Swal.fire({
+                title: 'Xóa hình ảnh?',
+                text: `Xóa "${caption}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch('@Url.Action("DeleteImage", "Property")', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: `imageId=${imageId}&propertyId=${propertyId}`
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Đã xóa!',
+                                text: data.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            location.reload();
+                        } else {
+                            throw new Error(data.message);
+                        }
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi!',
+                            text: error.message
+                        });
+                    }
+                }
+            });
         }
 
         // Drag and drop
@@ -1103,85 +1279,6 @@
             }
         });
 
-        // Upload
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('uploadBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang upload...';
-
-            try {
-                const formData = new FormData(this);
-                const response = await fetch('@Url.Action("Upload", "Document")', {
-                    method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công!',
-                        text: result.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    location.reload();
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi!',
-                    text: error.message || 'Có lỗi xảy ra'
-                });
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
-            }
-        });
-
-        // Preview
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = '';
-
-            if (this.files[0] && this.files[0].type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    preview.innerHTML = `<img src="${e.target.result}" class="img-thumbnail">`;
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-
-        // Show image
-        function showImage(url, filename) {
-            document.getElementById('imageTitle').textContent = filename;
-            document.getElementById('imageView').src = url;
-            new bootstrap.Modal(document.getElementById('imageModal')).show();
-        }
-
-        // Delete
-        function deleteImage(id, filename) {
-            Swal.fire({
-                title: 'Xóa hình ảnh?',
-                text: `Xóa "${filename}"?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.getElementById('deleteForm');
-                    form.action = '@Url.Action("Delete", "Document")/' + id + '?returnUrl=' + encodeURIComponent(window.location.pathname);
-                    form.submit();
-                }
-            });
-        }
     </script>
 }
 

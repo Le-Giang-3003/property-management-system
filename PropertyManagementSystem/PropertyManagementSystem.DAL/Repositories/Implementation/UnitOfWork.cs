@@ -1,4 +1,5 @@
 ﻿using PropertyManagementSystem.DAL.Data;
+using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 
 namespace PropertyManagementSystem.DAL.Repositories.Implementation
@@ -14,7 +15,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         private IDocumentRepository? _documents;
         private IRentalApplicationRepository? _rentalApplications;
         private ILeaseRepository? _leases;
-
+        private IMaintenanceRepository? _maintenanceRequests;
+        private IPropertyImageRepository _propertyImage;
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
@@ -29,6 +31,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
 
         public IRentalApplicationRepository RentalApplications => _rentalApplications ??= new RentalApplicationRepository(_context);
         public ILeaseRepository Leases => _leases ??= new LeaseRepository(_context);
+
+        public IMaintenanceRepository MaintenanceRequests => _maintenanceRequests ??= new MaintenanceRepository(_context);
+
+        public IPropertyImageRepository PropertyImages => _propertyImage ??= new PropertyImageRepository(_context);
+
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();

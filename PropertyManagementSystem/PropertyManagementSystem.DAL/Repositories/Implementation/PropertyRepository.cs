@@ -8,9 +8,14 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
     /// <summary>
     /// Repository for managing properties.
     /// </summary>
+    /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Implementation.GenericRepository&lt;PropertyManagementSystem.DAL.Entities.Property&gt;" />
     /// <seealso cref="PropertyManagementSystem.DAL.Repositories.Interface.IPropertyRepository" />
     public class PropertyRepository : GenericRepository<Property>, IPropertyRepository
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PropertyRepository"/> class.
+        /// </summary>
+        /// <param name="context">The context.</param>
         public PropertyRepository(AppDbContext context) : base(context)
         {
         }
@@ -58,6 +63,10 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the available properties asynchronous.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IEnumerable<Property>> GetAvailablePropertiesAsync()
         {
             return await _dbSet
@@ -68,6 +77,11 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Gets the by landlord identifier asynchronous.
+        /// </summary>
+        /// <param name="landlordId">The landlord identifier.</param>
+        /// <returns></returns>
         public async Task<IEnumerable<Property>> GetByLandlordIdAsync(int landlordId)
         {
             return await _dbSet
@@ -75,6 +89,36 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .Where(p => p.LandlordId == landlordId)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// Gets the by landlord with details asynchronous.
+        /// </summary>
+        /// <param name="landlordId">The landlord identifier.</param>
+        /// <param name="take">The take.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<List<Property>> GetByLandlordWithDetailsAsync(int landlordId, int take = 10)
+        {
+            return await _dbSet
+                .Include(p => p.Landlord)
+                .Include(p => p.Images.Where(i => i.IsThumbnail))
+                .Where(p => p.LandlordId == landlordId && p.Status != "Unavailable")
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(take)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Gets the count by status asynchronous.
+        /// </summary>
+        /// <param name="landlordId">The landlord identifier.</param>
+        /// <param name="status">The status.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<int> GetCountByStatusAsync(int landlordId, string status)
+        {
+            return await _dbSet.CountAsync(p => p.LandlordId == landlordId && p.Status == status);
         }
 
         /// <summary>
@@ -103,12 +147,41 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .FirstOrDefaultAsync(p => p.PropertyId == id && p.Status != "Unavailable");
         }
 
+        /// <summary>
+        /// Gets the property with details asynchronous.
+        /// </summary>
+        /// <param name="propertyId">The property identifier.</param>
+        /// <returns></returns>
         public async Task<Property?> GetPropertyWithDetailsAsync(int propertyId)
         {
             return await _dbSet
                 .Include(p => p.Landlord)
                 .Include(p => p.Images.OrderBy(i => i.DisplayOrder))
                 .FirstOrDefaultAsync(p => p.PropertyId == propertyId);
+        }
+
+        /// <summary>
+        /// Gets the total by landlord asynchronous.
+        /// </summary>
+        /// <param name="landlordId">The landlord identifier.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<int> GetTotalByLandlordAsync(int landlordId)
+        {
+            return await _dbSet.CountAsync(p => p.LandlordId == landlordId && p.Status != "Unavailable");
+        }
+
+        /// <summary>
+        /// Gets the total monthly revenue asynchronous.
+        /// </summary>
+        /// <param name="landlordId">The landlord identifier.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<decimal> GetTotalMonthlyRevenueAsync(int landlordId)
+        {
+            return await _dbSet
+                .Where(p => p.LandlordId == landlordId && p.Status == "Rented")
+                .SumAsync(p => p.RentAmount);
         }
 
         /// <summary>
