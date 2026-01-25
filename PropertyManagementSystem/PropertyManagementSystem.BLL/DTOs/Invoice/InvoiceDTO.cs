@@ -5,6 +5,7 @@
         public int InvoiceId { get; set; }
         public int LeaseId { get; set; }
 
+        public int TenantId { get; set; }
         public string InvoiceNumber { get; set; } = null!;
         public string InvoiceType { get; set; } = null!;
 

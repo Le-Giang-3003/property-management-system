@@ -12,10 +12,10 @@
 
     <div class="row">
         <div class="col-md-8">
-            <form asp-action="Make" method="post">
+            <form asp-action="MakePayment" method="post">
                 @Html.AntiForgeryToken()
 
-                <!-- Invoice Selection -->
+                <!-- Invoice Selection -->  
                 <div class="mb-3">
                     <label asp-for="InvoiceId" class="form-label">Hóa đơn</label>
                     <select asp-for="InvoiceId" class="form-select">
@@ -45,8 +45,6 @@
                         <option value="Cash">Tiền mặt</option>
                         <option value="BankTransfer">Chuyển khoản ngân hàng</option>
                         <option value="CreditCard">Thẻ tín dụng</option>
-                        <option value="Momo">Momo</option>
-                        <option value="ZaloPay">ZaloPay</option>
                     </select>
                     <span asp-validation-for="PaymentMethod" class="text-danger"></span>
                 </div>

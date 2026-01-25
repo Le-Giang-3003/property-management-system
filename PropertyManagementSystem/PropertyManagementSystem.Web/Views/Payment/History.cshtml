@@ -1,0 +1,29 @@
+﻿@using PropertyManagementSystem.BLL.DTOs.Payments
+@model List<PaymentDto>
+
+<h2>Lịch sử thanh toán</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Mã thanh toán</th>
+            <th>Mã hóa đơn</th>
+            <th>Số tiền</th>
+            <th>Phương thức</th>
+            <th>Ngày thanh toán</th>
+            <th>Trạng thái</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.PaymentId</td>
+                <td>@p.InvoiceId</td>
+                <td>@p.Amount.ToString("N0")</td>
+                <td>@p.PaymentMethod</td>
+                <td>@p.PaymentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@p.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>

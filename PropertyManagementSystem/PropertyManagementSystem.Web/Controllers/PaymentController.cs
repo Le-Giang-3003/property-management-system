@@ -18,9 +18,13 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> MakePayment()  
+        public async Task<IActionResult> MakePayment()
         {
-            int tenantId = 1;
+            var tenantClaim = User.FindFirst("TenantId");
+            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
             var invoices = await _paymentService.GetAvailableInvoicesAsync(tenantId);
 
@@ -34,12 +38,16 @@ namespace PropertyManagementSystem.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MakePayment(MakePaymentViewModel vm)  
+        public async Task<IActionResult> MakePayment(MakePaymentViewModel vm)
         {
             if (!ModelState.IsValid)
                 return View(vm);
 
-            int tenantId = 1;
+            var tenantClaim = User.FindFirst("TenantId");
+            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
             try
             {
@@ -54,7 +62,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var result = await _paymentService.MakePaymentAsync(tenantId, dto);
 
                 TempData["SuccessMessage"] = $"Thanh toán thành công. Mã thanh toán: {result.PaymentId}";
-                return RedirectToAction("History");
+                return RedirectToAction("History", new { invoiceId = vm.InvoiceId });
             }
             catch (Exception ex)
             {
@@ -65,8 +73,13 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> History()
         {
-            // TODO: Load payment history của tenant hiện tại
-            return View();
+            var tenantClaim = User.FindFirst("TenantId");
+            if (tenantClaim == null || !int.TryParse(tenantClaim.Value, out var tenantId))
+                return RedirectToAction("Login", "Auth");
+
+            var history = await _paymentService.GetPaymentHistoryAsync(tenantId);
+            return View(history);
         }
+
     }
 }

@@ -97,6 +97,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             {
                 InvoiceId = i.InvoiceId,
                 LeaseId = i.LeaseId,
+                TenantId = i.Lease?.TenantId ?? 0,
                 InvoiceNumber = i.InvoiceNumber,
                 InvoiceType = i.InvoiceType,
                 IssueDate = i.IssueDate,
