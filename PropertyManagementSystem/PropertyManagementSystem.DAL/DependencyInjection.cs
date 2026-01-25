@@ -33,7 +33,7 @@ namespace PropertyManagementSystem.DAL
             services.AddScoped<IDocumentRepository, DocumentRepository>();
 
             services.AddScoped<IRentalApplicationRepository, RentalApplicationRepository>();
-
+            services.AddScoped<ILeaseRepository, LeaseRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             return services;
         }

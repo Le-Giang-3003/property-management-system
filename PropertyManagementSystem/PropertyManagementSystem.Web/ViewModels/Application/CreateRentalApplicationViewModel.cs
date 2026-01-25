@@ -36,7 +36,8 @@ namespace PropertyManagementSystem.Web.ViewModels.Application
         [MaxLength(200)]
         public string? PreviousLandlord { get; set; }
 
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [RegularExpression(@"^(0[3|5|7|8|9])+([0-9]{8})$",
+            ErrorMessage = "Số điện thoại không hợp lệ. VD: 0901234567")]
         [Display(Name = "Số điện thoại chủ nhà trước")]
         [MaxLength(20)]
         public string? PreviousLandlordPhone { get; set; }

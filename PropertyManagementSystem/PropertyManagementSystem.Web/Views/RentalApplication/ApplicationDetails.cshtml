@@ -1,1049 +1,391 @@
 @model PropertyManagementSystem.DAL.Entities.RentalApplication
 @{
-    ViewData["Title"] = "Application Details";
-    Layout = "_AuthLayout";
+    ViewData["Title"] = "Chi tiết đơn xin thuê";
 
+    // ✅ VALIDATE: Chỉ cho approve/reject nếu Property thuộc về user này
     var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
     var isPropertyOwner = Model.Property?.LandlordId == userId;
-    var isApplicant = Model.ApplicantId == userId;
     var canUpdate = isPropertyOwner && Model.Status == "Pending";
+
+    // ✅ FIX: Thêm check ExistingLease từ ViewBag
+    var hasExistingLease = ViewBag.ExistingLease != null;
+    var canCreateLease = isPropertyOwner && Model.Status == "Approved" && !hasExistingLease;
 }
 
-<style>
-    .page-container {
-        padding: 24px 32px;
-        background-color: #f8fafc;
-        min-height: calc(100vh - 70px);
-    }
-
-    .page-header {
-        margin-bottom: 24px;
-    }
-
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        color: #64748b;
-        text-decoration: none;
-        font-size: 14px;
-        margin-bottom: 16px;
-        transition: color 0.2s;
-    }
-
-    .back-link:hover {
-        color: #2563eb;
-    }
-
-    .page-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0;
-    }
-
-    .page-subtitle {
-        font-size: 14px;
-        color: #64748b;
-        margin-top: 4px;
-    }
-
-    .status-badge {
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 500;
-    }
-
-    .status-pending {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    .status-approved {
-        background: #dcfce7;
-        color: #16a34a;
-    }
-
-    .status-rejected {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-
-    .status-withdrawn {
-        background: #f1f5f9;
-        color: #64748b;
-    }
-
-    .detail-card {
-        background: white;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        margin-bottom: 20px;
-        overflow: hidden;
-    }
-
-    .detail-card-header {
-        padding: 16px 24px;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .detail-card-header-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-    }
-
-    .icon-property {
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-    .icon-applicant {
-        background: #f0fdf4;
-        color: #16a34a;
-    }
-
-    .icon-employment {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    .icon-previous {
-        background: #fae8ff;
-        color: #a855f7;
-    }
-
-    .icon-pet {
-        background: #fce7f3;
-        color: #ec4899;
-    }
-
-    .icon-review {
-        background: #e0e7ff;
-        color: #6366f1;
-    }
-
-    .detail-card-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #1e293b;
-        margin: 0;
-    }
-
-    .detail-card-body {
-        padding: 24px;
-    }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-
-    .info-grid-3 {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .info-item {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .info-label {
-        font-size: 12px;
-        color: #94a3b8;
-        margin-bottom: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .info-value {
-        font-size: 14px;
-        font-weight: 500;
-        color: #1e293b;
-    }
-
-    .info-value.highlight {
-        color: #16a34a;
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .info-value.price {
-        color: #dc2626;
-        font-size: 18px;
-        font-weight: 700;
-    }
-
-    .property-summary {
-        display: flex;
-        gap: 24px;
-        padding: 20px;
-        background: #f8fafc;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .property-image {
-        width: 120px;
-        height: 90px;
-        border-radius: 8px;
-        background: #e2e8f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #94a3b8;
-        font-size: 32px;
-        flex-shrink: 0;
-    }
-
-    .property-info {
-        flex: 1;
-    }
-
-    .property-name {
-        font-size: 18px;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 4px;
-    }
-
-    .property-address {
-        font-size: 14px;
-        color: #64748b;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 12px;
-    }
-
-    .property-features {
-        display: flex;
-        gap: 16px;
-    }
-
-    .feature-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 13px;
-        color: #64748b;
-    }
-
-    .feature-item i {
-        color: #2563eb;
-    }
-
-    .status-note {
-        padding: 16px 20px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-
-    .status-note.pending {
-        background: #fffbeb;
-        border: 1px solid #fde68a;
-        color: #92400e;
-    }
-
-    .status-note.approved {
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        color: #166534;
-    }
-
-    .status-note.rejected {
-        background: #fef2f2;
-        border: 1px solid #fecaca;
-        color: #991b1b;
-    }
-
-    .status-note.withdrawn {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        color: #475569;
-    }
-
-    .status-note-icon {
-        font-size: 20px;
-    }
-
-    .status-note-content {
-        flex: 1;
-    }
-
-    .status-note-title {
-        font-weight: 600;
-        margin-bottom: 2px;
-    }
-
-    .status-note-text {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-
-    .notes-box {
-        background: #f8fafc;
-        border-radius: 10px;
-        padding: 16px;
-        font-size: 14px;
-        color: #475569;
-        line-height: 1.6;
-    }
-
-    .badge-tag {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 500;
-    }
-
-    .badge-success {
-        background: #dcfce7;
-        color: #16a34a;
-    }
-
-    .badge-warning {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    .badge-info {
-        background: #e0f2fe;
-        color: #0284c7;
-    }
-
-    .action-card {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border: 2px dashed #cbd5e1;
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 20px;
-    }
-
-    .action-card-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 16px;
-    }
-
-    .btn-approve {
-        flex: 1;
-        background: #16a34a;
-        color: white;
-        border: none;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-approve:hover {
-        background: #15803d;
-    }
-
-    .btn-reject {
-        flex: 1;
-        background: white;
-        color: #dc2626;
-        border: 2px solid #dc2626;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-reject:hover {
-        background: #fef2f2;
-    }
-
-    .footer-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 24px;
-    }
-
-    .btn-back {
-        background: white;
-        color: #64748b;
-        border: 1px solid #e2e8f0;
-        padding: 12px 24px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-
-    .btn-back:hover {
-        background: #f8fafc;
-        color: #1e293b;
-    }
-
-    .btn-view-property {
-        background: #2563eb;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-
-    .btn-view-property:hover {
-        background: #1d4ed8;
-        color: white;
-    }
-
-    .timeline {
-        position: relative;
-        padding-left: 28px;
-    }
-
-    .timeline::before {
-        content: '';
-        position: absolute;
-        left: 8px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #e2e8f0;
-    }
-
-    .timeline-item {
-        position: relative;
-        padding-bottom: 20px;
-    }
-
-    .timeline-item:last-child {
-        padding-bottom: 0;
-    }
-
-    .timeline-dot {
-        position: absolute;
-        left: -28px;
-        top: 0;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: white;
-        border: 2px solid #2563eb;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .timeline-dot.completed {
-        background: #16a34a;
-        border-color: #16a34a;
-    }
-
-    .timeline-dot.rejected {
-        background: #dc2626;
-        border-color: #dc2626;
-    }
-
-    .timeline-dot i {
-        font-size: 10px;
-        color: white;
-    }
-
-    .timeline-content {
-        padding-left: 8px;
-    }
-
-    .timeline-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #1e293b;
-    }
-
-    .timeline-date {
-        font-size: 13px;
-        color: #64748b;
-    }
-
-    .modal-custom .modal-content {
-        border-radius: 16px;
-        border: none;
-    }
-
-    .modal-custom .modal-header {
-        background: #fef2f2;
-        border-radius: 16px 16px 0 0;
-        border-bottom: none;
-        padding: 20px 24px;
-    }
-
-    .modal-custom .modal-title {
-        color: #dc2626;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .modal-custom .modal-body {
-        padding: 24px;
-    }
-
-    .modal-custom .modal-footer {
-        border-top: none;
-        padding: 16px 24px 24px;
-    }
-
-    @@media (max-width: 768px) {
-        .page-container {
-            padding: 16px;
-        }
-
-        .info-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .info-grid-3 {
-            grid-template-columns: 1fr;
-        }
-
-        .property-summary {
-            flex-direction: column;
-        }
-
-        .property-image {
-            width: 100%;
-            height: 150px;
-        }
-
-        .action-buttons {
-            flex-direction: column;
-        }
-
-        .footer-actions {
-            flex-direction: column;
-        }
-    }
-</style>
-
-<div class="page-container">
-    <!-- Back Link -->
-    @if (isApplicant)
-    {
-        <a asp-action="Index" class="back-link">
-            <i class="bi bi-arrow-left"></i>
-            Back to My Applications
-        </a>
-    }
-    else if (isPropertyOwner)
-    {
-        <a asp-action="ByProperty" asp-route-propertyId="@Model.PropertyId" class="back-link">
-            <i class="bi bi-arrow-left"></i>
-            Back to Property Applications
-        </a>
-    }
-    else
-    {
-        <a asp-action="Index" class="back-link">
-            <i class="bi bi-arrow-left"></i>
-            Back to Applications
-        </a>
-    }
-
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h1 class="page-title">Application Details</h1>
-                <p class="page-subtitle">Application ID: @Model.ApplicationNumber</p>
-            </div>
-            <span class="status-badge @GetStatusClass(Model.Status)">@GetStatusText(Model.Status)</span>
-        </div>
-    </div>
-
-    <!-- Status Note -->
-    @if (Model.Status == "Pending")
-    {
-        <div class="status-note pending">
-            <i class="bi bi-clock-fill status-note-icon"></i>
-            <div class="status-note-content">
-                <div class="status-note-title">Application Under Review</div>
-                <div class="status-note-text">Your application is being reviewed by the property owner. You will be notified once a decision is made.</div>
-            </div>
-        </div>
-    }
-    else if (Model.Status == "Approved")
-    {
-        <div class="status-note approved">
-            <i class="bi bi-check-circle-fill status-note-icon"></i>
-            <div class="status-note-content">
-                <div class="status-note-title">Application Approved</div>
-                <div class="status-note-text">Congratulations! Your application has been approved on @Model.ReviewedAt?.ToString("MMM dd, yyyy").</div>
-            </div>
-        </div>
-    }
-    else if (Model.Status == "Rejected")
-    {
-        <div class="status-note rejected">
-            <i class="bi bi-x-circle-fill status-note-icon"></i>
-            <div class="status-note-content">
-                <div class="status-note-title">Application Rejected</div>
-                <div class="status-note-text">@(string.IsNullOrEmpty(Model.RejectionReason) ? "Your application was not approved." : Model.RejectionReason)</div>
-            </div>
-        </div>
-    }
-    else if (Model.Status == "Withdrawn")
-    {
-        <div class="status-note withdrawn">
-            <i class="bi bi-dash-circle-fill status-note-icon"></i>
-            <div class="status-note-content">
-                <div class="status-note-title">Application Withdrawn</div>
-                <div class="status-note-text">You have withdrawn this application.</div>
-            </div>
-        </div>
-    }
-
-    <!-- Property Information Card -->
-    <div class="detail-card">
-        <div class="detail-card-header">
-            <div class="detail-card-header-icon icon-property">
-                <i class="bi bi-building"></i>
-            </div>
-            <h3 class="detail-card-title">Property Information</h3>
-        </div>
-        <div class="detail-card-body">
-            <div class="property-summary">
-                <div class="property-image">
-                    <i class="bi bi-building"></i>
-                </div>
-                <div class="property-info">
-                    <h4 class="property-name">@Model.Property?.Name</h4>
-                    <p class="property-address">
-                        <i class="bi bi-geo-alt"></i>
-                        @Model.Property?.Address
-                    </p>
-                    <div class="property-features">
-                        <span class="feature-item">
-                            <i class="bi bi-house-door"></i>
-                            @Model.Property?.PropertyType
-                        </span>
-                        <span class="feature-item">
-                            <i class="bi bi-rulers"></i>
-                            @Model.Property?.SquareFeet m²
-                        </span>
-                        <span class="feature-item">
-                            <i class="bi bi-door-closed"></i>
-                            @Model.Property?.Bedrooms Beds
-                        </span>
-                        <span class="feature-item">
-                            <i class="bi bi-droplet"></i>
-                            @Model.Property?.Bathrooms Baths
-                        </span>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-alt"></i> Đơn xin thuê #@Model.ApplicationNumber
+                        </h4>
+                        @switch (Model.Status)
+                        {
+                            case "Pending":
+                                <span class="badge bg-warning text-dark fs-6">Chờ xử lý</span>
+                                break;
+                            case "Approved":
+                                <span class="badge bg-success fs-6">Đã duyệt</span>
+                                break;
+                            case "Rejected":
+                                <span class="badge bg-danger fs-6">Từ chối</span>
+                                break;
+                            case "Withdrawn":
+                                <span class="badge bg-secondary fs-6">Đã rút</span>
+                                break;
+                        }
                     </div>
                 </div>
-            </div>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Monthly Rent</span>
-                    <span class="info-value price">$@Model.Property?.RentAmount.ToString("N0")</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Property Type</span>
-                    <span class="info-value">@Model.Property?.PropertyType</span>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Application Details Card -->
-    <div class="detail-card">
-        <div class="detail-card-header">
-            <div class="detail-card-header-icon icon-applicant">
-                <i class="bi bi-calendar-check"></i>
-            </div>
-            <h3 class="detail-card-title">Application Details</h3>
-        </div>
-        <div class="detail-card-body">
-            <div class="info-grid info-grid-3">
-                <div class="info-item">
-                    <span class="info-label">Submitted Date</span>
-                    <span class="info-value">
-                        <i class="bi bi-calendar3 me-1"></i>
-                        @Model.CreatedAt.ToString("MMM dd, yyyy")
-                    </span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Desired Move-in Date</span>
-                    <span class="info-value">
-                        <i class="bi bi-calendar3 me-1"></i>
-                        @Model.DesiredMoveInDate.ToString("MMM dd, yyyy")
-                    </span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Number of Occupants</span>
-                    <span class="info-value">
-                        <i class="bi bi-people me-1"></i>
-                        @Model.NumberOfOccupants person(s)
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+                <div class="card-body">
+                    <!-- THÔNG TIN TỔNG QUAN -->
+                    <div class="alert alert-light border">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small class="text-muted">Ngày gửi đơn</small>
+                                <div><strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Ngày dự kiến chuyển vào</small>
+                                <div><strong>@Model.DesiredMoveInDate.ToString("dd/MM/yyyy")</strong></div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Số người ở</small>
+                                <div><strong>@Model.NumberOfOccupants người</strong></div>
+                            </div>
+                        </div>
+                    </div>
 
-    <!-- Applicant Information Card -->
-    <div class="detail-card">
-        <div class="detail-card-header">
-            <div class="detail-card-header-icon icon-applicant">
-                <i class="bi bi-person"></i>
-            </div>
-            <h3 class="detail-card-title">Applicant Information</h3>
-        </div>
-        <div class="detail-card-body">
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Full Name</span>
-                    <span class="info-value">@Model.Applicant?.FullName</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Email Address</span>
-                    <span class="info-value">@Model.Applicant?.Email</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Phone Number</span>
-                    <span class="info-value">@(Model.Applicant?.PhoneNumber ?? "Not provided")</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Date of Birth</span>
-                    <span class="info-value">@(Model.Applicant?.DateOfBirth?.ToString("MMM dd, yyyy") ?? "Not provided")</span>
-                </div>
-            </div>
-        </div>
-    </div>
+                    <!-- THÔNG TIN BẤT ĐỘNG SẢN -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-home"></i> Thông tin bất động sản</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Tên:</strong> @Model.Property?.Name</p>
+                            <p><strong>Địa chỉ:</strong> @Model.Property?.Address</p>
+                            <p><strong>Loại:</strong> @Model.Property?.PropertyType</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Giá thuê:</strong> <span class="text-danger fs-5">@Model.Property?.RentAmount.ToString("N0") VNĐ/tháng</span></p>
+                            <p><strong>Diện tích:</strong> @Model.Property?.SquareFeet m²</p>
+                            <p><strong>Phòng ngủ/WC:</strong> @Model.Property?.Bedrooms / @Model.Property?.Bathrooms</p>
+                        </div>
+                    </div>
 
-    <!-- Employment Information Card -->
-    <div class="detail-card">
-        <div class="detail-card-header">
-            <div class="detail-card-header-icon icon-employment">
-                <i class="bi bi-briefcase"></i>
-            </div>
-            <h3 class="detail-card-title">Employment Information</h3>
-        </div>
-        <div class="detail-card-body">
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Employment Status</span>
-                    <span class="info-value">
-                        <span class="badge-tag badge-info">@Model.EmploymentStatus</span>
-                    </span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Employer</span>
-                    <span class="info-value">@(Model.Employer ?? "Not provided")</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Monthly Income</span>
-                    <span class="info-value highlight">
-                        @if (Model.MonthlyIncome.HasValue)
+                    <!-- THÔNG TIN NGƯỜI THUÊ -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-user"></i> Thông tin người thuê</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Họ tên:</strong> @Model.Applicant?.FullName</p>
+                            <p><strong>Email:</strong> @Model.Applicant?.Email</p>
+                            <p><strong>Số điện thoại:</strong> @Model.Applicant?.PhoneNumber</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Ngày sinh:</strong> @Model.Applicant?.DateOfBirth?.ToString("dd/MM/yyyy")</p>
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN VIỆC LÀM -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-briefcase"></i> Thông tin việc làm</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Tình trạng việc làm:</strong>
+                                <span class="badge bg-info">@Model.EmploymentStatus</span>
+                            </p>
+                            <p><strong>Nơi làm việc:</strong> @(Model.Employer ?? "Không cung cấp")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Thu nhập hàng tháng:</strong>
+                                @if (Model.MonthlyIncome.HasValue)
+                                {
+                                    <span class="text-success fs-5">@Model.MonthlyIncome.Value.ToString("N0") VNĐ</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không cung cấp</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN NƠI Ở TRƯỚC -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-map-marker-alt"></i> Thông tin nơi ở trước đây</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-12 mb-2">
+                            <p><strong>Địa chỉ cũ:</strong> @(Model.PreviousAddress ?? "Không cung cấp")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Chủ nhà trước:</strong> @(Model.PreviousLandlord ?? "Không cung cấp")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>SĐT chủ nhà trước:</strong> @(Model.PreviousLandlordPhone ?? "Không cung cấp")</p>
+                        </div>
+                    </div>
+
+                    <!-- THÔNG TIN THÚ CƯNG -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-paw"></i> Thông tin thú cưng</h5>
+                    <div class="mb-4">
+                        <p>
+                            <strong>Có nuôi thú cưng:</strong>
+                            @if (Model.HasPets)
+                            {
+                                <span class="badge bg-warning text-dark">Có</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Không</span>
+                            }
+                        </p>
+                        @if (Model.HasPets && !string.IsNullOrEmpty(Model.PetDetails))
                         {
-                            @:$@Model.MonthlyIncome.Value.ToString("N0")
+                            <p><strong>Chi tiết:</strong> @Model.PetDetails</p>
+                        }
+                    </div>
+
+                    <!-- GHI CHÚ -->
+                    @if (!string.IsNullOrEmpty(Model.AdditionalNotes))
+                    {
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-sticky-note"></i> Ghi chú thêm</h5>
+                        <div class="mb-4">
+                            <div class="alert alert-secondary">
+                                @Model.AdditionalNotes
+                            </div>
+                        </div>
+                    }
+
+                    <!-- THÔNG TIN XÉT DUYỆT -->
+                    @if (Model.ReviewedAt.HasValue)
+                    {
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-check-circle"></i> Thông tin xét duyệt</h5>
+                        <div class="mb-4">
+                            <p><strong>Người xét duyệt:</strong> @Model.ReviewedByUser?.FullName</p>
+                            <p><strong>Thời gian xét duyệt:</strong> @Model.ReviewedAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
+
+                            @if (Model.Status == "Rejected" && !string.IsNullOrEmpty(Model.RejectionReason))
+                            {
+                                <div class="alert alert-danger">
+                                    <strong><i class="fas fa-exclamation-triangle"></i> Lý do từ chối:</strong><br />
+                                    @Model.RejectionReason
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <!-- ✅ HIỂN THỊ HỢP ĐỒNG ĐÃ TẠO (NẾU CÓ) -->
+                    @if (hasExistingLease && ViewBag.ExistingLease != null)
+                    {
+                        <div class="card border-success mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-check-circle"></i> Hợp đồng đã được tạo
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-file-contract text-primary"></i> Mã hợp đồng:</strong>
+                                            <span class="badge bg-primary fs-6">@ViewBag.ExistingLease.LeaseNumber</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-calendar-alt text-info"></i> Thời gian:</strong>
+                                            @ViewBag.ExistingLease.StartDate.ToString("dd/MM/yyyy")
+                                            → @ViewBag.ExistingLease.EndDate.ToString("dd/MM/yyyy")
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-info-circle text-warning"></i> Trạng thái:</strong>
+                                            @if (ViewBag.ExistingLease.Status == "Draft")
+                                            {
+                                                <span class="badge bg-secondary">Nháp</span>
+                                            }
+                                            else if (ViewBag.ExistingLease.Status == "Active")
+                                            {
+                                                <span class="badge bg-success">Đang hiệu lực</span>
+                                            }
+                                            else if (ViewBag.ExistingLease.Status == "Expired")
+                                            {
+                                                <span class="badge bg-danger">Đã hết hạn</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-info">@ViewBag.ExistingLease.Status</span>
+                                            }
+                                        </p>
+                                        <p class="mb-2">
+                                            <strong><i class="fas fa-money-bill-wave text-success"></i> Tiền thuê:</strong>
+                                            @ViewBag.ExistingLease.MonthlyRent.ToString("N0") VNĐ/tháng
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a asp-controller="Lease" asp-action="Details"
+                                       asp-route-id="@ViewBag.ExistingLease.LeaseId"
+                                       class="btn btn-primary">
+                                        <i class="fas fa-eye"></i> Xem chi tiết hợp đồng
+                                    </a>
+
+                                    @if (ViewBag.ExistingLease.Status == "Draft")
+                                    {
+                                        <a asp-controller="Lease" asp-action="Edit"
+                                           asp-route-id="@ViewBag.ExistingLease.LeaseId"
+                                           class="btn btn-warning">
+                                            <i class="fas fa-edit"></i> Chỉnh sửa hợp đồng
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- ✅ NÚT TẠO HỢP ĐỒNG - CHỈ HIỆN KHI CHƯA CÓ LEASE -->
+                    @if (canCreateLease)
+                    {
+                        <div class="card bg-success text-white shadow-lg mt-4 border-0">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-file-contract fa-3x"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="card-title mb-1">
+                                            <i class="fas fa-check-circle"></i> Đơn đã được duyệt!
+                                        </h5>
+                                        <p class="mb-0">
+                                            Bạn có thể tạo hợp đồng thuê chính thức cho <strong>@Model.Applicant?.FullName</strong>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <a asp-controller="Lease" asp-action="Create" asp-route-applicationId="@Model.ApplicationId"
+                                   class="btn btn-light btn-lg w-100 shadow">
+                                    <i class="fas fa-file-contract"></i> <strong>Tạo hợp đồng thuê ngay</strong>
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- ✅ FORM XÉT DUYỆT - CHỈ CHO PROPERTY OWNER -->
+                    @if (canUpdate)
+                    {
+                        <div class="card bg-light mt-4 shadow">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-tasks"></i> Xét duyệt đơn</h5>
+                                <p class="text-muted mb-3">
+                                    Sau khi duyệt, bạn có thể tạo hợp đồng thuê chính thức.
+                                </p>
+
+                                <div class="row">
+                                    <!-- APPROVE -->
+                                    <div class="col-md-6 mb-3">
+                                        <form asp-action="Approve" method="post" onsubmit="return confirm('Bạn có chắc muốn DUYỆT đơn này không?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@Model.ApplicationId" />
+                                            <button type="submit" class="btn btn-success w-100 btn-lg">
+                                                <i class="fas fa-check-circle"></i> Chấp nhận đơn
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- REJECT -->
+                                    <div class="col-md-6 mb-3">
+                                        <button type="button" class="btn btn-danger w-100 btn-lg" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                            <i class="fas fa-times-circle"></i> Từ chối đơn
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!isPropertyOwner && Model.Status == "Pending")
+                    {
+                        <div class="alert alert-warning mt-4">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Lưu ý:</strong> Chỉ chủ nhà của bất động sản này mới có thể xét duyệt đơn.
+                        </div>
+                    }
+
+                    <!-- NAVIGATION BUTTONS -->
+                    <div class="mt-4 d-flex gap-2 flex-wrap">
+                        @if (isPropertyOwner)
+                        {
+                            <a asp-action="ByProperty" asp-route-propertyId="@Model.PropertyId" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Đơn của BĐS này
+                            </a>
+                        }
+                        else if (Model.ApplicantId == userId)
+                        {
+                            <a asp-action="MyApplications" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Đơn của tôi
+                            </a>
                         }
                         else
                         {
-                            <span class="text-muted">Not provided</span>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Danh sách đơn
+                            </a>
                         }
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Previous Residence Card -->
-    <div class="detail-card">
-        <div class="detail-card-header">
-            <div class="detail-card-header-icon icon-previous">
-                <i class="bi bi-house"></i>
-            </div>
-            <h3 class="detail-card-title">Previous Residence</h3>
-        </div>
-        <div class="detail-card-body">
-            <div class="info-grid">
-                <div class="info-item" style="grid-column: span 2;">
-                    <span class="info-label">Previous Address</span>
-                    <span class="info-value">@(Model.PreviousAddress ?? "Not provided")</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Previous Landlord</span>
-                    <span class="info-value">@(Model.PreviousLandlord ?? "Not provided")</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Landlord Phone</span>
-                    <span class="info-value">@(Model.PreviousLandlordPhone ?? "Not provided")</span>
-                </div>
-            </div>
-        </div>
-    </div>
+                        <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-outline-primary">
+                            <i class="fas fa-home"></i> Xem BĐS
+                        </a>
 
-    <!-- Pets Information Card -->
-    <div class="detail-card">
-        <div class="detail-card-header">
-            <div class="detail-card-header-icon icon-pet">
-                <i class="bi bi-heart"></i>
-            </div>
-            <h3 class="detail-card-title">Pets Information</h3>
-        </div>
-        <div class="detail-card-body">
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Has Pets</span>
-                    <span class="info-value">
-                        @if (Model.HasPets)
+                        @if (isPropertyOwner && Model.Status == "Approved")
                         {
-                            <span class="badge-tag badge-warning">Yes</span>
+                            <a asp-controller="Lease" asp-action="Index" class="btn btn-outline-success">
+                                <i class="fas fa-file-contract"></i> Quản lý hợp đồng
+                            </a>
                         }
-                        else
-                        {
-                            <span class="badge-tag badge-success">No</span>
-                        }
-                    </span>
-                </div>
-                @if (Model.HasPets && !string.IsNullOrEmpty(Model.PetDetails))
-                {
-                    <div class="info-item">
-                        <span class="info-label">Pet Details</span>
-                        <span class="info-value">@Model.PetDetails</span>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-
-    <!-- Additional Notes Card -->
-    @if (!string.IsNullOrEmpty(Model.AdditionalNotes))
-    {
-        <div class="detail-card">
-            <div class="detail-card-header">
-                <div class="detail-card-header-icon icon-review">
-                    <i class="bi bi-chat-left-text"></i>
-                </div>
-                <h3 class="detail-card-title">Additional Notes</h3>
-            </div>
-            <div class="detail-card-body">
-                <div class="notes-box">
-                    @Model.AdditionalNotes
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- Review Timeline Card -->
-    @if (Model.ReviewedAt.HasValue)
-    {
-        <div class="detail-card">
-            <div class="detail-card-header">
-                <div class="detail-card-header-icon icon-review">
-                    <i class="bi bi-clock-history"></i>
-                </div>
-                <h3 class="detail-card-title">Review History</h3>
-            </div>
-            <div class="detail-card-body">
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <div class="timeline-dot completed">
-                            <i class="bi bi-check"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="timeline-title">Application Submitted</div>
-                            <div class="timeline-date">@Model.CreatedAt.ToString("MMM dd, yyyy 'at' hh:mm tt")</div>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-dot @(Model.Status == "Rejected" ? "rejected" : "completed")">
-                            <i class="bi bi-@(Model.Status == "Rejected" ? "x" : "check")"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="timeline-title">@(Model.Status == "Approved" ? "Application Approved" : Model.Status == "Rejected" ? "Application Rejected" : "Decision Made")</div>
-                            <div class="timeline-date">@Model.ReviewedAt.Value.ToString("MMM dd, yyyy 'at' hh:mm tt") by @(Model.ReviewedByUser?.FullName ?? "Property Owner")</div>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    }
-
-    <!-- Action Card for Property Owner -->
-    @if (canUpdate)
-    {
-        <div class="action-card">
-            <div class="action-card-title">
-                <i class="bi bi-clipboard-check"></i>
-                Review Application
-            </div>
-            <div class="action-buttons">
-                <form asp-action="Approve" method="post" style="flex: 1;" onsubmit="return confirm('Are you sure you want to APPROVE this application?');">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.ApplicationId" />
-                    <button type="submit" class="btn-approve" style="width: 100%;">
-                        <i class="bi bi-check-circle"></i>
-                        Approve Application
-                    </button>
-                </form>
-                <button type="button" class="btn-reject" data-bs-toggle="modal" data-bs-target="#rejectModal">
-                    <i class="bi bi-x-circle"></i>
-                    Reject Application
-                </button>
-            </div>
-        </div>
-    }
-    else if (!isPropertyOwner && Model.Status == "Pending" && !isApplicant)
-    {
-        <div class="status-note pending">
-            <i class="bi bi-info-circle-fill status-note-icon"></i>
-            <div class="status-note-content">
-                <div class="status-note-title">Note</div>
-                <div class="status-note-text">Only the property owner can approve or reject this application.</div>
-            </div>
-        </div>
-    }
-
-    <!-- Footer Actions -->
-    <div class="footer-actions">
-        @if (isApplicant)
-        {
-            <a asp-action="Index" class="btn-back">
-                <i class="bi bi-arrow-left"></i>
-                Back to My Applications
-            </a>
-        }
-        else if (isPropertyOwner)
-        {
-            <a asp-action="ByProperty" asp-route-propertyId="@Model.PropertyId" class="btn-back">
-                <i class="bi bi-arrow-left"></i>
-                Back to Property Applications
-            </a>
-        }
-        else
-        {
-            <a asp-action="Index" class="btn-back">
-                <i class="bi bi-arrow-left"></i>
-                Back to Applications
-            </a>
-        }
-        <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId" class="btn-view-property">
-            <i class="bi bi-building"></i>
-            View Property
-        </a>
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div class="modal fade modal-custom" id="rejectModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- MODAL TỪ CHỐI -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
             <form asp-action="Reject" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@Model.ApplicationId" />
 
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-x-circle"></i>
-                        Reject Application
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-times-circle"></i> Từ chối đơn xin thuê</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <div class="status-note rejected" style="margin-bottom: 16px;">
-                        <i class="bi bi-exclamation-triangle-fill status-note-icon"></i>
-                        <div class="status-note-content">
-                            <div class="status-note-text">You are about to reject application <strong>@Model.ApplicationNumber</strong></div>
-                        </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Bạn đang từ chối đơn xin thuê <strong>@Model.ApplicationNumber</strong>
                     </div>
 
                     <div class="mb-3">
-                        <label for="rejectionReason" class="form-label fw-semibold">
-                            Rejection Reason <span class="text-danger">*</span>
+                        <label for="rejectionReason" class="form-label">
+                            Lý do từ chối<span class="text-danger">*</span>
                         </label>
                         <textarea name="rejectionReason" id="rejectionReason" class="form-control" rows="4"
-                                  required placeholder="Please provide a reason for rejection..."></textarea>
+                                  required placeholder="Vui lòng nêu rõ lý do từ chối để người thuê hiểu..."></textarea>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn-back" data-bs-dismiss="modal" style="padding: 10px 20px;">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn-reject" style="flex: 0;">
-                        <i class="bi bi-x-circle"></i>
-                        Confirm Rejection
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times-circle"></i> Xác nhận từ chối
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-@functions {
-    string GetStatusClass(string status)
-    {
-        return status switch
-        {
-            "Pending" => "status-pending",
-            "Approved" => "status-approved",
-            "Rejected" => "status-rejected",
-            "Withdrawn" => "status-withdrawn",
-            _ => "status-pending"
-        };
-    }
-
-    string GetStatusText(string status)
-    {
-        return status switch
-        {
-            "Pending" => "Pending",
-            "Approved" => "Approved",
-            "Rejected" => "Rejected",
-            "Withdrawn" => "Withdrawn",
-            _ => status
-        };
-    }
-}

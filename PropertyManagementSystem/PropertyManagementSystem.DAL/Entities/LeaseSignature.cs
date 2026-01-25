@@ -17,7 +17,7 @@ namespace PropertyManagementSystem.DAL.Entities
         [Required, MaxLength(20)]
         public string SignerRole { get; set; } // Landlord, Tenant
 
-        [MaxLength(500)]
+        [Column(TypeName = "nvarchar(max)")]
         public string SignatureData { get; set; } // Base64 or file path
 
         [MaxLength(50)]

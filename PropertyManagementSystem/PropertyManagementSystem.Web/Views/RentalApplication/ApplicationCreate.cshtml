@@ -27,12 +27,6 @@
                             <span asp-validation-for="PropertyId" class="text-danger"></span>
                         </div>
 
-                        <!-- Thông tin BĐS đã chọn -->
-                        <div id="propertyInfo" class="alert alert-info" style="display: none;">
-                            <h6 class="mb-2">Thông tin bất động sản đã chọn:</h6>
-                            <p class="mb-1" id="selectedPropertyName"></p>
-                        </div>
-
                         <!-- THÔNG TIN VIỆC LÀM -->
                         <h5 class="border-bottom pb-2 mb-3 mt-4"><i class="fas fa-briefcase"></i> Thông tin việc làm</h5>
 
@@ -87,9 +81,16 @@
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="PreviousLandlordPhone" class="form-label"></label>
-                                <input asp-for="PreviousLandlordPhone" class="form-control" placeholder="VD: 0901234567" />
+                                <input asp-for="PreviousLandlordPhone"
+                                       class="form-control"
+                                       placeholder="VD: 0901234567"
+                                       pattern="^(0[3|5|7|8|9])+([0-9]{8})$"
+                                       title="Số điện thoại phải có 10 chữ số, bắt đầu bằng 03, 05, 07, 08, hoặc 09"
+                                       maxlength="12" />
+                                <small class="text-muted">Format: 0xxx xxx xxx</small>
                                 <span asp-validation-for="PreviousLandlordPhone" class="text-danger"></span>
                             </div>
+
                         </div>
 
                         <!-- THÔNG TIN NGƯỜI THUÊ -->
@@ -105,21 +106,21 @@
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="DesiredMoveInDate" class="form-label"></label>
-                                <input asp-for="DesiredMoveInDate" type="date" class="form-control" />
+                                <input asp-for="DesiredMoveInDate" type="date" class="form-control" id="DesiredMoveInDate" />
                                 <span asp-validation-for="DesiredMoveInDate" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <div class="form-check form-switch">
-                                <input asp-for="HasPets" class="form-check-input" type="checkbox" id="hasPetsSwitch" />
-                                <label asp-for="HasPets" class="form-check-label" for="hasPetsSwitch"></label>
+                                <input asp-for="HasPets" class="form-check-input" type="checkbox" id="HasPets" />
+                                <label asp-for="HasPets" class="form-check-label" for="HasPets"></label>
                             </div>
                         </div>
 
                         <div class="mb-3" id="petDetailsDiv" style="display: none;">
                             <label asp-for="PetDetails" class="form-label"></label>
-                            <textarea asp-for="PetDetails" class="form-control" rows="2"
+                            <textarea asp-for="PetDetails" class="form-control" rows="2" id="PetDetails"
                                       placeholder="VD: 1 chó Corgi (3 tuổi), 2 mèo Ba Tư"></textarea>
                             <small class="text-muted">Vui lòng cung cấp thông tin chi tiết về loại, giống, tuổi và số lượng thú cưng</small>
                             <span asp-validation-for="PetDetails" class="text-danger d-block"></span>
@@ -159,43 +160,40 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <!-- ✅ LOAD JQUERY TRƯỚC (không cần _ValidationScriptsPartial) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
         $(document).ready(function() {
-            // Show/hide pet details
+            console.log('jQuery loaded:', typeof jQuery);
+
+            // ✅ Show/hide pet details
             function togglePetDetails() {
-                if ($('#hasPetsSwitch').is(':checked')) {
+                console.log('Toggle called, checked:', $('#HasPets').is(':checked'));
+                if ($('#HasPets').is(':checked')) {
                     $('#petDetailsDiv').slideDown();
+                    $('#PetDetails').focus();
                 } else {
                     $('#petDetailsDiv').slideUp();
                     $('#PetDetails').val('');
                 }
             }
 
-            $('#hasPetsSwitch').change(togglePetDetails);
+            // ✅ Event listener
+            $('#HasPets').on('change', function() {
+                console.log('Checkbox changed:', $(this).is(':checked'));
+                togglePetDetails();
+            });
+
+            // ✅ Check initial state
             togglePetDetails();
 
-            // Set minimum date to today
+            // ✅ Set minimum date to today
             var today = new Date().toISOString().split('T')[0];
             $('#DesiredMoveInDate').attr('min', today);
 
-            // Hiển thị thông tin property khi chọn
-            $('#propertySelect').change(function() {
-                var selectedText = $(this).find('option:selected').text();
-                if ($(this).val()) {
-                    $('#selectedPropertyName').text(selectedText);
-                    $('#propertyInfo').slideDown();
-                } else {
-                    $('#propertyInfo').slideUp();
-                }
-            });
-
-            // Trigger if property already selected
-            if ($('#propertySelect').val()) {
-                $('#propertySelect').trigger('change');
-            }
         });
     </script>
 }

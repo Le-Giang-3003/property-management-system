@@ -1,0 +1,140 @@
+﻿@model PropertyManagementSystem.Web.ViewModels.Lease.TerminateLeaseViewModel
+@{
+    ViewData["Title"] = "Hủy Hợp Đồng";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-x-circle"></i> Hủy Hợp Đồng Thuê
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-warning border-warning">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+                            <div>
+                                <strong>Cảnh báo quan trọng:</strong>
+                                <p class="mb-0">Hành động này sẽ chấm dứt hợp đồng và không thể hoàn tác. Vui lòng xác nhận kỹ thông tin trước khi thực hiện.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="bi bi-file-text"></i> Thông tin hợp đồng</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5">Số hợp đồng:</dt>
+                                        <dd class="col-sm-7"><span class="badge bg-primary">@Model.LeaseNumber</span></dd>
+
+                                        <dt class="col-sm-5">Người thuê:</dt>
+                                        <dd class="col-sm-7">@Model.TenantName</dd>
+
+                                        <dt class="col-sm-5">Bất động sản:</dt>
+                                        <dd class="col-sm-7">@Model.PropertyName</dd>
+
+                                        <dt class="col-sm-5">Địa chỉ:</dt>
+                                        <dd class="col-sm-7">@Model.PropertyAddress</dd>
+                                    </dl>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5">Ngày bắt đầu:</dt>
+                                        <dd class="col-sm-7">@Model.StartDate.ToString("dd/MM/yyyy")</dd>
+
+                                        <dt class="col-sm-5">Ngày kết thúc:</dt>
+                                        <dd class="col-sm-7">@Model.EndDate.ToString("dd/MM/yyyy")</dd>
+
+                                        <dt class="col-sm-5">Tiền thuê:</dt>
+                                        <dd class="col-sm-7"><strong class="text-success">@Model.MonthlyRent.ToString("N0") VNĐ/tháng</strong></dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* ✅ THÊM @Html.AntiForgeryToken() *@
+                    <form asp-action="Terminate" asp-route-id="@Model.LeaseId" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Thông tin chấm dứt hợp đồng</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="TerminationDate" class="form-label fw-bold">
+                                                <i class="bi bi-calendar-x text-danger"></i>
+                                                Ngày chấm dứt hợp đồng
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <input asp-for="TerminationDate"
+                                                   type="datetime-local"
+                                                   class="form-control" />
+                                            <span asp-validation-for="TerminationDate" class="text-danger"></span>
+
+                                            
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Reason" class="form-label fw-bold">
+                                        <i class="bi bi-chat-left-text text-warning"></i>
+                                        Lý do hủy hợp đồng
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea asp-for="Reason"
+                                              class="form-control"
+                                              rows="6"
+                                              placeholder="Nhập lý do chấm dứt hợp đồng chi tiết (tối thiểu 10 ký tự)..."></textarea>
+                                    <span asp-validation-for="Reason" class="text-danger small"></span>
+                                    <div class="form-text">
+                                        <i class="bi bi-exclamation-circle"></i>
+                                        Lý do phải có ít nhất 10 ký tự
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Details" asp-route-id="@Model.LeaseId" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg" id="submitBtn">
+                                <i class="bi bi-x-circle"></i> Xác nhận hủy hợp đồng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        document.getElementById('submitBtn').addEventListener('click', function (e) {
+            if (!confirm('Bạn có chắc chắn muốn hủy hợp đồng này không?')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+}
+
