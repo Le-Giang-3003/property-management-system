@@ -1,4 +1,5 @@
 ﻿using PropertyManagementSystem.BLL.DTOs.Lease;
+using PropertyManagementSystem.BLL.DTOs.Maintenance;
 using PropertyManagementSystem.DAL.Entities;
 using System;
 using System.Collections.Generic;
@@ -30,5 +31,6 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         Task<RenewLeaseResponseDto> RenewLeaseAsync(RenewLeaseDto dto, int renewedBy);
         Task<bool> CanRenewLeaseAsync(int leaseId);
         Task<IEnumerable<Lease>> GetRenewableLeasesAsync();  // Lease sắp hết hạn
+        Task<List<PropertySelectDto>> GetTenantActivePropertiesAsync(int tenantId);
     }
 }

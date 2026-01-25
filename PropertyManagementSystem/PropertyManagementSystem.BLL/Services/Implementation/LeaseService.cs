@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PropertyManagementSystem.BLL.DTOs.Lease;
+using PropertyManagementSystem.BLL.DTOs.Maintenance;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -529,6 +530,21 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 return response;
             }
         }
+        public async Task<List<PropertySelectDto>> GetTenantActivePropertiesAsync(int tenantId)
+        {
+            var activeLeases = await _unitOfWork.Leases.GetByTenantIdAsync(tenantId);
 
+            var result = activeLeases
+                .Where(l => l.Status == "Active")
+                .Select(l => new PropertySelectDto
+                {
+                    PropertyId = l.PropertyId,
+                    Name = l.Property?.Name ?? "N/A", 
+                    Address = l.Property?.Address ?? "N/A"
+                })
+                .ToList();
+
+            return result;
+        }
     }
 }
