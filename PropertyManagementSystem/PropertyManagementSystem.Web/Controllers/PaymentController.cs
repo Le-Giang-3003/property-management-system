@@ -1,9 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Payments;
-using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.Payment;
-using System.Security.Claims;
+using QRCoder;
+using System.Drawing.Imaging;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
@@ -21,24 +20,22 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             var tenantClaim = User.FindFirst("TenantId");
             if (tenantClaim != null && int.TryParse(tenantClaim.Value, out var tenantId))
+            {
                 return tenantId;
+            }
             return null;
         }
 
-        private async Task<MakePaymentViewModel> PrepareViewModelAsync(MakePaymentViewModel? existingVm = null)
+        [HttpGet]
+        [Route("Payment/MakePayment")]
+        public async Task<IActionResult> MakePayment()
         {
             var tenantId = GetTenantId();
-            var invoices = tenantId.HasValue 
-                ? await _paymentService.GetAvailableInvoicesAsync(tenantId.Value) 
-                : new List<BLL.DTOs.Invoice.InvoiceDto>();
+            if (tenantId == null) return RedirectToAction("Login", "Auth");
 
             return new MakePaymentViewModel
             {
-                InvoiceId = existingVm?.InvoiceId ?? 0,
-                Amount = existingVm?.Amount ?? 0,
-                PaymentMethod = existingVm?.PaymentMethod ?? string.Empty,
-                Notes = existingVm?.Notes ?? string.Empty,
-                AvailableInvoices = invoices
+                AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value)
             };
         }
 
@@ -58,22 +55,17 @@ namespace PropertyManagementSystem.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Payment/MakePayment")]
         public async Task<IActionResult> MakePayment(MakePaymentViewModel vm)
         {
-            ViewData["PortalMode"] = "Tenant";
             var tenantId = GetTenantId();
-            if (!tenantId.HasValue)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            if (tenantId == null) return RedirectToAction("Login", "Auth");
 
             if (!ModelState.IsValid)
             {
-                // Repopulate available invoices on validation error
-                vm = await PrepareViewModelAsync(vm);
+                vm.AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value);
                 return View(vm);
             }
-
             try
             {
                 var dto = new MakePaymentRequestDto
@@ -86,14 +78,13 @@ namespace PropertyManagementSystem.Web.Controllers
 
                 var result = await _paymentService.MakePaymentAsync(tenantId.Value, dto);
 
-                TempData["SuccessMessage"] = $"Payment successful! Payment ID: #{result.PaymentId}";
+                TempData["SuccessMessage"] = "Thanh toán thành công!";
                 return RedirectToAction("History");
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = ex.Message;
-                // Repopulate available invoices on error
-                vm = await PrepareViewModelAsync(vm);
+                vm.AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value);
                 return View(vm);
             }
         }
@@ -101,10 +92,8 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> History()
         {
-            ViewData["PortalMode"] = "Tenant";
             var tenantId = GetTenantId();
-            if (!tenantId.HasValue)
-                return RedirectToAction("Login", "Auth");
+            if (tenantId == null) return RedirectToAction("Login", "Auth");
 
             var history = await _paymentService.GetPaymentHistoryAsync(tenantId.Value);
             return View(history);
@@ -142,35 +131,29 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction("History");
             }
 
-            // Generate a simple receipt as text for now
-            // In production, you would use a PDF library
-            var receiptContent = $@"
-=====================================
-        PAYMENT RECEIPT
-=====================================
+        [HttpGet]
+        public IActionResult GenerateBankTransferQr(int invoiceId, decimal amount)
+        {
+            string myBank = "Vietcombank";
+            string myAccount = "1025755773";
+            string myName = "TRUONG HOANG PHAT";
+            string content = $"THANH TOAN HD {invoiceId}";
 
-Payment ID: #{payment.PaymentId}
-Date: {payment.PaymentDate:dd/MM/yyyy HH:mm}
+            string qrText = $"NGAN HANG: {myBank}\n" +
+                            $"STK: {myAccount}\n" +
+                            $"CHU TK: {myName}\n" +
+                            $"SO TIEN: {amount:N0} VND\n" +
+                            $"NOI DUNG: {content}";
 
-Invoice: {payment.InvoiceNumber}
-Amount Paid: {payment.Amount:N0} VND
-Payment Method: {payment.PaymentMethod}
-Status: {payment.Status}
+            using var qrGenerator = new QRCodeGenerator();
+            using var qrData = qrGenerator.CreateQrCode(qrText, QRCodeGenerator.ECCLevel.Q);
+            using var qrCode = new QRCode(qrData);
 
--------------------------------------
-Invoice Summary
--------------------------------------
-Total Amount: {payment.InvoiceTotalAmount:N0} VND
-Total Paid: {payment.InvoicePaidAmount:N0} VND
-Remaining: {payment.InvoiceRemainingAmount:N0} VND
+            using var qrImage = qrCode.GetGraphic(10);
 
-=====================================
-Thank you for your payment!
-=====================================
-";
-
-            var bytes = System.Text.Encoding.UTF8.GetBytes(receiptContent);
-            return File(bytes, "text/plain", $"receipt-{payment.PaymentId}.txt");
+            using var ms = new MemoryStream();
+            qrImage.Save(ms, ImageFormat.Png);
+            return File(ms.ToArray(), "image/png");
         }
     }
 }

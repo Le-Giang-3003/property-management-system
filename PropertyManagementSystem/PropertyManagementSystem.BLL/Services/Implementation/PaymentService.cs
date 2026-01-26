@@ -72,8 +72,8 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Amount = request.Amount,
                 PaymentDate = DateTime.UtcNow,
                 PaymentMethod = request.PaymentMethod,
-                Status = "Completed", // Use "Completed" to match view expectations
-                Notes = request.Notes,
+                Status = "Confirmed",
+                Notes = request.Notes ?? string.Empty,
                 ConfirmedAt = DateTime.UtcNow,
 
                 AccountNumber = "DEMO-ACCOUNT",
