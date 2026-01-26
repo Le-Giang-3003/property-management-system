@@ -300,7 +300,7 @@
             position: relative;
         }
 
-        .pm-auth-form .pm-input-icon i {
+        .pm-auth-form .pm-input-icon > i {
             position: absolute;
             left: 14px;
             top: 50%;
@@ -339,7 +339,7 @@
         }
 
         .pm-auth-form .pm-input:focus + i,
-        .pm-auth-form .pm-input-icon:focus-within i:first-child {
+        .pm-auth-form .pm-input-icon:focus-within > i {
             color: #4f8cff;
         }
 
@@ -368,6 +368,12 @@
         .pm-password-toggle:hover {
             color: #4f8cff;
             background: rgba(79, 140, 255, 0.08);
+        }
+
+        .pm-password-toggle i {
+            position: static;
+            transform: none;
+            font-size: 18px;
         }
 
         .pm-auth-options {

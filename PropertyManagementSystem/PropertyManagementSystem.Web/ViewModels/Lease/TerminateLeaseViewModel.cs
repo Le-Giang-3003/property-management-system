@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.Web.ViewModels.Lease
 {
     public class TerminateLeaseViewModel
     {
-        // THÔNG TIN HỢP ĐỒNG (CHỈ ĐỌC)
+        // LEASE INFORMATION (READ-ONLY)
         public int LeaseId { get; set; }
         public string LeaseNumber { get; set; } = string.Empty;
         public string TenantName { get; set; } = string.Empty;
@@ -14,15 +14,15 @@ namespace PropertyManagementSystem.Web.ViewModels.Lease
         public DateTime EndDate { get; set; }
         public decimal MonthlyRent { get; set; }
 
-        // THÔNG TIN HỦY HỢP ĐỒNG (NHẬP)
-        [Required(ErrorMessage = "Ngày chấm dứt là bắt buộc")]
+        // TERMINATION INFORMATION (INPUT)
+        [Required(ErrorMessage = "Termination date is required")]
         [DataType(DataType.Date)]
-        [Display(Name = "Ngày chấm dứt hợp đồng")]
+        [Display(Name = "Termination Date")]
         public DateTime TerminationDate { get; set; } = DateTime.Today;
 
-        [Required(ErrorMessage = "Lý do hủy hợp đồng là bắt buộc")]
-        [MinLength(10, ErrorMessage = "Lý do phải có ít nhất 10 ký tự")]
-        [Display(Name = "Lý do hủy hợp đồng")]
+        [Required(ErrorMessage = "Termination reason is required")]
+        [MinLength(10, ErrorMessage = "Reason must have at least 10 characters")]
+        [Display(Name = "Termination Reason")]
         public string Reason { get; set; } = string.Empty;
     }
 

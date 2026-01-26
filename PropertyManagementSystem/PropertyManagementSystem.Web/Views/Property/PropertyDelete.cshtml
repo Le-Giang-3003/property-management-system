@@ -1,7 +1,7 @@
-﻿@model PropertyManagementSystem.DAL.Entities.Property
+@model PropertyManagementSystem.DAL.Entities.Property
 
 @{
-    ViewData["Title"] = $"Xóa {Model.Name}";
+    ViewData["Title"] = $"Delete {Model.Name}";
     Layout = "_AuthLayout";
 }
 
@@ -11,8 +11,8 @@
         <div class="warning-icon">
             <i class="bi bi-exclamation-triangle"></i>
         </div>
-        <h1 class="warning-title">Xác nhận xóa bất động sản</h1>
-        <p class="warning-subtitle">Hành động này không thể hoàn tác!</p>
+        <h1 class="warning-title">Confirm Property Deletion</h1>
+        <p class="warning-subtitle">This action cannot be undone!</p>
     </div>
 
     <!-- Alert Card -->
@@ -21,11 +21,11 @@
             <i class="bi bi-shield-exclamation"></i>
         </div>
         <div class="alert-content">
-            <h5 class="alert-title">Cảnh báo quan trọng!</h5>
+            <h5 class="alert-title">Important Warning!</h5>
             <p class="alert-text">
-                Bạn có chắc chắn muốn xóa bất động sản này?
-                Mọi dữ liệu liên quan bao gồm <strong>hợp đồng, bảo trì, lịch xem nhà, ứng tuyển và hình ảnh</strong>
-                sẽ bị xóa vĩnh viễn và không thể khôi phục.
+                Are you sure you want to delete this property?
+                All related data including <strong>leases, maintenance, viewings, applications and images</strong>
+                will be permanently deleted and cannot be recovered.
             </p>
         </div>
     </div>
@@ -33,7 +33,7 @@
     <!-- Property Info Card -->
     <div class="property-delete-card">
         <div class="card-header-delete">
-            <h3>Thông tin bất động sản sẽ bị xóa</h3>
+            <h3>Property Information to be Deleted</h3>
         </div>
 
         <div class="property-content">
@@ -49,7 +49,7 @@
             <div class="details-grid">
                 <!-- Location -->
                 <div class="detail-item">
-                    <label>Địa chỉ</label>
+                    <label>Address</label>
                     <div class="detail-value">
                         <i class="bi bi-geo-alt"></i>
                         <span>@Model.Address</span>
@@ -57,7 +57,7 @@
                 </div>
 
                 <div class="detail-item">
-                    <label>Khu vực</label>
+                    <label>Location</label>
                     <div class="detail-value">
                         <i class="bi bi-map"></i>
                         <span>@Model.City@(Model.District != null ? $", {Model.District}" : "")</span>
@@ -66,14 +66,14 @@
 
                 <!-- Type & Specs -->
                 <div class="detail-item">
-                    <label>Loại bất động sản</label>
+                    <label>Property Type</label>
                     <div class="detail-value">
                         <span class="badge-type">@Model.PropertyType</span>
                     </div>
                 </div>
 
                 <div class="detail-item">
-                    <label>Thông số</label>
+                    <label>Specifications</label>
                     <div class="detail-value specs">
                         <span class="spec-item">
                             <i class="bi bi-door-closed"></i>
@@ -92,25 +92,25 @@
 
                 <!-- Pricing -->
                 <div class="detail-item highlight">
-                    <label>Giá thuê</label>
+                    <label>Rent Price</label>
                     <div class="detail-value">
-                        <span class="price">@Model.RentAmount.ToString("N0") ₫<small>/tháng</small></span>
+                        <span class="price">@Model.RentAmount.ToString("N0") $<small>/month</small></span>
                     </div>
                 </div>
 
                 @if (Model.DepositAmount.HasValue)
                 {
                     <div class="detail-item">
-                        <label>Tiền cọc</label>
+                        <label>Deposit</label>
                         <div class="detail-value">
-                            <span class="deposit">@Model.DepositAmount.Value.ToString("N0") ₫</span>
+                            <span class="deposit">@Model.DepositAmount.Value.ToString("N0") $</span>
                         </div>
                     </div>
                 }
 
                 <!-- Status -->
                 <div class="detail-item">
-                    <label>Trạng thái</label>
+                    <label>Status</label>
                     <div class="detail-value">
                         <span class="status-badge @GetStatusClass(Model.Status)">
                             @GetStatusDisplay(Model.Status)
@@ -119,7 +119,7 @@
                 </div>
 
                 <div class="detail-item">
-                    <label>Ngày tạo</label>
+                    <label>Created Date</label>
                     <div class="detail-value">
                         <i class="bi bi-calendar3"></i>
                         <span>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
@@ -132,7 +132,7 @@
             {
                 <div class="divider"></div>
                 <div class="landlord-section">
-                    <label>Chủ bất động sản</label>
+                    <label>Property Owner</label>
                     <div class="landlord-info">
                         <div class="landlord-avatar">
                             @Model.Landlord.FullName.Substring(0, 1).ToUpper()
@@ -153,21 +153,21 @@
 
         <div class="action-buttons">
             <button type="submit" class="btn-delete"
-                    onclick="return confirm('⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA BẤT ĐỘNG SẢN NÀY KHÔNG?\n\nHành động này không thể hoàn tác!');">
+                    onclick="return confirm('⚠️ ARE YOU SURE YOU WANT TO DELETE THIS PROPERTY?\n\nThis action cannot be undone!');">
                 <i class="bi bi-trash3"></i>
-                Xác nhận xóa vĩnh viễn
+                Confirm Permanent Deletion
             </button>
             <a asp-action="Index" class="btn-cancel">
                 <i class="bi bi-x-lg"></i>
-                Hủy bỏ
+                Cancel
             </a>
         </div>
 
         <div class="form-footer">
             <small>
-                Hoặc quay lại
+                Or go back to
                 <a asp-action="Details" asp-route-id="@Model.PropertyId" class="link">
-                    xem chi tiết bất động sản
+                    view property details
                 </a>
             </small>
         </div>
@@ -607,10 +607,10 @@
     {
         return status switch
         {
-            "Available" => "Có sẵn",
-            "Rented" => "Đã thuê",
-            "Maintenance" => "Bảo trì",
-            "Unavailable" => "Không khả dụng",
+            "Available" => "Available",
+            "Rented" => "Rented",
+            "Maintenance" => "Maintenance",
+            "Unavailable" => "Unavailable",
             _ => status
         };
     }

@@ -1,6 +1,6 @@
-﻿@model PropertyManagementSystem.BLL.DTOs.User.UserProfileDto
+@model PropertyManagementSystem.BLL.DTOs.User.UserProfileDto
 @{
-    ViewData["Title"] = "Thông tin cá nhân";
+    ViewData["Title"] = "My Profile";
 }
 
 <div class="profile-shell d-flex flex-column flex-lg-row gap-3">
@@ -129,15 +129,15 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small text-muted">Phone Number</label>
-                                    <input class="form-control" value="@(Model.PhoneNumber ?? "Chưa cập nhật")" disabled />
+                                    <input class="form-control" value="@(Model.PhoneNumber ?? "Not updated")" disabled />
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small text-muted">Date of Birth</label>
-                                    <input class="form-control" value="@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")" disabled />
+                                    <input class="form-control" value="@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Not updated")" disabled />
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label small text-muted">Address</label>
-                                    <input class="form-control" value="@(Model.Address ?? "Chưa cập nhật")" disabled />
+                                    <input class="form-control" value="@(Model.Address ?? "Not updated")" disabled />
                                 </div>
                             </div>
 

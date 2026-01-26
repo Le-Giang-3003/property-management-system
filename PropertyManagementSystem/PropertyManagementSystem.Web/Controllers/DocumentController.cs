@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PropertyManagementSystem.BLL.DTOs;
@@ -50,7 +50,7 @@ namespace PropertyManagementSystem.Web.Controllers
                     if (isAjax)
                         return Json(new { success = false, message = "Vui lòng chọn file" });
 
-                    TempData["Error"] = "❌ Vui lòng chọn file";
+                    TempData["Error"] = "Please select a file";
                     return RedirectToAction(nameof(Upload), new { entityType, entityId });
                 }
 
@@ -62,7 +62,7 @@ namespace PropertyManagementSystem.Web.Controllers
                     if (isAjax)
                         return Json(new { success = false, message = $"Loại file không được phép cho {documentType}" });
 
-                    TempData["Error"] = $"❌ Loại file không được phép cho {documentType}";
+                    TempData["Error"] = $"File type not allowed for {documentType}";
                     return RedirectToAction(nameof(Upload), new { entityType, entityId });
                 }
 
@@ -75,7 +75,7 @@ namespace PropertyManagementSystem.Web.Controllers
                     if (isAjax)
                         return Json(new { success = false, message = $"File vượt quá dung lượng cho phép ({maxSize})" });
 
-                    TempData["Error"] = $"❌ File vượt quá dung lượng cho phép ({maxSize})";
+                    TempData["Error"] = $"File exceeds maximum size ({maxSize})";
                     return RedirectToAction(nameof(Upload), new { entityType, entityId });
                 }
 
@@ -99,7 +99,7 @@ namespace PropertyManagementSystem.Web.Controllers
                             message = $"Upload '{file.FileName}' thành công! ({FormatFileSize(file.Length)})"
                         });
 
-                    TempData["Success"] = $"✅ Upload '{file.FileName}' thành công! ({FormatFileSize(file.Length)})";
+                    TempData["Success"] = $"Uploaded '{file.FileName}' successfully! ({FormatFileSize(file.Length)})";
 
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                         return Redirect(returnUrl);
@@ -110,7 +110,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 if (isAjax)
                     return Json(new { success = false, message = "Không thể upload file" });
 
-                TempData["Error"] = "❌ Không thể upload file";
+                TempData["Error"] = "Unable to upload file";
                 return RedirectToAction(nameof(Upload), new { entityType, entityId });
             }
             catch (ArgumentException ex)
@@ -120,7 +120,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 if (isAjax)
                     return Json(new { success = false, message = ex.Message });
 
-                TempData["Error"] = "❌ " + ex.Message;
+                TempData["Error"] = ex.Message;
                 return RedirectToAction(nameof(Upload), new { entityType, entityId });
             }
             catch (Exception ex)
@@ -131,7 +131,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 if (isAjax)
                     return Json(new { success = false, message = "Có lỗi xảy ra khi upload file" });
 
-                TempData["Error"] = "❌ Có lỗi xảy ra khi upload file";
+                TempData["Error"] = "An error occurred while uploading file";
                 return RedirectToAction(nameof(Upload), new { entityType, entityId });
             }
         }
@@ -149,7 +149,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
                 if (result == null)
                 {
-                    TempData["Error"] = "❌ Không tìm thấy file hoặc file đã bị xóa";
+                    TempData["Error"] = "File not found or has been deleted";
                     return RedirectToAction(nameof(MyDocuments));
                 }
 
@@ -162,7 +162,7 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error downloading document {DocumentId}", id);
-                TempData["Error"] = "❌ Có lỗi xảy ra khi tải file";
+                TempData["Error"] = "An error occurred while downloading file";
                 return RedirectToAction(nameof(MyDocuments));
             }
         }
@@ -183,7 +183,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var document = await _documentService.GetDocumentByIdAsync(id);
                 if (document == null)
                 {
-                    TempData["Error"] = "❌ Không tìm thấy tài liệu";
+                    TempData["Error"] = "Document not found";
                     return RedirectToUrl(returnUrl, nameof(MyDocuments));
                 }
 
@@ -191,11 +191,11 @@ namespace PropertyManagementSystem.Web.Controllers
 
                 if (result)
                 {
-                    TempData["Success"] = $"✅ Đã xóa '{document.FileName}' thành công";
+                    TempData["Success"] = $"Deleted '{document.FileName}' successfully";
                 }
                 else
                 {
-                    TempData["Error"] = "❌ Không thể xóa tài liệu";
+                    TempData["Error"] = "Unable to delete document";
                 }
 
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -207,13 +207,13 @@ namespace PropertyManagementSystem.Web.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                TempData["Error"] = "❌ " + ex.Message;
+                TempData["Error"] = ex.Message;
                 return RedirectToUrl(returnUrl, nameof(MyDocuments));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting document {DocumentId}", id);
-                TempData["Error"] = "❌ Có lỗi xảy ra khi xóa tài liệu";
+                TempData["Error"] = "An error occurred while deleting document";
                 return RedirectToUrl(returnUrl, nameof(MyDocuments));
             }
         }
@@ -230,7 +230,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
                 if (document == null)
                 {
-                    TempData["Error"] = "❌ Không tìm thấy tài liệu";
+                    TempData["Error"] = "Document not found";
                     return RedirectToAction(nameof(DeletedDocuments));
                 }
 
@@ -238,24 +238,24 @@ namespace PropertyManagementSystem.Web.Controllers
 
                 if (result)
                 {
-                    TempData["Success"] = $"✅ Đã xóa vĩnh viễn '{document.FileName}'";
+                    TempData["Success"] = $"Permanently deleted '{document.FileName}'";
                 }
                 else
                 {
-                    TempData["Error"] = "❌ Không thể xóa tài liệu";
+                    TempData["Error"] = "Unable to delete document";
                 }
 
                 return RedirectToAction(nameof(DeletedDocuments));
             }
             catch (UnauthorizedAccessException ex)
             {
-                TempData["Error"] = "❌ " + ex.Message;
+                TempData["Error"] = ex.Message;
                 return RedirectToAction(nameof(DeletedDocuments));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error permanently deleting document {DocumentId}", id);
-                TempData["Error"] = "❌ Có lỗi xảy ra";
+                TempData["Error"] = "An error occurred";
                 return RedirectToAction(nameof(DeletedDocuments));
             }
         }
@@ -270,7 +270,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var document = await _documentService.GetDocumentByIdAsync(id);
                 if (document == null)
                 {
-                    TempData["Error"] = "❌ Không tìm thấy tài liệu";
+                    TempData["Error"] = "Document not found";
                     return RedirectToAction(nameof(DeletedDocuments));
                 }
 
@@ -278,11 +278,11 @@ namespace PropertyManagementSystem.Web.Controllers
 
                 if (result)
                 {
-                    TempData["Success"] = $"✅ Đã khôi phục '{document.FileName}'";
+                    TempData["Success"] = $"Restored '{document.FileName}'";
                 }
                 else
                 {
-                    TempData["Error"] = "❌ Không thể khôi phục";
+                    TempData["Error"] = "Unable to restore";
                 }
 
                 return RedirectToAction(nameof(DeletedDocuments));
@@ -290,7 +290,7 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error restoring document {DocumentId}", id);
-                TempData["Error"] = "❌ Có lỗi xảy ra";
+                TempData["Error"] = "An error occurred";
                 return RedirectToAction(nameof(DeletedDocuments));
             }
         }
@@ -312,7 +312,7 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading documents for user {UserId}", GetCurrentUserId());
-                TempData["Error"] = "❌ Có lỗi xảy ra khi tải danh sách tài liệu";
+                TempData["Error"] = "An error occurred while loading documents";
                 return View(new List<DAL.Entities.Document>());
             }
         }
@@ -333,7 +333,7 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading documents for {EntityType} {EntityId}", entityType, entityId);
-                TempData["Error"] = "❌ Có lỗi xảy ra khi tải danh sách tài liệu";
+                TempData["Error"] = "An error occurred while loading documents";
                 return View(new List<DAL.Entities.Document>());
             }
         }
@@ -350,7 +350,7 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading deleted documents");
-                TempData["Error"] = "❌ Có lỗi xảy ra";
+                TempData["Error"] = "An error occurred";
                 return View(new List<DAL.Entities.Document>());
             }
         }
@@ -363,7 +363,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var document = await _documentService.GetDocumentByIdAsync(id);
                 if (document == null)
                 {
-                    TempData["Error"] = "❌ Không tìm thấy tài liệu";
+                    TempData["Error"] = "Document not found";
                     return RedirectToAction(nameof(MyDocuments));
                 }
 
@@ -372,7 +372,7 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading document {DocumentId}", id);
-                TempData["Error"] = "❌ Có lỗi xảy ra";
+                TempData["Error"] = "An error occurred";
                 return RedirectToAction(nameof(MyDocuments));
             }
         }
@@ -484,7 +484,7 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading lease documents for tenant user {UserId}", GetCurrentUserId());
-                TempData["Error"] = "❌ Có lỗi xảy ra khi tải tài liệu hợp đồng";
+                TempData["Error"] = "An error occurred while loading lease documents";
                 return View(new List<DAL.Entities.Document>());
             }
         }

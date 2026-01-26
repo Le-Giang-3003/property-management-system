@@ -1,4 +1,4 @@
-﻿@model string
+@model string
 @*
     Header ViewComponent - Bootstrap 5 Pure Design
     Giao diện như hình: Logo trái, Search giữa, Icons phải, Auth buttons cuối
@@ -296,29 +296,29 @@
     <span></span>
     </button>
 
-    <!-- Panel Danh mục -->
+    <!-- Category Panel -->
     <div id="categoryPanel" class="category-panel shadow">
         <div class="category-header">
-            Danh mục
+            Categories
         </div>
         <div class="list-group list-group-flush">
             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
-                <span>💰</span> <span>Mua bán</span>
+                <span>💰</span> <span>Buy & Sell</span>
             </a>
             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
-                <span>🏠</span> <span>Cho thuê</span>
+                <span>🏠</span> <span>For Rent</span>
             </a>
             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
-                <span>🏗️</span> <span>Dự án</span>
+                <span>🏗️</span> <span>Projects</span>
             </a>
             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
-                <span>🧑‍💼</span> <span>Tìm môi giới</span>
+                <span>🧑‍💼</span> <span>Find Agent</span>
             </a>
             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
-                <span>📈</span> <span>Biểu đồ biến động giá</span>
+                <span>📈</span> <span>Price Charts</span>
             </a>
             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
-                <span>🏦</span> <span>Vay mua nhà</span>
+                <span>🏦</span> <span>Mortgage</span>
             </a>
         </div>
     </div>
@@ -341,21 +341,21 @@
             <div class="search-wrapper">
                 <span class="search-icon">🔍</span>
 
-                <input type="text" class="search-input" placeholder="Tìm kiếm...">
+                <input type="text" class="search-input" placeholder="Search...">
 
                 <select class="location-select inside">
-                    <option>Chọn khu vực</option>
-                    <option>Hà Nội</option>
-                    <option>TPHCM</option>
-                    <option>Đà Nẵng</option>
+                    <option>Select Area</option>
+                    <option>Hanoi</option>
+                    <option>HCMC</option>
+                    <option>Da Nang</option>
                 </select>
 
-                <button class="btn btn-search inside">Tìm</button>
+                <button class="btn btn-search inside">Search</button>
             </div>
 
             <div class="d-flex align-content-center ms-auto">
                 <span class="text-white fs-3">
-                    Thuê nhà dễ dàng, đăng tin nhanh chóng
+                    Easy renting, quick posting
                 </span>
             </div>
 
@@ -363,26 +363,26 @@
             <div class="d-flex align-items-center gap-2 ms-auto">
 
                 <!-- Heart Icon -->
-                <button class="icon-btn" title="Yêu thích">
+                <button class="icon-btn" title="Favorites">
                     ❤️
                 </button>
 
                 <!-- Chat Icon with Badge -->
-                <button class="icon-btn position-relative" title="Tin nhắn">
+                <button class="icon-btn position-relative" title="Messages">
                     💬
                     <span class="badge-notification">5</span>
                 </button>
 
                 <!-- Notification Icon -->
-                <button class="icon-btn" title="Thông báo">
+                <button class="icon-btn" title="Notifications">
                     🔔
                 </button>
 
                 <!-- Post Button (Black) -->
-                <button class="btn btn-action btn-post">Đăng tin</button>
+                <button class="btn btn-action btn-post">Post Listing</button>
 
                 <!-- Login Button (White) -->
-                <a asp-controller="Login" asp-action="NavigateLoginPage" class="btn btn-action btn-login d-none d-lg-block">Đăng nhập</a>
+                <a asp-controller="Login" asp-action="NavigateLoginPage" class="btn btn-action btn-login d-none d-lg-block">Sign In</a>
             </div>
         </div>
     </div>

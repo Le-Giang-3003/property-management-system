@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Payments;
+using PropertyManagementSystem.BLL.DTOs.Invoice;
 using PropertyManagementSystem.Web.ViewModels.Payment;
 using QRCoder;
 using System.Drawing.Imaging;
@@ -26,16 +28,20 @@ namespace PropertyManagementSystem.Web.Controllers
             return null;
         }
 
-        [HttpGet]
-        [Route("Payment/MakePayment")]
-        public async Task<IActionResult> MakePayment()
+        private async Task<MakePaymentViewModel> PrepareViewModelAsync(MakePaymentViewModel? existingVm = null)
         {
             var tenantId = GetTenantId();
-            if (tenantId == null) return RedirectToAction("Login", "Auth");
+            var invoices = tenantId.HasValue
+                ? await _paymentService.GetAvailableInvoicesAsync(tenantId.Value)
+                : new List<InvoiceDto>();
 
             return new MakePaymentViewModel
             {
-                AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value)
+                InvoiceId = existingVm?.InvoiceId ?? 0,
+                Amount = existingVm?.Amount ?? 0,
+                PaymentMethod = existingVm?.PaymentMethod ?? string.Empty,
+                Notes = existingVm?.Notes ?? string.Empty,
+                AvailableInvoices = invoices
             };
         }
 
@@ -55,17 +61,21 @@ namespace PropertyManagementSystem.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Route("Payment/MakePayment")]
         public async Task<IActionResult> MakePayment(MakePaymentViewModel vm)
         {
+            ViewData["PortalMode"] = "Tenant";
             var tenantId = GetTenantId();
-            if (tenantId == null) return RedirectToAction("Login", "Auth");
+            if (!tenantId.HasValue)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
             if (!ModelState.IsValid)
             {
-                vm.AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value);
+                vm = await PrepareViewModelAsync(vm);
                 return View(vm);
             }
+
             try
             {
                 var dto = new MakePaymentRequestDto
@@ -78,13 +88,13 @@ namespace PropertyManagementSystem.Web.Controllers
 
                 var result = await _paymentService.MakePaymentAsync(tenantId.Value, dto);
 
-                TempData["SuccessMessage"] = "Thanh toán thành công!";
+                TempData["SuccessMessage"] = $"Payment successful! Payment ID: #{result.PaymentId}";
                 return RedirectToAction("History");
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = ex.Message;
-                vm.AvailableInvoices = await _paymentService.GetAvailableInvoicesAsync(tenantId.Value);
+                vm = await PrepareViewModelAsync(vm);
                 return View(vm);
             }
         }
@@ -92,8 +102,12 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> History()
         {
+            ViewData["PortalMode"] = "Tenant";
             var tenantId = GetTenantId();
-            if (tenantId == null) return RedirectToAction("Login", "Auth");
+            if (!tenantId.HasValue)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
             var history = await _paymentService.GetPaymentHistoryAsync(tenantId.Value);
             return View(history);
@@ -105,7 +119,9 @@ namespace PropertyManagementSystem.Web.Controllers
             ViewData["PortalMode"] = "Tenant";
             var tenantId = GetTenantId();
             if (!tenantId.HasValue)
+            {
                 return RedirectToAction("Login", "Auth");
+            }
 
             var payment = await _paymentService.GetPaymentByIdAsync(id);
             if (payment == null)
@@ -122,7 +138,9 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             var tenantId = GetTenantId();
             if (!tenantId.HasValue)
+            {
                 return RedirectToAction("Login", "Auth");
+            }
 
             var payment = await _paymentService.GetPaymentByIdAsync(id);
             if (payment == null)
@@ -130,6 +148,36 @@ namespace PropertyManagementSystem.Web.Controllers
                 TempData["ErrorMessage"] = "Payment not found.";
                 return RedirectToAction("History");
             }
+
+            // Generate a simple receipt as text
+            var receiptContent = $@"
+                =====================================
+                        PAYMENT RECEIPT
+                =====================================
+
+                Payment ID: #{payment.PaymentId}
+                Date: {payment.PaymentDate:dd/MM/yyyy HH:mm}
+
+                Invoice: {payment.InvoiceNumber}
+                Amount Paid: {payment.Amount:N0} VND
+                Payment Method: {payment.PaymentMethod}
+                Status: {payment.Status}
+
+                -------------------------------------
+                Invoice Summary
+                -------------------------------------
+                Total Amount: {payment.InvoiceTotalAmount:N0} VND
+                Total Paid: {payment.InvoicePaidAmount:N0} VND
+                Remaining: {payment.InvoiceRemainingAmount:N0} VND
+
+                =====================================
+                Thank you for your payment!
+                =====================================
+                ";
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(receiptContent);
+            return File(bytes, "text/plain", $"receipt-{payment.PaymentId}.txt");
+        }
 
         [HttpGet]
         public IActionResult GenerateBankTransferQr(int invoiceId, decimal amount)

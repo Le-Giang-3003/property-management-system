@@ -12,13 +12,13 @@
         <div class="header-content">
             <h1 class="page-title">
                 <i class="bi bi-plus-circle"></i>
-                Tạo bất động sản mới
+                Create New Property
             </h1>
-            <p class="page-subtitle">Điền thông tin chi tiết về bất động sản của bạn</p>
+            <p class="page-subtitle">Fill in the details about your property</p>
         </div>
         <a asp-action="Index" class="btn-back">
             <i class="bi bi-arrow-left"></i>
-            Quay lại
+            Back
         </a>
     </div>
 
@@ -29,27 +29,27 @@
         <!-- Section 1: Basic Info -->
         <div class="form-section">
             <div class="section-title">
-                <h3>Thông tin cơ bản</h3>
-                <span class="section-badge">Bước 1/4</span>
+                <h3>Basic Information</h3>
+                <span class="section-badge">Step 1/4</span>
             </div>
             <div class="form-card">
                 <div class="form-group">
                     <label asp-for="Name" class="form-label">
-                        Tên bất động sản
+                        Property Name
                         <span class="required">*</span>
                     </label>
-                    <input asp-for="Name" class="form-input" placeholder="VD: Căn hộ 2PN cao cấp Quận 7" />
+                    <input asp-for="Name" class="form-input" placeholder="E.g: 2BR Premium Apartment District 7" />
                     <span asp-validation-for="Name" class="form-error"></span>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label asp-for="PropertyType" class="form-label">
-                            Loại bất động sản
+                            Property Type
                             <span class="required">*</span>
                         </label>
                         <select asp-for="PropertyType" class="form-select">
-                            <option value="">-- Chọn loại --</option>
+                            <option value="">-- Select type --</option>
                             @foreach (var type in Model.PropertyTypes ?? new())
                             {
                                 <option value="@type.Value">@type.Text</option>
@@ -59,7 +59,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label asp-for="AvailableFrom" class="form-label">Có sẵn từ ngày</label>
+                        <label asp-for="AvailableFrom" class="form-label">Available From</label>
                         <input asp-for="AvailableFrom" type="date" class="form-input" />
                         <span asp-validation-for="AvailableFrom" class="form-error"></span>
                     </div>
@@ -70,32 +70,32 @@
         <!-- Section 2: Location -->
         <div class="form-section">
             <div class="section-title">
-                <h3>Địa chỉ</h3>
-                <span class="section-badge">Bước 2/4</span>
+                <h3>Address</h3>
+                <span class="section-badge">Step 2/4</span>
             </div>
             <div class="form-card">
                 <div class="form-group">
                     <label asp-for="Address" class="form-label">
-                        Địa chỉ chi tiết
+                        Detailed Address
                         <span class="required">*</span>
                     </label>
-                    <input asp-for="Address" class="form-input" placeholder="123 Đường ABC, Phường XYZ" />
+                    <input asp-for="Address" class="form-input" placeholder="123 ABC Street, XYZ Ward" />
                     <span asp-validation-for="Address" class="form-error"></span>
                 </div>
 
                 <div class="form-row-3">
                     <div class="form-group">
-                        <label asp-for="City" class="form-label">Thành phố</label>
-                        <input asp-for="City" class="form-input" placeholder="TP Hồ Chí Minh" />
+                        <label asp-for="City" class="form-label">City</label>
+                        <input asp-for="City" class="form-input" placeholder="Ho Chi Minh City" />
                         <span asp-validation-for="City" class="form-error"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="District" class="form-label">Quận / Huyện</label>
-                        <input asp-for="District" class="form-input" placeholder="Quận 7" />
+                        <label asp-for="District" class="form-label">District</label>
+                        <input asp-for="District" class="form-input" placeholder="District 7" />
                         <span asp-validation-for="District" class="form-error"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="ZipCode" class="form-label">Mã bưu điện</label>
+                        <label asp-for="ZipCode" class="form-label">Zip Code</label>
                         <input asp-for="ZipCode" class="form-input" placeholder="70000" />
                         <span asp-validation-for="ZipCode" class="form-error"></span>
                     </div>
@@ -105,7 +105,7 @@
                     <div class="form-group">
                         <label asp-for="Latitude" class="form-label">
                             Latitude
-                            <span class="tooltip-icon" title="Tọa độ vĩ độ">
+                            <span class="tooltip-icon" title="Latitude coordinate">
                                 <i class="bi bi-info-circle"></i>
                             </span>
                         </label>
@@ -115,7 +115,7 @@
                     <div class="form-group">
                         <label asp-for="Longitude" class="form-label">
                             Longitude
-                            <span class="tooltip-icon" title="Tọa độ kinh độ">
+                            <span class="tooltip-icon" title="Longitude coordinate">
                                 <i class="bi bi-info-circle"></i>
                             </span>
                         </label>
@@ -129,14 +129,14 @@
         <!-- Section 3: Details & Pricing -->
         <div class="form-section">
             <div class="section-title">
-                <h3>Thông số & Giá cả</h3>
-                <span class="section-badge">Bước 3/4</span>
+                <h3>Specifications & Pricing</h3>
+                <span class="section-badge">Step 3/4</span>
             </div>
             <div class="form-card">
                 <div class="form-row-4">
                     <div class="form-group">
                         <label asp-for="Bedrooms" class="form-label">
-                            Phòng ngủ
+                            Bedrooms
                             <span class="required">*</span>
                         </label>
                         <div class="input-with-icon">
@@ -147,7 +147,7 @@
                     </div>
                     <div class="form-group">
                         <label asp-for="Bathrooms" class="form-label">
-                            Phòng tắm
+                            Bathrooms
                             <span class="required">*</span>
                         </label>
                         <div class="input-with-icon">
@@ -158,7 +158,7 @@
                     </div>
                     <div class="form-group">
                         <label asp-for="SquareFeet" class="form-label">
-                            Diện tích (ft²)
+                            Area (ft²)
                             <span class="required">*</span>
                         </label>
                         <div class="input-with-icon">
@@ -174,7 +174,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label asp-for="RentAmount" class="form-label">
-                            Giá thuê/tháng (₫)
+                            Rent/Month ($)
                             <span class="required">*</span>
                         </label>
                         <div class="input-with-icon">
@@ -184,7 +184,7 @@
                         <span asp-validation-for="RentAmount" class="form-error"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="DepositAmount" class="form-label">Tiền cọc (₫)</label>
+                        <label asp-for="DepositAmount" class="form-label">Deposit ($)</label>
                         <div class="input-with-icon">
                             <i class="bi bi-piggy-bank"></i>
                             <input asp-for="DepositAmount" type="number" step="100000" min="0" class="form-input" placeholder="10,000,000" />
@@ -198,30 +198,30 @@
         <!-- Section 4: Description & Amenities -->
         <div class="form-section">
             <div class="section-title">
-                <h3>Mô tả & Tiện ích</h3>
-                <span class="section-badge">Bước 4/4</span>
+                <h3>Description & Amenities</h3>
+                <span class="section-badge">Step 4/4</span>
             </div>
             <div class="form-card">
                 <div class="form-group">
-                    <label asp-for="Description" class="form-label">Mô tả chi tiết</label>
+                    <label asp-for="Description" class="form-label">Detailed Description</label>
                     <textarea asp-for="Description" rows="5" class="form-textarea"
-                              placeholder="Mô tả chi tiết về căn hộ, vị trí thuận lợi, tiện ích xung quanh..."></textarea>
+                              placeholder="Detailed description of the apartment, convenient location, surrounding amenities..."></textarea>
                     <span asp-validation-for="Description" class="form-error"></span>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label asp-for="Amenities" class="form-label">Tiện ích</label>
+                        <label asp-for="Amenities" class="form-label">Amenities</label>
                         <textarea asp-for="Amenities" rows="3" class="form-textarea"
-                                  placeholder="VD: Hồ bơi, Gym, Parking, Security 24/7"></textarea>
-                        <small class="form-hint">Phân cách bằng dấu phẩy</small>
+                                  placeholder="E.g: Pool, Gym, Parking, 24/7 Security"></textarea>
+                        <small class="form-hint">Separate with commas</small>
                         <span asp-validation-for="Amenities" class="form-error"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="UtilitiesIncluded" class="form-label">Tiện ích đi kèm</label>
+                        <label asp-for="UtilitiesIncluded" class="form-label">Utilities Included</label>
                         <textarea asp-for="UtilitiesIncluded" rows="3" class="form-textarea"
-                                  placeholder="VD: Điện, Nước, Internet, Cable TV"></textarea>
-                        <small class="form-hint">Phân cách bằng dấu phẩy</small>
+                                  placeholder="E.g: Electricity, Water, Internet, Cable TV"></textarea>
+                        <small class="form-hint">Separate with commas</small>
                         <span asp-validation-for="UtilitiesIncluded" class="form-error"></span>
                     </div>
                 </div>
@@ -231,14 +231,14 @@
                         <input asp-for="IsFurnished" type="checkbox" class="checkbox-input">
                         <span class="checkbox-text">
                             <i class="bi bi-check-circle"></i>
-                            Nội thất đầy đủ
+                            Fully Furnished
                         </span>
                     </label>
                     <label class="checkbox-label">
                         <input asp-for="PetsAllowed" type="checkbox" class="checkbox-input">
                         <span class="checkbox-text">
                             <i class="bi bi-check-circle"></i>
-                            Cho phép nuôi thú cưng
+                            Pets Allowed
                         </span>
                     </label>
                 </div>
@@ -249,10 +249,10 @@
         <div class="form-actions">
             <button type="submit" class="btn-submit">
                 <i class="bi bi-check-lg"></i>
-                Tạo bất động sản
+                Create Property
             </button>
             <a asp-action="Index" class="btn-cancel">
-                Hủy bỏ
+                Cancel
             </a>
         </div>
     </form>

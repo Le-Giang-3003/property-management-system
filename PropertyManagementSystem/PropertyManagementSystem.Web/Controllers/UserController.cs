@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.User;
 
@@ -59,7 +59,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 TempData["RegistrationPassword"] = vm.Password;
                 TempData["OtpHash"] = otpHash;
 
-                TempData["Info"] = "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.";
+                TempData["Info"] = "OTP has been sent to your email. Please check your inbox.";
 
                 return RedirectToAction("VerifyOtp"); // Redirect to OTP verification page
             }
@@ -126,7 +126,7 @@ namespace PropertyManagementSystem.Web.Controllers
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(username) ||
                 string.IsNullOrEmpty(password) || string.IsNullOrEmpty(otpHash))
             {
-                TempData["Error"] = "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.";
+                TempData["Error"] = "Registration session has expired. Please register again.";
                 return RedirectToAction("Register");
             }
 
@@ -135,7 +135,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (!isValid)
             {
-                ModelState.AddModelError("", "Mã OTP không chính xác hoặc đã hết hạn.");
+                ModelState.AddModelError("", "OTP is incorrect or has expired.");
                 vm.Email = email;
                 vm.OtpHash = otpHash;
 
@@ -152,11 +152,11 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (!result)
             {
-                TempData["Error"] = "Đăng ký thất bại. Vui lòng thử lại.";
+                TempData["Error"] = "Registration failed. Please try again.";
                 return RedirectToAction("Register");
             }
 
-            TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+            TempData["SuccessMessage"] = "Registration successful! Please sign in.";
             return RedirectToAction("Login", "Auth");
         }
         /// <summary>
@@ -183,13 +183,13 @@ namespace PropertyManagementSystem.Web.Controllers
                 TempData.Keep("RegistrationUsername");
                 TempData.Keep("RegistrationPassword");
 
-                TempData["Success"] = "Mã OTP mới đã được gửi đến email của bạn.";
+                TempData["Success"] = "A new OTP has been sent to your email.";
 
                 return RedirectToAction("VerifyOtp");
             }
             catch (Exception)
             {
-                TempData["Error"] = "Không thể gửi lại mã OTP. Vui lòng thử lại.";
+                TempData["Error"] = "Unable to resend OTP. Please try again.";
                 return RedirectToAction("VerifyOtp");
             }
         }

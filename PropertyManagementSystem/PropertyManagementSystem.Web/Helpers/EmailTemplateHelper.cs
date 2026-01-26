@@ -1,9 +1,9 @@
-﻿namespace PropertyManagementSystem.Web.Helpers
+namespace PropertyManagementSystem.Web.Helpers
 {
     public static class EmailTemplateHelper
     {
         /// <summary>
-        /// EMAIL 1: XÁC NHẬN ĐĂNG KÝ TÀI KHOẢN
+        /// EMAIL 1: ACCOUNT REGISTRATION CONFIRMATION
         /// </summary>
         public static string CreateAccountConfirmationEmail(string userName, string confirmationLink)
         {
@@ -23,39 +23,39 @@
                 <body>
                     <div class='container'>
                         <div class='header'>
-                            <h1 style='margin: 0;'>✅ Xác nhận tài khoản</h1>
+                            <h1 style='margin: 0;'>Confirm Your Account</h1>
                         </div>
                         
                         <div class='content'>
-                            <p>Xin chào <strong>{userName}</strong>,</p>
+                            <p>Hello <strong>{userName}</strong>,</p>
                             
-                            <p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>Property Management System</strong>!</p>
+                            <p>Thank you for registering an account with <strong>Property Management System</strong>!</p>
                             
-                            <p>Để hoàn tất đăng ký, vui lòng nhấn vào nút bên dưới để xác nhận địa chỉ email của bạn:</p>
+                            <p>To complete your registration, please click the button below to confirm your email address:</p>
                             
                             <div style='text-align: center; margin: 30px 0;'>
                                 <a href='{confirmationLink}' class='button'>
-                                    🔓 Xác nhận tài khoản
+                                    Confirm Account
                                 </a>
                             </div>
                             
                             <p style='color: #666; font-size: 14px;'>
-                                Hoặc copy đường link sau vào trình duyệt:<br>
+                                Or copy this link into your browser:<br>
                                 <a href='{confirmationLink}' style='color: #4CAF50; word-break: break-all;'>{confirmationLink}</a>
                             </p>
                             
                             <div class='warning'>
-                                <p style='margin: 0; font-weight: bold; color: #856404;'>⚠️ Lưu ý:</p>
+                                <p style='margin: 0; font-weight: bold; color: #856404;'>Important Notes:</p>
                                 <ul style='margin: 10px 0; color: #856404;'>
-                                    <li>Link xác nhận có hiệu lực trong <strong>24 giờ</strong></li>
-                                    <li>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email</li>
+                                    <li>This confirmation link is valid for <strong>24 hours</strong></li>
+                                    <li>If you did not register this account, please ignore this email</li>
                                 </ul>
                             </div>
                         </div>
                         
                         <div class='footer'>
-                            Email này được gửi tự động từ <strong>Property Management System</strong>.<br>
-                            Vui lòng không trả lời email này.
+                            This email was sent automatically from <strong>Property Management System</strong>.<br>
+                            Please do not reply to this email.
                         </div>
                     </div>
                 </body>
@@ -64,7 +64,7 @@
         }
 
         /// <summary>
-        /// EMAIL 2: GỬI OTP KÝ HỢP ĐỒNG
+        /// EMAIL 2: LEASE SIGNING OTP
         /// </summary>
         public static string CreateLeaseSigningOtpEmail(string userName, string leaseNumber, string otp)
         {
@@ -85,39 +85,39 @@
                 <body>
                     <div class='container'>
                         <div class='header'>
-                            <h1 style='margin: 0;'>🔐 Xác nhận ký hợp đồng</h1>
+                            <h1 style='margin: 0;'>Lease Signing Confirmation</h1>
                         </div>
                         
                         <div class='content'>
-                            <p>Xin chào <strong>{userName}</strong>,</p>
+                            <p>Hello <strong>{userName}</strong>,</p>
                             
-                            <p>Bạn đang thực hiện ký hợp đồng <strong>{leaseNumber}</strong> trên hệ thống Property Management System.</p>
+                            <p>You are signing lease <strong>{leaseNumber}</strong> on the Property Management System.</p>
                             
-                            <p>Mã OTP xác nhận của bạn là:</p>
+                            <p>Your OTP confirmation code is:</p>
                             
                             <div class='otp-box'>
                                 <h1 class='otp-code'>{otp}</h1>
                             </div>
                             
                             <div class='warning'>
-                                <p style='margin: 0; font-weight: bold; color: #856404;'>⚠️ Lưu ý quan trọng:</p>
+                                <p style='margin: 0; font-weight: bold; color: #856404;'>Important Notes:</p>
                                 <ul style='margin: 10px 0; color: #856404;'>
-                                    <li>Mã OTP có hiệu lực trong <strong>5 phút</strong></li>
-                                    <li><strong>KHÔNG</strong> chia sẻ mã này với bất kỳ ai</li>
-                                    <li>Nếu bạn không thực hiện thao tác này, vui lòng bỏ qua email</li>
-                                    <li>Sau khi ký, hợp đồng sẽ có hiệu lực pháp lý</li>
+                                    <li>This OTP is valid for <strong>5 minutes</strong></li>
+                                    <li><strong>DO NOT</strong> share this code with anyone</li>
+                                    <li>If you did not request this, please ignore this email</li>
+                                    <li>Once signed, the lease will be legally binding</li>
                                 </ul>
                             </div>
                             
                             <p style='color: #666; font-size: 14px; margin-top: 30px;'>
-                                <strong>Hợp đồng:</strong> {leaseNumber}<br>
-                                <strong>Thời gian gửi:</strong> {DateTime.Now:dd/MM/yyyy HH:mm:ss}
+                                <strong>Lease:</strong> {leaseNumber}<br>
+                                <strong>Sent at:</strong> {DateTime.Now:MM/dd/yyyy HH:mm:ss}
                             </p>
                         </div>
                         
                         <div class='footer'>
-                            Email này được gửi tự động từ <strong>Property Management System</strong>.<br>
-                            Vui lòng không trả lời email này.
+                            This email was sent automatically from <strong>Property Management System</strong>.<br>
+                            Please do not reply to this email.
                         </div>
                     </div>
                 </body>
@@ -126,7 +126,7 @@
         }
 
         /// <summary>
-        /// EMAIL 3: THÔNG BÁO HỢP ĐỒNG ĐÃ KÝ ĐẦY ĐỦ
+        /// EMAIL 3: LEASE FULLY SIGNED NOTIFICATION
         /// </summary>
         public static string CreateLeaseFullySignedEmail(string userName, string leaseNumber, string leaseDetailsUrl)
         {
@@ -146,35 +146,35 @@
                 <body>
                     <div class='container'>
                         <div class='header'>
-                            <h1 style='margin: 0;'>🎉 Hợp đồng đã có hiệu lực</h1>
+                            <h1 style='margin: 0;'>Lease is Now Active</h1>
                         </div>
                         
                         <div class='content'>
-                            <p>Xin chào <strong>{userName}</strong>,</p>
+                            <p>Hello <strong>{userName}</strong>,</p>
                             
                             <div class='success-box'>
-                                <h2 style='color: #28a745; margin: 0;'>✅ Chúc mừng!</h2>
+                                <h2 style='color: #28a745; margin: 0;'>Congratulations!</h2>
                                 <p style='margin: 10px 0 0 0; font-size: 16px;'>
-                                    Hợp đồng <strong>{leaseNumber}</strong> đã được ký đầy đủ bởi cả 2 bên và chính thức có hiệu lực pháp lý.
+                                    Lease <strong>{leaseNumber}</strong> has been fully signed by both parties and is now legally active.
                                 </p>
                             </div>
                             
-                            <p>Bạn có thể xem chi tiết hợp đồng và tải xuống bản PDF tại:</p>
+                            <p>You can view the lease details and download the PDF at:</p>
                             
                             <div style='text-align: center; margin: 30px 0;'>
                                 <a href='{leaseDetailsUrl}' class='button'>
-                                    📄 Xem chi tiết hợp đồng
+                                    View Lease Details
                                 </a>
                             </div>
                             
                             <p style='color: #666; font-size: 14px;'>
-                                Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!
+                                Thank you for using our service!
                             </p>
                         </div>
                         
                         <div class='footer'>
-                            Email này được gửi tự động từ <strong>Property Management System</strong>.<br>
-                            Nếu cần hỗ trợ, vui lòng liên hệ: support@propertymanagement.com
+                            This email was sent automatically from <strong>Property Management System</strong>.<br>
+                            If you need support, please contact: support@propertymanagement.com
                         </div>
                     </div>
                 </body>

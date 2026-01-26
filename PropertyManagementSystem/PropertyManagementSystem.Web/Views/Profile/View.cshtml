@@ -1,11 +1,11 @@
-﻿@model PropertyManagementSystem.BLL.DTOs.User.UserProfileDto
+@model PropertyManagementSystem.BLL.DTOs.User.UserProfileDto
 @{
-    ViewData["Title"] = "Thông tin người dùng";
+    ViewData["Title"] = "User Information";
 }
 
-<h2>Thông tin người dùng</h2>
+<h2>User Information</h2>
 
-<a href="@Url.Action("Search", "Profile")">← Quay lại tìm kiếm</a>
+<a href="@Url.Action("Search", "Profile")">← Back to Search</a>
 
 <hr />
 
@@ -15,7 +15,7 @@
         <td>@Model.UserId</td>
     </tr>
     <tr>
-        <td><strong>Họ tên:</strong></td>
+        <td><strong>Full Name:</strong></td>
         <td>@Model.FullName</td>
     </tr>
     <tr>
@@ -23,37 +23,37 @@
         <td>@Model.Email</td>
     </tr>
     <tr>
-        <td><strong>Số điện thoại:</strong></td>
-        <td>@(Model.PhoneNumber ?? "Chưa cập nhật")</td>
+        <td><strong>Phone Number:</strong></td>
+        <td>@(Model.PhoneNumber ?? "Not updated")</td>
     </tr>
     <tr>
-        <td><strong>Ngày sinh:</strong></td>
-        <td>@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</td>
+        <td><strong>Date of Birth:</strong></td>
+        <td>@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Not updated")</td>
     </tr>
     <tr>
-        <td><strong>Địa chỉ:</strong></td>
-        <td>@(Model.Address ?? "Chưa cập nhật")</td>
+        <td><strong>Address:</strong></td>
+        <td>@(Model.Address ?? "Not updated")</td>
     </tr>
     <tr>
-        <td><strong>Vai trò:</strong></td>
+        <td><strong>Roles:</strong></td>
         <td>@string.Join(", ", Model.Roles)</td>
     </tr>
     <tr>
-        <td><strong>Trạng thái:</strong></td>
-        <td>@(Model.IsActive ? "Hoạt động" : "Đã khóa")</td>
+        <td><strong>Status:</strong></td>
+        <td>@(Model.IsActive ? "Active" : "Locked")</td>
     </tr>
     <tr>
-        <td><strong>Email xác thực:</strong></td>
-        <td>@(Model.EmailVerified ? "Đã xác thực" : "Chưa xác thực")</td>
+        <td><strong>Email Verified:</strong></td>
+        <td>@(Model.EmailVerified ? "Verified" : "Not verified")</td>
     </tr>
     <tr>
-        <td><strong>Ngày tham gia:</strong></td>
+        <td><strong>Joined:</strong></td>
         <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
     </tr>
     @if (Model.LastLoginAt.HasValue)
     {
         <tr>
-            <td><strong>Đăng nhập lần cuối:</strong></td>
+            <td><strong>Last Login:</strong></td>
             <td>@Model.LastLoginAt.Value.ToString("dd/MM/yyyy HH:mm")</td>
         </tr>
     }

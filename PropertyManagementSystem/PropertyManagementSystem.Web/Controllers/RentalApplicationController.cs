@@ -40,7 +40,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 .Select(p => new SelectListItem
                 {
                     Value = p.PropertyId.ToString(),
-                    Text = $"{p.Name} - {p.Address} ({p.RentAmount:N0} VNĐ/tháng)"
+                    Text = $"{p.Name} - {p.Address} (${p.RentAmount:N0}/month)"
                 })
                 .ToList();
 
@@ -92,7 +92,7 @@ namespace PropertyManagementSystem.Web.Controllers
                     .Select(p => new SelectListItem
                     {
                         Value = p.PropertyId.ToString(),
-                        Text = $"{p.Name} - {p.Address} ({p.RentAmount:N0} VNĐ/tháng)"
+                        Text = $"{p.Name} - {p.Address} (${p.RentAmount:N0}/month)"
                     });
 
                 return View("ApplicationCreate", model);
@@ -128,7 +128,7 @@ namespace PropertyManagementSystem.Web.Controllers
                     .Select(p => new SelectListItem
                     {
                         Value = p.PropertyId.ToString(),
-                        Text = $"{p.Name} - {p.Address} ({p.RentAmount:N0} VNĐ/tháng)"
+                        Text = $"{p.Name} - {p.Address} (${p.RentAmount:N0}/month)"
                     });
 
                 return View("ApplicationCreate", model);

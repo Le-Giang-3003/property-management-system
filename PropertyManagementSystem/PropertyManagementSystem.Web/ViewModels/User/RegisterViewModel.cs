@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.Web.ViewModels.User
 {
@@ -13,8 +13,8 @@ namespace PropertyManagementSystem.Web.ViewModels.User
         /// <value>
         /// The email.
         /// </value>
-        [Required(ErrorMessage = "Vui lòng nhập email")]
-        [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
+        [Required(ErrorMessage = "Please enter email")]
+        [EmailAddress(ErrorMessage = "Email format is invalid")]
         public string Email { get; set; } = string.Empty;
 
         /// <summary>
@@ -23,8 +23,8 @@ namespace PropertyManagementSystem.Web.ViewModels.User
         /// <value>
         /// The name of the user.
         /// </value>
-        [Required(ErrorMessage = "Vui lòng nhập tên hiển thị")]
-        [MinLength(6, ErrorMessage = "Tên hiển thị phải có ít nhất 6 ký tự")]
+        [Required(ErrorMessage = "Please enter display name")]
+        [MinLength(6, ErrorMessage = "Display name must have at least 6 characters")]
         public string UserName { get; set; } = string.Empty;
 
         /// <summary>
@@ -33,10 +33,10 @@ namespace PropertyManagementSystem.Web.ViewModels.User
         /// <value>
         /// The password.
         /// </value>
-        [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
-        [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
+        [Required(ErrorMessage = "Please enter password")]
+        [MinLength(8, ErrorMessage = "Password must have at least 8 characters")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
-            ErrorMessage = "Mật khẩu phải chứa: chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%)")]
+            ErrorMessage = "Password must contain: uppercase, lowercase, number and special character (!@#$%)")]
         public string Password { get; set; } = string.Empty;
 
         /// <summary>
@@ -45,8 +45,8 @@ namespace PropertyManagementSystem.Web.ViewModels.User
         /// <value>
         /// The confirm password.
         /// </value>
-        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu")]
-        [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        [Required(ErrorMessage = "Please confirm password")]
+        [Compare("Password", ErrorMessage = "Confirm password does not match")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

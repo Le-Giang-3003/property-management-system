@@ -13,15 +13,6 @@
     </a>
 </p>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <p style="color:green;">@TempData["SuccessMessage"]</p>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <p style="color:red;">@TempData["ErrorMessage"]</p>
-}
-
 @if (!Model.Any())
 {
     <p>No viewing requests yet.</p>

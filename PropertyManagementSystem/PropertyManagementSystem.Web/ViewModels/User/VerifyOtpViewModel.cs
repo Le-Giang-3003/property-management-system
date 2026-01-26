@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.Web.ViewModels.User
 {
@@ -13,8 +13,8 @@ namespace PropertyManagementSystem.Web.ViewModels.User
         /// <value>
         /// The email.
         /// </value>
-        [Required(ErrorMessage = "Email là bắt buộc")]
-        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Email is invalid")]
         public string Email { get; set; } = string.Empty;
 
         /// <summary>
@@ -23,9 +23,9 @@ namespace PropertyManagementSystem.Web.ViewModels.User
         /// <value>
         /// The otp.
         /// </value>
-        [Required(ErrorMessage = "Mã OTP là bắt buộc")]
-        [StringLength(6, MinimumLength = 6, ErrorMessage = "Mã OTP phải có 6 số")]
-        [RegularExpression(@"^\d{6}$", ErrorMessage = "Mã OTP phải là 6 chữ số")]
+        [Required(ErrorMessage = "OTP code is required")]
+        [StringLength(6, MinimumLength = 6, ErrorMessage = "OTP must have 6 digits")]
+        [RegularExpression(@"^\d{6}$", ErrorMessage = "OTP must be 6 digits")]
         public string Otp { get; set; } = string.Empty;
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.Web.ViewModels.Property
@@ -6,89 +6,89 @@ namespace PropertyManagementSystem.Web.ViewModels.Property
     public class CreatePropertyViewModel
     {
         // Basic Info
-        [Required(ErrorMessage = "Tên BDS là bắt buộc")]
-        [MaxLength(200, ErrorMessage = "Tên không được quá 200 ký tự")]
-        [Display(Name = "Tên BĐS")]
+        [Required(ErrorMessage = "Property name is required")]
+        [MaxLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
+        [Display(Name = "Property Name")]
         public string Name { get; set; }
 
         // Location
-        [Required(ErrorMessage = "Địa chỉ là bắt buộc")]
-        [MaxLength(500, ErrorMessage = "Địa chỉ không được quá 500 ký tự")]
-        [Display(Name = "Địa chỉ")]
+        [Required(ErrorMessage = "Address is required")]
+        [MaxLength(500, ErrorMessage = "Address cannot exceed 500 characters")]
+        [Display(Name = "Address")]
         public string Address { get; set; }
 
         [MaxLength(100)]
-        [Display(Name = "Thành phố")]
+        [Display(Name = "City")]
         public string City { get; set; }
 
         [MaxLength(100)]
-        [Display(Name = "Quận")]
+        [Display(Name = "District")]
         public string District { get; set; }
 
         [MaxLength(20)]
-        [Display(Name = "Mã bưu điện")]
+        [Display(Name = "Zip Code")]
         public string ZipCode { get; set; }
 
-        [Range(-90, 90, ErrorMessage = "Latitude phải từ -90 đến 90")]
-        [Display(Name = "Vĩ độ")]
+        [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90")]
+        [Display(Name = "Latitude")]
         public decimal? Latitude { get; set; }
 
-        [Range(-180, 180, ErrorMessage = "Longitude phải từ -180 đến 180")]
-        [Display(Name = "Kinh độ")]
+        [Range(-180, 180, ErrorMessage = "Longitude must be between -180 and 180")]
+        [Display(Name = "Longitude")]
         public decimal? Longitude { get; set; }
 
         // Property Type & Specs
-        [Required(ErrorMessage = "Loại BDS là bắt buộc")]
+        [Required(ErrorMessage = "Property type is required")]
         [MaxLength(50)]
-        [Display(Name = "Loại BDS")]
+        [Display(Name = "Property Type")]
         public string PropertyType { get; set; }
 
-        [Required(ErrorMessage = "Số phòng ngủ là bắt buộc")]
-        [Range(0, 20, ErrorMessage = "Số phòng ngủ từ 0 đến 20")]
-        [Display(Name = "Phòng ngủ")]
+        [Required(ErrorMessage = "Number of bedrooms is required")]
+        [Range(0, 20, ErrorMessage = "Bedrooms must be between 0 and 20")]
+        [Display(Name = "Bedrooms")]
         public int Bedrooms { get; set; }
 
-        [Required(ErrorMessage = "Số phòng tắm là bắt buộc")]
-        [Range(0, 10, ErrorMessage = "Số phòng tắm từ 0 đến 10")]
-        [Display(Name = "Phòng tắm")]
+        [Required(ErrorMessage = "Number of bathrooms is required")]
+        [Range(0, 10, ErrorMessage = "Bathrooms must be between 0 and 10")]
+        [Display(Name = "Bathrooms")]
         public int Bathrooms { get; set; }
 
-        [Required(ErrorMessage = "Diện tích là bắt buộc")]
-        [Range(1, 100000, ErrorMessage = "Diện tích phải từ 1 đến 100,000 ft²")]
-        [Display(Name = "Diện tích (ft²)")]
+        [Required(ErrorMessage = "Area is required")]
+        [Range(1, 100000, ErrorMessage = "Area must be between 1 and 100,000 sq ft")]
+        [Display(Name = "Area (sq ft)")]
         public decimal SquareFeet { get; set; }
 
         // Pricing
-        [Required(ErrorMessage = "Giá thuê là bắt buộc")]
-        [Range(100000, double.MaxValue, ErrorMessage = "Giá thuê tối thiểu 100,000 VNĐ")]
-        [Display(Name = "Giá thuê/tháng")]
+        [Required(ErrorMessage = "Rent price is required")]
+        [Range(100000, double.MaxValue, ErrorMessage = "Minimum rent is 100,000 VND")]
+        [Display(Name = "Rent/Month")]
         public decimal RentAmount { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Tiền cọc phải >= 0")]
-        [Display(Name = "Tiền cọc")]
+        [Range(0, double.MaxValue, ErrorMessage = "Security deposit must be >= 0")]
+        [Display(Name = "Security Deposit")]
         public decimal? DepositAmount { get; set; }
 
         // Description & Details
-        [MaxLength(3000, ErrorMessage = "Mô tả không được quá 3000 ký tự")]
-        [Display(Name = "Mô tả")]
-        public string Description { get; set; } = "Chưa cập nhật";
+        [MaxLength(3000, ErrorMessage = "Description cannot exceed 3000 characters")]
+        [Display(Name = "Description")]
+        public string Description { get; set; } = "Not updated";
 
         [MaxLength(1000)]
-        [Display(Name = "Tiện ích")]
-        public string Amenities { get; set; } = "Chưa cập nhật";
+        [Display(Name = "Amenities")]
+        public string Amenities { get; set; } = "Not updated";
 
         [MaxLength(500)]
-        [Display(Name = "Tiện ích đi kèm")]
-        public string UtilitiesIncluded { get; set; } = "Chưa cập nhật";
+        [Display(Name = "Utilities Included")]
+        public string UtilitiesIncluded { get; set; } = "Not updated";
 
         // Features
-        [Display(Name = "Nội thất đầy đủ")]
+        [Display(Name = "Fully Furnished")]
         public bool IsFurnished { get; set; } = false;
 
-        [Display(Name = "Cho phép thú cưng")]
+        [Display(Name = "Pets Allowed")]
         public bool PetsAllowed { get; set; } = false;
 
-        [Display(Name = "Có sẵn từ ngày")]
+        [Display(Name = "Available From")]
         [DataType(DataType.Date)]
         public DateTime? AvailableFrom { get; set; }
 

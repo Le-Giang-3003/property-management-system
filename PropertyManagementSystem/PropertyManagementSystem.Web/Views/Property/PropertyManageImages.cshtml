@@ -14,7 +14,7 @@
         <div class="header-content">
             <h1 class="page-title">
                 <i class="bi bi-images"></i>
-                Quản lý hình ảnh
+                Manage Images
             </h1>
             <div class="property-info">
                 <strong>@property.Name</strong>
@@ -24,11 +24,11 @@
         <div class="header-actions">
             <button type="button" class="btn-upload" data-bs-toggle="modal" data-bs-target="#uploadModal">
                 <i class="bi bi-cloud-upload"></i>
-                Upload ảnh mới
+                Upload New Image
             </button>
             <a asp-action="Edit" asp-route-id="@propertyId" class="btn-back">
                 <i class="bi bi-arrow-left"></i>
-                Quay lại
+                Back
             </a>
         </div>
     </div>
@@ -37,7 +37,7 @@
     <div class="stats-bar">
         <div class="stat-item">
             <i class="bi bi-images"></i>
-            <span>Tổng: <strong>@Model.Count</strong> ảnh</span>
+            <span>Total: <strong>@Model.Count</strong> images</span>
         </div>
         <div class="stat-item">
             <i class="bi bi-star-fill"></i>
@@ -45,7 +45,7 @@
         </div>
         <div class="stat-item">
             <i class="bi bi-calendar"></i>
-            <span>Cập nhật: <strong>@(Model.Any() ? Model.Max(i => i.UploadedAt).ToString("dd/MM/yyyy") : "N/A")</strong></span>
+            <span>Updated: <strong>@(Model.Any() ? Model.Max(i => i.UploadedAt).ToString("dd/MM/yyyy") : "N/A")</strong></span>
         </div>
     </div>
 
@@ -62,13 +62,13 @@
                         {
                             <div class="thumbnail-badge">
                                 <i class="bi bi-star-fill"></i>
-                                <span>Ảnh đại diện</span>
+                                <span>Thumbnail</span>
                             </div>
                         }
                         <div class="image-overlay">
                             <button type="button" class="btn-overlay view"
                                     onclick="viewImage('@image.ImageUrl', '@(image.Caption ?? "Image")')"
-                                    title="Xem">
+                                    title="View">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </div>
@@ -78,12 +78,12 @@
                         <div class="image-details">
                             <span class="display-order">
                                 <i class="bi bi-hash"></i>
-                                Thứ tự: @image.DisplayOrder
+                                Order: @image.DisplayOrder
                             </span>
                             <div class="caption-wrapper">
                                 @if (string.IsNullOrEmpty(image.Caption))
                                 {
-                                    <span class="no-caption">Chưa có caption</span>
+                                    <span class="no-caption">No caption</span>
                                 }
                                 else
                                 {
@@ -101,24 +101,24 @@
                             {
                                 <button type="button" class="btn-action star"
                                         onclick="setThumbnail(@image.ImageId)"
-                                        title="Đặt làm ảnh đại diện">
+                                        title="Set as Thumbnail">
                                     <i class="bi bi-star"></i>
                                 </button>
                             }
                             else
                             {
-                                <button type="button" class="btn-action star active" disabled title="Đang là ảnh đại diện">
+                                <button type="button" class="btn-action star active" disabled title="Current Thumbnail">
                                     <i class="bi bi-star-fill"></i>
                                 </button>
                             }
                             <button type="button" class="btn-action edit"
                                     onclick="editCaption(@image.ImageId, '@(image.Caption ?? "")')"
-                                    title="Sửa caption">
+                                    title="Edit Caption">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button type="button" class="btn-action delete"
-                                    onclick="deleteImage(@image.ImageId, '@(image.Caption ?? "Ảnh")')"
-                                    title="Xóa">
+                                    onclick="deleteImage(@image.ImageId, '@(image.Caption ?? "Image")')"
+                                    title="Delete">
                                 <i class="bi bi-trash3"></i>
                             </button>
                         </div>
@@ -131,11 +131,11 @@
     {
         <div class="empty-state">
             <i class="bi bi-images"></i>
-            <h3>Chưa có hình ảnh nào</h3>
-            <p>Upload ảnh đầu tiên cho bất động sản này</p>
+            <h3>No images yet</h3>
+            <p>Upload the first image for this property</p>
             <button type="button" class="btn-upload-large" data-bs-toggle="modal" data-bs-target="#uploadModal">
                 <i class="bi bi-cloud-upload"></i>
-                Upload ảnh ngay
+                Upload Now
             </button>
         </div>
     }
@@ -146,7 +146,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5><i class="bi bi-cloud-upload"></i> Upload hình ảnh</h5>
+                <h5><i class="bi bi-cloud-upload"></i> Upload Images</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="uploadForm" enctype="multipart/form-data">
@@ -161,13 +161,13 @@
                         <div class="drop-zone" id="dropZone">
                             <div class="drop-zone-content">
                                 <i class="bi bi-cloud-upload"></i>
-                                <h4>Kéo thả ảnh vào đây</h4>
-                                <p>hoặc click để chọn file</p>
+                                <h4>Drag and drop images here</h4>
+                                <p>or click to select files</p>
                                 <button type="button" class="btn-choose" onclick="document.getElementById('fileInput').click()">
                                     <i class="bi bi-folder2-open"></i>
-                                    Chọn file
+                                    Choose Files
                                 </button>
-                                <small>JPG, PNG, WEBP • Tối đa 5MB/file • Chọn nhiều ảnh cùng lúc</small>
+                                <small>JPG, PNG, WEBP • Max 5MB/file • Select multiple images at once</small>
                             </div>
                         </div>
                     </div>
@@ -185,7 +185,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="uploadBtn">
                         <i class="bi bi-upload"></i> Upload
                     </button>
@@ -215,7 +215,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5><i class="bi bi-pencil"></i> Sửa caption</h5>
+                <h5><i class="bi bi-pencil"></i> Edit Caption</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -223,13 +223,13 @@
                 <div class="form-group">
                     <label for="captionInput">Caption</label>
                     <textarea id="captionInput" class="form-control" rows="3"
-                              placeholder="Nhập mô tả cho ảnh..."></textarea>
+                              placeholder="Enter image description..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="saveCaptionBtn">
-                    <i class="bi bi-check2"></i> Lưu
+                    <i class="bi bi-check2"></i> Save
                 </button>
             </div>
         </div>
@@ -854,7 +854,7 @@
             e.preventDefault();
 
             if (selectedFiles.length === 0) {
-                Swal.fire('Lỗi', 'Chưa chọn file nào', 'error');
+                Swal.fire('Error', 'No files selected', 'error');
                 return;
             }
 
@@ -864,7 +864,7 @@
             const progressText = document.getElementById('progressText');
 
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang upload...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
             progressDiv.style.display = 'block';
 
             try {
@@ -892,7 +892,7 @@
                         if (result.success) {
                             await Swal.fire({
                                 icon: 'success',
-                                title: 'Thành công!',
+                                title: 'Success!',
                                 text: result.message,
                                 timer: 2000,
                                 showConfirmButton: false
@@ -918,7 +918,7 @@
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi!',
+                    title: 'Error!',
                     text: error.message
                 });
                 btn.disabled = false;
@@ -951,7 +951,7 @@
                 if (result.success) {
                     await Swal.fire({
                         icon: 'success',
-                        title: 'Thành công!',
+                        title: 'Success!',
                         text: result.message,
                         timer: 1500,
                         showConfirmButton: false
@@ -963,7 +963,7 @@
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi!',
+                    title: 'Error!',
                     text: error.message
                 });
             }
@@ -995,8 +995,8 @@
                 if (result.success) {
                     await Swal.fire({
                         icon: 'success',
-                        title: 'Thành công!',
-                        text: 'Đã cập nhật caption',
+                        title: 'Success!',
+                        text: 'Caption updated',
                         timer: 1500,
                         showConfirmButton: false
                     });
@@ -1007,7 +1007,7 @@
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi!',
+                    title: 'Error!',
                     text: error.message
                 });
             }
@@ -1016,13 +1016,13 @@
         // Delete image
         async function deleteImage(imageId, caption) {
             const result = await Swal.fire({
-                title: 'Xóa hình ảnh?',
-                text: `Xóa "${caption}"?`,
+                title: 'Delete Image?',
+                text: `Delete "${caption}"?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy'
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
             });
 
             if (result.isConfirmed) {
@@ -1041,7 +1041,7 @@
                     if (data.success) {
                         await Swal.fire({
                             icon: 'success',
-                            title: 'Đã xóa!',
+                            title: 'Deleted!',
                             text: data.message,
                             timer: 1500,
                             showConfirmButton: false
@@ -1053,7 +1053,7 @@
                 } catch (error) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Lỗi!',
+                        title: 'Error!',
                         text: error.message
                     });
                 }

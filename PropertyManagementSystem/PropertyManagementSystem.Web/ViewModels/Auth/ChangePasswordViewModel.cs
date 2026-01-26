@@ -1,22 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.Web.ViewModels.Auth
 {
     public class ChangePasswordViewModel
     {
-        [Required(ErrorMessage = "Vui lòng nhập mật khẩu hiện tại")]
+        [Required(ErrorMessage = "Please enter current password")]
         [DataType(DataType.Password)]
         public string CurrentPassword { get; set; } = null!;
 
-        [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới")]
-        [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
+        [Required(ErrorMessage = "Please enter new password")]
+        [MinLength(8, ErrorMessage = "Password must have at least 8 characters")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
-            ErrorMessage = "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt")]
+            ErrorMessage = "Password must contain: uppercase, lowercase, number and special character")]
         [DataType(DataType.Password)]
         public string NewPassword { get; set; } = null!;
 
-        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu mới")]
-        [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        [Required(ErrorMessage = "Please confirm new password")]
+        [Compare("NewPassword", ErrorMessage = "Confirm password does not match")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; } = null!;
     }

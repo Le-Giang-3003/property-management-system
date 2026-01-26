@@ -23,136 +23,136 @@
                 <div class="card-header bg-primary text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">
-                            <i class="fas fa-file-alt"></i> Đơn xin thuê #@Model.ApplicationNumber
+                            <i class="fas fa-file-alt"></i> Application #@Model.ApplicationNumber
                         </h4>
                         @switch (Model.Status)
                         {
                             case "Pending":
-                                <span class="badge bg-warning text-dark fs-6">Chờ xử lý</span>
+                                <span class="badge bg-warning text-dark fs-6">Pending</span>
                                 break;
                             case "Approved":
-                                <span class="badge bg-success fs-6">Đã duyệt</span>
+                                <span class="badge bg-success fs-6">Approved</span>
                                 break;
                             case "Rejected":
-                                <span class="badge bg-danger fs-6">Từ chối</span>
+                                <span class="badge bg-danger fs-6">Rejected</span>
                                 break;
                             case "Withdrawn":
-                                <span class="badge bg-secondary fs-6">Đã rút</span>
+                                <span class="badge bg-secondary fs-6">Withdrawn</span>
                                 break;
                         }
                     </div>
                 </div>
 
                 <div class="card-body">
-                    <!-- THÔNG TIN TỔNG QUAN -->
+                    <!-- OVERVIEW INFORMATION -->
                     <div class="alert alert-light border">
                         <div class="row">
                             <div class="col-md-4">
-                                <small class="text-muted">Ngày gửi đơn</small>
+                                <small class="text-muted">Submission Date</small>
                                 <div><strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong></div>
                             </div>
                             <div class="col-md-4">
-                                <small class="text-muted">Ngày dự kiến chuyển vào</small>
+                                <small class="text-muted">Desired Move-in Date</small>
                                 <div><strong>@Model.DesiredMoveInDate.ToString("dd/MM/yyyy")</strong></div>
                             </div>
                             <div class="col-md-4">
-                                <small class="text-muted">Số người ở</small>
-                                <div><strong>@Model.NumberOfOccupants người</strong></div>
+                                <small class="text-muted">Number of Occupants</small>
+                                <div><strong>@Model.NumberOfOccupants people</strong></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- THÔNG TIN BẤT ĐỘNG SẢN -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-home"></i> Thông tin bất động sản</h5>
+                    <!-- PROPERTY INFORMATION -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-home"></i> Property Information</h5>
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Tên:</strong> @Model.Property?.Name</p>
-                            <p><strong>Địa chỉ:</strong> @Model.Property?.Address</p>
-                            <p><strong>Loại:</strong> @Model.Property?.PropertyType</p>
+                            <p><strong>Name:</strong> @Model.Property?.Name</p>
+                            <p><strong>Address:</strong> @Model.Property?.Address</p>
+                            <p><strong>Type:</strong> @Model.Property?.PropertyType</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Giá thuê:</strong> <span class="text-danger fs-5">@Model.Property?.RentAmount.ToString("N0") VNĐ/tháng</span></p>
-                            <p><strong>Diện tích:</strong> @Model.Property?.SquareFeet m²</p>
-                            <p><strong>Phòng ngủ/WC:</strong> @Model.Property?.Bedrooms / @Model.Property?.Bathrooms</p>
+                            <p><strong>Rent:</strong> <span class="text-danger fs-5">$@Model.Property?.RentAmount.ToString("N0")/month</span></p>
+                            <p><strong>Area:</strong> @Model.Property?.SquareFeet sqft</p>
+                            <p><strong>Bedrooms/Bathrooms:</strong> @Model.Property?.Bedrooms / @Model.Property?.Bathrooms</p>
                         </div>
                     </div>
 
-                    <!-- THÔNG TIN NGƯỜI THUÊ -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-user"></i> Thông tin người thuê</h5>
+                    <!-- APPLICANT INFORMATION -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-user"></i> Applicant Information</h5>
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Họ tên:</strong> @Model.Applicant?.FullName</p>
+                            <p><strong>Full Name:</strong> @Model.Applicant?.FullName</p>
                             <p><strong>Email:</strong> @Model.Applicant?.Email</p>
-                            <p><strong>Số điện thoại:</strong> @Model.Applicant?.PhoneNumber</p>
+                            <p><strong>Phone Number:</strong> @Model.Applicant?.PhoneNumber</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Ngày sinh:</strong> @Model.Applicant?.DateOfBirth?.ToString("dd/MM/yyyy")</p>
+                            <p><strong>Date of Birth:</strong> @Model.Applicant?.DateOfBirth?.ToString("dd/MM/yyyy")</p>
                         </div>
                     </div>
 
-                    <!-- THÔNG TIN VIỆC LÀM -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-briefcase"></i> Thông tin việc làm</h5>
+                    <!-- EMPLOYMENT INFORMATION -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-briefcase"></i> Employment Information</h5>
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <p>
-                                <strong>Tình trạng việc làm:</strong>
+                                <strong>Employment Status:</strong>
                                 <span class="badge bg-info">@Model.EmploymentStatus</span>
                             </p>
-                            <p><strong>Nơi làm việc:</strong> @(Model.Employer ?? "Không cung cấp")</p>
+                            <p><strong>Employer:</strong> @(Model.Employer ?? "Not provided")</p>
                         </div>
                         <div class="col-md-6">
                             <p>
-                                <strong>Thu nhập hàng tháng:</strong>
+                                <strong>Monthly Income:</strong>
                                 @if (Model.MonthlyIncome.HasValue)
                                 {
-                                    <span class="text-success fs-5">@Model.MonthlyIncome.Value.ToString("N0") VNĐ</span>
+                                    <span class="text-success fs-5">$@Model.MonthlyIncome.Value.ToString("N0")</span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">Không cung cấp</span>
+                                    <span class="text-muted">Not provided</span>
                                 }
                             </p>
                         </div>
                     </div>
 
-                    <!-- THÔNG TIN NƠI Ở TRƯỚC -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-map-marker-alt"></i> Thông tin nơi ở trước đây</h5>
+                    <!-- PREVIOUS RESIDENCE INFORMATION -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-map-marker-alt"></i> Previous Residence Information</h5>
                     <div class="row mb-4">
                         <div class="col-md-12 mb-2">
-                            <p><strong>Địa chỉ cũ:</strong> @(Model.PreviousAddress ?? "Không cung cấp")</p>
+                            <p><strong>Previous Address:</strong> @(Model.PreviousAddress ?? "Not provided")</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Chủ nhà trước:</strong> @(Model.PreviousLandlord ?? "Không cung cấp")</p>
+                            <p><strong>Previous Landlord:</strong> @(Model.PreviousLandlord ?? "Not provided")</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>SĐT chủ nhà trước:</strong> @(Model.PreviousLandlordPhone ?? "Không cung cấp")</p>
+                            <p><strong>Previous Landlord Phone:</strong> @(Model.PreviousLandlordPhone ?? "Not provided")</p>
                         </div>
                     </div>
 
-                    <!-- THÔNG TIN THÚ CƯNG -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-paw"></i> Thông tin thú cưng</h5>
+                    <!-- PET INFORMATION -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-paw"></i> Pet Information</h5>
                     <div class="mb-4">
                         <p>
-                            <strong>Có nuôi thú cưng:</strong>
+                            <strong>Has Pets:</strong>
                             @if (Model.HasPets)
                             {
-                                <span class="badge bg-warning text-dark">Có</span>
+                                <span class="badge bg-warning text-dark">Yes</span>
                             }
                             else
                             {
-                                <span class="badge bg-success">Không</span>
+                                <span class="badge bg-success">No</span>
                             }
                         </p>
                         @if (Model.HasPets && !string.IsNullOrEmpty(Model.PetDetails))
                         {
-                            <p><strong>Chi tiết:</strong> @Model.PetDetails</p>
+                            <p><strong>Details:</strong> @Model.PetDetails</p>
                         }
                     </div>
 
-                    <!-- GHI CHÚ -->
+                    <!-- NOTES -->
                     @if (!string.IsNullOrEmpty(Model.AdditionalNotes))
                     {
-                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-sticky-note"></i> Ghi chú thêm</h5>
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-sticky-note"></i> Additional Notes</h5>
                         <div class="mb-4">
                             <div class="alert alert-secondary">
                                 @Model.AdditionalNotes
@@ -160,60 +160,60 @@
                         </div>
                     }
 
-                    <!-- THÔNG TIN XÉT DUYỆT -->
+                    <!-- REVIEW INFORMATION -->
                     @if (Model.ReviewedAt.HasValue)
                     {
-                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-check-circle"></i> Thông tin xét duyệt</h5>
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-check-circle"></i> Review Information</h5>
                         <div class="mb-4">
-                            <p><strong>Người xét duyệt:</strong> @Model.ReviewedByUser?.FullName</p>
-                            <p><strong>Thời gian xét duyệt:</strong> @Model.ReviewedAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong>Reviewed By:</strong> @Model.ReviewedByUser?.FullName</p>
+                            <p><strong>Review Time:</strong> @Model.ReviewedAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
 
                             @if (Model.Status == "Rejected" && !string.IsNullOrEmpty(Model.RejectionReason))
                             {
                                 <div class="alert alert-danger">
-                                    <strong><i class="fas fa-exclamation-triangle"></i> Lý do từ chối:</strong><br />
+                                    <strong><i class="fas fa-exclamation-triangle"></i> Rejection Reason:</strong><br />
                                     @Model.RejectionReason
                                 </div>
                             }
                         </div>
                     }
 
-                    <!-- ✅ HIỂN THỊ HỢP ĐỒNG ĐÃ TẠO (NẾU CÓ) -->
+                    <!-- ✅ DISPLAY EXISTING LEASE (IF ANY) -->
                     @if (hasExistingLease && ViewBag.ExistingLease != null)
                     {
                         <div class="card border-success mb-4">
                             <div class="card-header bg-success text-white">
                                 <h5 class="mb-0">
-                                    <i class="fas fa-check-circle"></i> Hợp đồng đã được tạo
+                                    <i class="fas fa-check-circle"></i> Lease Created
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <p class="mb-2">
-                                            <strong><i class="fas fa-file-contract text-primary"></i> Mã hợp đồng:</strong>
+                                            <strong><i class="fas fa-file-contract text-primary"></i> Lease Number:</strong>
                                             <span class="badge bg-primary fs-6">@ViewBag.ExistingLease.LeaseNumber</span>
                                         </p>
                                         <p class="mb-2">
-                                            <strong><i class="fas fa-calendar-alt text-info"></i> Thời gian:</strong>
+                                            <strong><i class="fas fa-calendar-alt text-info"></i> Duration:</strong>
                                             @ViewBag.ExistingLease.StartDate.ToString("dd/MM/yyyy")
                                             → @ViewBag.ExistingLease.EndDate.ToString("dd/MM/yyyy")
                                         </p>
                                     </div>
                                     <div class="col-md-6">
                                         <p class="mb-2">
-                                            <strong><i class="fas fa-info-circle text-warning"></i> Trạng thái:</strong>
+                                            <strong><i class="fas fa-info-circle text-warning"></i> Status:</strong>
                                             @if (ViewBag.ExistingLease.Status == "Draft")
                                             {
-                                                <span class="badge bg-secondary">Nháp</span>
+                                                <span class="badge bg-secondary">Draft</span>
                                             }
                                             else if (ViewBag.ExistingLease.Status == "Active")
                                             {
-                                                <span class="badge bg-success">Đang hiệu lực</span>
+                                                <span class="badge bg-success">Active</span>
                                             }
                                             else if (ViewBag.ExistingLease.Status == "Expired")
                                             {
-                                                <span class="badge bg-danger">Đã hết hạn</span>
+                                                <span class="badge bg-danger">Expired</span>
                                             }
                                             else
                                             {
@@ -221,8 +221,8 @@
                                             }
                                         </p>
                                         <p class="mb-2">
-                                            <strong><i class="fas fa-money-bill-wave text-success"></i> Tiền thuê:</strong>
-                                            @ViewBag.ExistingLease.MonthlyRent.ToString("N0") VNĐ/tháng
+                                            <strong><i class="fas fa-money-bill-wave text-success"></i> Rent:</strong>
+                                            $@ViewBag.ExistingLease.MonthlyRent.ToString("N0")/month
                                         </p>
                                     </div>
                                 </div>
@@ -233,7 +233,7 @@
                                     <a asp-controller="Lease" asp-action="Details"
                                        asp-route-id="@ViewBag.ExistingLease.LeaseId"
                                        class="btn btn-primary">
-                                        <i class="fas fa-eye"></i> Xem chi tiết hợp đồng
+                                        <i class="fas fa-eye"></i> View Lease Details
                                     </a>
 
                                     @if (ViewBag.ExistingLease.Status == "Draft")
@@ -241,7 +241,7 @@
                                         <a asp-controller="Lease" asp-action="Edit"
                                            asp-route-id="@ViewBag.ExistingLease.LeaseId"
                                            class="btn btn-warning">
-                                            <i class="fas fa-edit"></i> Chỉnh sửa hợp đồng
+                                            <i class="fas fa-edit"></i> Edit Lease
                                         </a>
                                     }
                                 </div>
@@ -249,7 +249,7 @@
                         </div>
                     }
 
-                    <!-- ✅ NÚT TẠO HỢP ĐỒNG - CHỈ HIỆN KHI CHƯA CÓ LEASE -->
+                    <!-- ✅ CREATE LEASE BUTTON - ONLY SHOW WHEN NO LEASE EXISTS -->
                     @if (canCreateLease)
                     {
                         <div class="card bg-success text-white shadow-lg mt-4 border-0">
@@ -260,40 +260,40 @@
                                     </div>
                                     <div class="flex-grow-1 ms-3">
                                         <h5 class="card-title mb-1">
-                                            <i class="fas fa-check-circle"></i> Đơn đã được duyệt!
+                                            <i class="fas fa-check-circle"></i> Application Approved!
                                         </h5>
                                         <p class="mb-0">
-                                            Bạn có thể tạo hợp đồng thuê chính thức cho <strong>@Model.Applicant?.FullName</strong>
+                                            You can create an official lease for <strong>@Model.Applicant?.FullName</strong>
                                         </p>
                                     </div>
                                 </div>
 
                                 <a asp-controller="Lease" asp-action="Create" asp-route-applicationId="@Model.ApplicationId"
                                    class="btn btn-light btn-lg w-100 shadow">
-                                    <i class="fas fa-file-contract"></i> <strong>Tạo hợp đồng thuê ngay</strong>
+                                    <i class="fas fa-file-contract"></i> <strong>Create Lease Now</strong>
                                 </a>
                             </div>
                         </div>
                     }
 
-                    <!-- ✅ FORM XÉT DUYỆT - CHỈ CHO PROPERTY OWNER -->
+                    <!-- ✅ REVIEW FORM - ONLY FOR PROPERTY OWNER -->
                     @if (canUpdate)
                     {
                         <div class="card bg-light mt-4 shadow">
                             <div class="card-body">
-                                <h5 class="card-title"><i class="fas fa-tasks"></i> Xét duyệt đơn</h5>
+                                <h5 class="card-title"><i class="fas fa-tasks"></i> Review Application</h5>
                                 <p class="text-muted mb-3">
-                                    Sau khi duyệt, bạn có thể tạo hợp đồng thuê chính thức.
+                                    After approval, you can create an official lease.
                                 </p>
 
                                 <div class="row">
                                     <!-- APPROVE -->
                                     <div class="col-md-6 mb-3">
-                                        <form asp-action="Approve" method="post" onsubmit="return confirm('Bạn có chắc muốn DUYỆT đơn này không?');">
+                                        <form asp-action="Approve" method="post" onsubmit="return confirm('Are you sure you want to APPROVE this application?');">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@Model.ApplicationId" />
                                             <button type="submit" class="btn btn-success w-100 btn-lg">
-                                                <i class="fas fa-check-circle"></i> Chấp nhận đơn
+                                                <i class="fas fa-check-circle"></i> Approve Application
                                             </button>
                                         </form>
                                     </div>
@@ -301,7 +301,7 @@
                                     <!-- REJECT -->
                                     <div class="col-md-6 mb-3">
                                         <button type="button" class="btn btn-danger w-100 btn-lg" data-bs-toggle="modal" data-bs-target="#rejectModal">
-                                            <i class="fas fa-times-circle"></i> Từ chối đơn
+                                            <i class="fas fa-times-circle"></i> Reject Application
                                         </button>
                                     </div>
                                 </div>
@@ -313,7 +313,7 @@
                     {
                         <div class="alert alert-warning mt-4">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Lưu ý:</strong> Chỉ chủ nhà của bất động sản này mới có thể xét duyệt đơn.
+                            <strong>Note:</strong> Only the property owner can review this application.
                         </div>
                     }
 
@@ -322,30 +322,30 @@
                         @if (isPropertyOwner)
                         {
                             <a asp-action="ByProperty" asp-route-propertyId="@Model.PropertyId" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Đơn của BĐS này
+                                <i class="fas fa-arrow-left"></i> Property Applications
                             </a>
                         }
                         else if (Model.ApplicantId == userId)
                         {
                             <a asp-action="MyApplications" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Đơn của tôi
+                                <i class="fas fa-arrow-left"></i> My Applications
                             </a>
                         }
                         else
                         {
                             <a asp-action="Index" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Danh sách đơn
+                                <i class="fas fa-arrow-left"></i> Application List
                             </a>
                         }
 
                         <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-outline-primary">
-                            <i class="fas fa-home"></i> Xem BĐS
+                            <i class="fas fa-home"></i> View Property
                         </a>
 
                         @if (isPropertyOwner && Model.Status == "Approved")
                         {
                             <a asp-controller="Lease" asp-action="Index" class="btn btn-outline-success">
-                                <i class="fas fa-file-contract"></i> Quản lý hợp đồng
+                                <i class="fas fa-file-contract"></i> Manage Leases
                             </a>
                         }
                     </div>
@@ -355,7 +355,7 @@
     </div>
 </div>
 
-<!-- MODAL TỪ CHỐI -->
+<!-- REJECTION MODAL -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -364,29 +364,29 @@
                 <input type="hidden" name="id" value="@Model.ApplicationId" />
 
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="fas fa-times-circle"></i> Từ chối đơn xin thuê</h5>
+                    <h5 class="modal-title"><i class="fas fa-times-circle"></i> Reject Application</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle"></i>
-                        Bạn đang từ chối đơn xin thuê <strong>@Model.ApplicationNumber</strong>
+                        You are rejecting application <strong>@Model.ApplicationNumber</strong>
                     </div>
 
                     <div class="mb-3">
                         <label for="rejectionReason" class="form-label">
-                            Lý do từ chối<span class="text-danger">*</span>
+                            Rejection Reason<span class="text-danger">*</span>
                         </label>
                         <textarea name="rejectionReason" id="rejectionReason" class="form-control" rows="4"
-                                  required placeholder="Vui lòng nêu rõ lý do từ chối để người thuê hiểu..."></textarea>
+                                  required placeholder="Please provide a clear reason for the applicant..."></textarea>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-times-circle"></i> Xác nhận từ chối
+                        <i class="fas fa-times-circle"></i> Confirm Rejection
                     </button>
                 </div>
             </form>

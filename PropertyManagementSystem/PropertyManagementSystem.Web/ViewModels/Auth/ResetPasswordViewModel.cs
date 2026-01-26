@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.Web.ViewModels.Auth;
 public class ResetPasswordViewModel
@@ -7,14 +7,13 @@ public class ResetPasswordViewModel
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
-    [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
+    [Required(ErrorMessage = "Please enter password")]
+    [MinLength(8, ErrorMessage = "Password must have at least 8 characters")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
-        ErrorMessage = "Mật khẩu phải chứa: chữ hoa, chữ thường, số và ký tự đặc biệt")]
+        ErrorMessage = "Password must contain: uppercase, lowercase, number and special character")]
     public string NewPassword { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu")]
-    [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+    [Required(ErrorMessage = "Please confirm password")]
+    [Compare("NewPassword", ErrorMessage = "Confirm password does not match")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }
-    

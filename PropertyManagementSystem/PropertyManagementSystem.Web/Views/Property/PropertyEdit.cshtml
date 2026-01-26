@@ -22,7 +22,7 @@
         <div class="header-content">
             <h1 class="page-title">
                 <i class="bi bi-pencil-square"></i>
-                Chỉnh sửa bất động sản
+                Edit Property
             </h1>
             <div class="property-info">
                 <span class="property-name">@Model.Name</span>
@@ -33,11 +33,11 @@
         <div class="header-actions">
             <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn-action preview">
                 <i class="bi bi-eye"></i>
-                Xem chi tiết
+                View Details
             </a>
             <a asp-action="Index" class="btn-action back">
                 <i class="bi bi-arrow-left"></i>
-                Danh sách
+                List
             </a>
         </div>
     </div>
@@ -47,7 +47,7 @@
         <div class="section-header">
             <h3>
                 <i class="bi bi-images"></i>
-                Hình ảnh
+                Images
                 @if (images.Any())
                 {
                     <span class="count-badge">@images.Count</span>
@@ -55,7 +55,7 @@
             </h3>
             <button type="button" class="btn-upload-header" data-bs-toggle="modal" data-bs-target="#uploadModal">
                 <i class="bi bi-cloud-upload"></i>
-                Upload hình ảnh
+                Upload Images
             </button>
         </div>
 
@@ -79,20 +79,20 @@
                         </div>
                         <div class="image-info">
                             <span class="image-name" title="@image.Caption">
-                                @(string.IsNullOrEmpty(image.Caption) ? $"Ảnh {image.DisplayOrder + 1}" : image.Caption)
+                                @(string.IsNullOrEmpty(image.Caption) ? $"Image {image.DisplayOrder + 1}" : image.Caption)
                             </span>
                             <div class="image-actions">
                                 @if (!image.IsThumbnail)
                                 {
                                     <button type="button" class="btn-icon star"
                                             onclick="setThumbnail(@image.ImageId)"
-                                            title="Đặt làm ảnh đại diện">
+                                            title="Set as Thumbnail">
                                         <i class="bi bi-star"></i>
                                     </button>
                                 }
                                 <button type="button" class="btn-icon delete"
-                                        onclick="deleteImage(@image.ImageId, '@(image.Caption ?? "Ảnh")')"
-                                        title="Xóa">
+                                        onclick="deleteImage(@image.ImageId, '@(image.Caption ?? "Image")')"
+                                        title="Delete">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </div>
@@ -108,13 +108,13 @@
                     <div class="upload-icon">
                         <i class="bi bi-cloud-upload"></i>
                     </div>
-                    <h4>Chưa có hình ảnh nào</h4>
-                    <p>Kéo thả file vào đây hoặc click để chọn file</p>
+                    <h4>No images yet</h4>
+                    <p>Drag and drop files here or click to select files</p>
                     <button type="button" class="btn-choose-file" onclick="document.getElementById('quickUploadInput').click()">
                         <i class="bi bi-folder2-open"></i>
-                        Chọn file từ máy
+                        Choose Files
                     </button>
-                    <small>JPG, PNG, WEBP • Tối đa 5MB mỗi file</small>
+                    <small>JPG, PNG, WEBP • Max 5MB per file</small>
                 </div>
                 <input type="file" id="quickUploadInput" accept="image/*" multiple style="display: none;" onchange="handleQuickUpload(this)">
             </div>
@@ -132,7 +132,7 @@
             <div class="validation-alert">
                 <i class="bi bi-exclamation-triangle"></i>
                 <div>
-                    <strong>Vui lòng kiểm tra lại thông tin</strong>
+                    <strong>Please review the information</strong>
                     <div asp-validation-summary="All"></div>
                 </div>
             </div>
@@ -140,15 +140,15 @@
 
         <!-- Section 1: Basic Info -->
         <div class="form-section">
-            <h3>Thông tin cơ bản</h3>
+            <h3>Basic Information</h3>
             <div class="form-grid">
                 <div class="form-group full-width">
-                    <label asp-for="Name">Tên bất động sản <span class="required">*</span></label>
+                    <label asp-for="Name">Property Name <span class="required">*</span></label>
                     <input asp-for="Name" class="form-input" />
                     <span asp-validation-for="Name" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="PropertyType">Loại bất động sản <span class="required">*</span></label>
+                    <label asp-for="PropertyType">Property Type <span class="required">*</span></label>
                     <select asp-for="PropertyType" class="form-select">
                         @foreach (var type in propertyTypes)
                         {
@@ -160,7 +160,7 @@
                     <span asp-validation-for="PropertyType" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Status">Trạng thái <span class="required">*</span></label>
+                    <label asp-for="Status">Status <span class="required">*</span></label>
                     <select asp-for="Status" class="form-select">
                         @foreach (var status in statuses)
                         {
@@ -176,25 +176,25 @@
 
         <!-- Section 2: Location -->
         <div class="form-section">
-            <h3>Địa chỉ</h3>
+            <h3>Address</h3>
             <div class="form-grid">
                 <div class="form-group full-width">
-                    <label asp-for="Address">Địa chỉ chi tiết <span class="required">*</span></label>
+                    <label asp-for="Address">Detailed Address <span class="required">*</span></label>
                     <input asp-for="Address" class="form-input" />
                     <span asp-validation-for="Address" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="City">Thành phố</label>
+                    <label asp-for="City">City</label>
                     <input asp-for="City" class="form-input" />
                     <span asp-validation-for="City" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="District">Quận / Huyện</label>
+                    <label asp-for="District">District</label>
                     <input asp-for="District" class="form-input" />
                     <span asp-validation-for="District" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="ZipCode">Mã bưu điện</label>
+                    <label asp-for="ZipCode">Zip Code</label>
                     <input asp-for="ZipCode" class="form-input" />
                     <span asp-validation-for="ZipCode" class="form-error"></span>
                 </div>
@@ -213,10 +213,10 @@
 
         <!-- Section 3: Specs -->
         <div class="form-section">
-            <h3>Thông số</h3>
+            <h3>Specifications</h3>
             <div class="form-grid">
                 <div class="form-group">
-                    <label asp-for="Bedrooms">Phòng ngủ <span class="required">*</span></label>
+                    <label asp-for="Bedrooms">Bedrooms <span class="required">*</span></label>
                     <div class="input-with-icon">
                         <i class="bi bi-door-closed"></i>
                         <input asp-for="Bedrooms" type="number" min="0" max="20" class="form-input" />
@@ -224,7 +224,7 @@
                     <span asp-validation-for="Bedrooms" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Bathrooms">Phòng tắm <span class="required">*</span></label>
+                    <label asp-for="Bathrooms">Bathrooms <span class="required">*</span></label>
                     <div class="input-with-icon">
                         <i class="bi bi-droplet"></i>
                         <input asp-for="Bathrooms" type="number" min="0" max="10" class="form-input" />
@@ -232,7 +232,7 @@
                     <span asp-validation-for="Bathrooms" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="SquareFeet">Diện tích (ft²) <span class="required">*</span></label>
+                    <label asp-for="SquareFeet">Area (ft²) <span class="required">*</span></label>
                     <div class="input-with-icon">
                         <i class="bi bi-rulers"></i>
                         <input asp-for="SquareFeet" type="number" step="0.01" class="form-input" />
@@ -244,10 +244,10 @@
 
         <!-- Section 4: Pricing -->
         <div class="form-section">
-            <h3>Giá cả</h3>
+            <h3>Pricing</h3>
             <div class="form-grid">
                 <div class="form-group">
-                    <label asp-for="RentAmount">Giá thuê/tháng (₫) <span class="required">*</span></label>
+                    <label asp-for="RentAmount">Rent/Month ($) <span class="required">*</span></label>
                     <div class="input-with-icon">
                         <i class="bi bi-currency-dollar"></i>
                         <input asp-for="RentAmount" type="number" min="0" class="form-input" />
@@ -255,7 +255,7 @@
                     <span asp-validation-for="RentAmount" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="DepositAmount">Tiền cọc (₫)</label>
+                    <label asp-for="DepositAmount">Deposit ($)</label>
                     <div class="input-with-icon">
                         <i class="bi bi-piggy-bank"></i>
                         <input asp-for="DepositAmount" type="number" min="0" class="form-input" />
@@ -263,7 +263,7 @@
                     <span asp-validation-for="DepositAmount" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="AvailableFrom">Có sẵn từ ngày</label>
+                    <label asp-for="AvailableFrom">Available From</label>
                     <input asp-for="AvailableFrom" type="date" class="form-input" />
                     <span asp-validation-for="AvailableFrom" class="form-error"></span>
                 </div>
@@ -272,23 +272,23 @@
 
         <!-- Section 5: Description & Amenities -->
         <div class="form-section">
-            <h3>Mô tả & Tiện ích</h3>
+            <h3>Description & Amenities</h3>
             <div class="form-grid">
                 <div class="form-group full-width">
-                    <label asp-for="Description">Mô tả chi tiết</label>
+                    <label asp-for="Description">Detailed Description</label>
                     <textarea asp-for="Description" rows="5" class="form-textarea"></textarea>
                     <span asp-validation-for="Description" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Amenities">Tiện ích</label>
+                    <label asp-for="Amenities">Amenities</label>
                     <textarea asp-for="Amenities" rows="3" class="form-textarea"></textarea>
-                    <small class="form-hint">Phân cách bằng dấu phẩy</small>
+                    <small class="form-hint">Separate with commas</small>
                     <span asp-validation-for="Amenities" class="form-error"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="UtilitiesIncluded">Tiện ích đi kèm</label>
+                    <label asp-for="UtilitiesIncluded">Utilities Included</label>
                     <textarea asp-for="UtilitiesIncluded" rows="3" class="form-textarea"></textarea>
-                    <small class="form-hint">Phân cách bằng dấu phẩy</small>
+                    <small class="form-hint">Separate with commas</small>
                     <span asp-validation-for="UtilitiesIncluded" class="form-error"></span>
                 </div>
             </div>
@@ -298,14 +298,14 @@
                     <input asp-for="IsFurnished" type="checkbox" class="checkbox-input">
                     <span class="checkbox-text">
                         <i class="bi bi-check-circle"></i>
-                        Nội thất đầy đủ
+                        Fully Furnished
                     </span>
                 </label>
                 <label class="checkbox-label">
                     <input asp-for="PetsAllowed" type="checkbox" class="checkbox-input">
                     <span class="checkbox-text">
                         <i class="bi bi-check-circle"></i>
-                        Cho phép nuôi thú cưng
+                        Pets Allowed
                     </span>
                 </label>
             </div>
@@ -315,14 +315,14 @@
         <div class="form-actions">
             <button type="submit" class="btn-submit">
                 <i class="bi bi-check-lg"></i>
-                Cập nhật bất động sản
+                Update Property
             </button>
             <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn-preview">
                 <i class="bi bi-eye"></i>
-                Xem trước
+                Preview
             </a>
             <a asp-action="Index" class="btn-cancel">
-                Hủy bỏ
+                Cancel
             </a>
         </div>
     </form>
@@ -333,7 +333,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5><i class="bi bi-cloud-upload"></i> Upload hình ảnh</h5>
+                <h5><i class="bi bi-cloud-upload"></i> Upload Images</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="uploadForm" enctype="multipart/form-data">
@@ -342,17 +342,17 @@
 
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Chọn hình ảnh <span class="text-danger">*</span></label>
+                        <label>Select Images <span class="text-danger">*</span></label>
                         <input type="file" name="files" id="fileInput" class="form-input"
                                accept="image/*" multiple required />
-                        <small class="form-hint">Có thể chọn nhiều ảnh. JPG, PNG, WEBP. Tối đa 5MB/file</small>
+                        <small class="form-hint">You can select multiple images. JPG, PNG, WEBP. Max 5MB/file</small>
                     </div>
 
                     <div id="imagePreview" class="image-preview-container"></div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="uploadBtn">
                         <i class="bi bi-upload"></i> Upload
                     </button>
@@ -1093,7 +1093,7 @@
             e.preventDefault();
             const btn = document.getElementById('uploadBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang upload...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
 
             try {
                 const formData = new FormData(this);
@@ -1108,7 +1108,7 @@
                 if (result.success) {
                     await Swal.fire({
                         icon: 'success',
-                        title: 'Thành công!',
+                        title: 'Success!',
                         text: result.message,
                         timer: 2000,
                         showConfirmButton: false
@@ -1120,8 +1120,8 @@
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi!',
-                    text: error.message || 'Có lỗi xảy ra'
+                    title: 'Error!',
+                    text: error.message || 'An error occurred'
                 });
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
@@ -1178,7 +1178,7 @@
                 if (result.success) {
                     await Swal.fire({
                         icon: 'success',
-                        title: 'Thành công!',
+                        title: 'Success!',
                         text: result.message,
                         timer: 1500,
                         showConfirmButton: false
@@ -1188,24 +1188,24 @@
                     throw new Error(result.message);
                 }
             } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi!',
-                    text: error.message
-                });
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: error.message
+            });
             }
         }
 
         // Delete image
         function deleteImage(imageId, caption) {
             Swal.fire({
-                title: 'Xóa hình ảnh?',
-                text: `Xóa "${caption}"?`,
+                title: 'Delete Image?',
+                text: `Delete "${caption}"?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy'
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     try {
@@ -1223,7 +1223,7 @@
                         if (data.success) {
                             await Swal.fire({
                                 icon: 'success',
-                                title: 'Đã xóa!',
+                                title: 'Deleted!',
                                 text: data.message,
                                 timer: 1500,
                                 showConfirmButton: false
@@ -1233,11 +1233,11 @@
                             throw new Error(data.message);
                         }
                     } catch (error) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Lỗi!',
-                            text: error.message
-                        });
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: error.message
+            });
                     }
                 }
             });
@@ -1294,10 +1294,10 @@
 
     string GetStatusDisplay(string status) => status switch
     {
-        "Available" => "Có sẵn",
-        "Rented" => "Đã thuê",
-        "Maintenance" => "Bảo trì",
-        "Unavailable" => "Không khả dụng",
+        "Available" => "Available",
+        "Rented" => "Rented",
+        "Maintenance" => "Maintenance",
+        "Unavailable" => "Unavailable",
         _ => status
     };
 }

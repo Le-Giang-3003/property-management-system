@@ -1,6 +1,6 @@
-﻿@model PropertyManagementSystem.DAL.Entities.Lease
+@model PropertyManagementSystem.DAL.Entities.Lease
 @{
-    ViewData["Title"] = "Ký hợp đồng";
+    ViewData["Title"] = "Sign Lease";
     var signatures = ViewBag.Signatures as IEnumerable<PropertyManagementSystem.DAL.Entities.LeaseSignature>;
     var userEmail = ViewBag.UserEmail as string;
 }
@@ -11,32 +11,32 @@
             <div class="card shadow-lg">
                 <div class="card-header bg-success text-white">
                     <h3 class="mb-0">
-                        <i class="fas fa-pen-nib"></i> Ký hợp đồng @Model.LeaseNumber
+                        <i class="fas fa-pen-nib"></i> Sign Lease @Model.LeaseNumber
                     </h3>
                 </div>
                 <div class="card-body">
-                    <!-- Thông tin hợp đồng -->
+                    <!-- Lease Information -->
                     <div class="alert alert-info mb-4">
-                        <h5><i class="fas fa-info-circle"></i> Thông tin hợp đồng</h5>
+                        <h5><i class="fas fa-info-circle"></i> Lease Information</h5>
                         <hr>
                         <div class="row">
                             <div class="col-md-6">
-                                <p><strong>Bất động sản:</strong> @Model.Property?.Name</p>
-                                <p><strong>Địa chỉ:</strong> @Model.Property?.Address</p>
-                                <p><strong>Người thuê:</strong> @Model.Tenant?.FullName</p>
+                                <p><strong>Property:</strong> @Model.Property?.Name</p>
+                                <p><strong>Address:</strong> @Model.Property?.Address</p>
+                                <p><strong>Tenant:</strong> @Model.Tenant?.FullName</p>
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Thời hạn:</strong> @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
-                                <p><strong>Tiền thuê:</strong> @Model.MonthlyRent.ToString("N0") VNĐ/tháng</p>
-                                <p><strong>Tiền cọc:</strong> @Model.SecurityDeposit.ToString("N0") VNĐ</p>
+                                <p><strong>Duration:</strong> @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
+                                <p><strong>Rent:</strong> $@Model.MonthlyRent.ToString("N0")/month</p>
+                                <p><strong>Deposit:</strong> $@Model.SecurityDeposit.ToString("N0")</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Trạng thái ký -->
+                    <!-- Signature Status -->
                     <div class="card mb-4">
                         <div class="card-header bg-light">
-                            <h5><i class="fas fa-signature"></i> Trạng thái ký</h5>
+                            <h5><i class="fas fa-signature"></i> Signature Status</h5>
                         </div>
                         <div class="card-body">
                             @if (signatures != null && signatures.Any())
@@ -46,21 +46,21 @@
                                     <div class="alert alert-success">
                                         <i class="fas fa-check-circle"></i>
                                         <strong>@sig.SignerRole</strong> (@sig.User?.FullName)
-                                        đã ký vào lúc @sig.SignedAt.ToString("dd/MM/yyyy HH:mm")
+                                        signed at @sig.SignedAt.ToString("dd/MM/yyyy HH:mm")
                                     </div>
                                 }
                             }
                             else
                             {
-                                <p class="text-muted">Chưa có chữ ký nào</p>
+                                <p class="text-muted">No signatures yet</p>
                             }
                         </div>
                     </div>
 
-                    <!-- Điều khoản hợp đồng -->
+                    <!-- Lease Terms -->
                     <div class="card mb-4">
                         <div class="card-header bg-light">
-                            <h5><i class="fas fa-file-alt"></i> Điều khoản hợp đồng</h5>
+                            <h5><i class="fas fa-file-alt"></i> Lease Terms</h5>
                         </div>
                         <div class="card-body">
                             <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; background: #f8f9fa;">
@@ -69,17 +69,17 @@
                         </div>
                     </div>
 
-                    <!-- Canvas vẽ chữ ký -->
+                    <!-- Signature Canvas -->
                     <div class="card mb-4 border-primary">
                         <div class="card-header bg-primary text-white">
                             <h5 class="mb-0">
-                                <i class="fas fa-pen-fancy"></i> Vẽ chữ ký của bạn
+                                <i class="fas fa-pen-fancy"></i> Draw Your Signature
                             </h5>
                         </div>
                         <div class="card-body">
                             <p class="text-muted">
                                 <i class="fas fa-hand-pointer"></i>
-                                Sử dụng chuột hoặc ngón tay để vẽ chữ ký của bạn trong khung bên dưới
+                                Use your mouse or finger to draw your signature in the box below
                             </p>
 
                             <div class="text-center mb-3">
@@ -92,20 +92,20 @@
 
                             <div class="d-flex justify-content-between">
                                 <button type="button" id="clearBtn" class="btn btn-warning">
-                                    <i class="fas fa-eraser"></i> Xóa và vẽ lại
+                                    <i class="fas fa-eraser"></i> Clear & Redraw
                                 </button>
                                 <small class="text-muted align-self-center">
-                                    <i class="fas fa-info-circle"></i> Chữ ký này sẽ được lưu vào hợp đồng
+                                    <i class="fas fa-info-circle"></i> This signature will be saved to the lease
                                 </small>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Checkbox xác nhận -->
+                    <!-- Confirmation Checkbox -->
                     <div class="card mb-4 border-warning">
                         <div class="card-header bg-warning">
                             <h5 class="mb-0">
-                                <i class="fas fa-check-square"></i> Xác nhận
+                                <i class="fas fa-check-square"></i> Confirmation
                             </h5>
                         </div>
                         <div class="card-body">
@@ -113,7 +113,7 @@
                                 <input class="form-check-input" type="checkbox" id="agreeTerms" required>
                                 <label class="form-check-label fw-bold" for="agreeTerms">
                                     <i class="fas fa-file-contract"></i>
-                                    Tôi đã đọc kỹ và đồng ý với tất cả điều khoản trong hợp đồng này
+                                    I have read and agree to all terms in this lease
                                 </label>
                             </div>
 
@@ -121,7 +121,7 @@
                                 <input class="form-check-input" type="checkbox" id="agreeInfo" required>
                                 <label class="form-check-label fw-bold" for="agreeInfo">
                                     <i class="fas fa-user-check"></i>
-                                    Tôi xác nhận các thông tin cá nhân và tài chính trong hợp đồng là chính xác
+                                    I confirm that the personal and financial information in this lease is accurate
                                 </label>
                             </div>
 
@@ -129,42 +129,42 @@
                                 <input class="form-check-input" type="checkbox" id="agreeSign" required>
                                 <label class="form-check-label fw-bold" for="agreeSign">
                                     <i class="fas fa-signature"></i>
-                                    Tôi hiểu rằng chữ ký điện tử này có giá trị pháp lý như chữ ký tay
+                                    I understand that this electronic signature has the same legal value as a handwritten signature
                                 </label>
                             </div>
 
                             <div class="alert alert-danger mb-0">
                                 <i class="fas fa-exclamation-triangle"></i>
-                                <strong>Cảnh báo:</strong>
-                                Sau khi ký, bạn không thể chỉnh sửa hoặc hủy hợp đồng một cách đơn phương.
-                                Hành động này không thể hoàn tác.
+                                <strong>Warning:</strong>
+                                After signing, you cannot unilaterally modify or cancel this lease.
+                                This action cannot be undone.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Xác thực OTP -->
+                    <!-- OTP Verification -->
                     <div class="card mb-4 border-danger">
                         <div class="card-header bg-danger text-white">
                             <h5 class="mb-0">
-                                <i class="fas fa-shield-alt"></i> Xác thực 2 lớp (OTP)
+                                <i class="fas fa-shield-alt"></i> Two-Factor Authentication (OTP)
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle"></i>
-                                Để đảm bảo an toàn, chúng tôi sẽ gửi mã OTP (6 số) đến email của bạn:
+                                For security, we will send an OTP code (6 digits) to your email:
                                 <strong>@userEmail</strong>
                             </div>
 
-                            <!-- Nút gửi OTP -->
+                            <!-- Send OTP Button -->
                             <div class="mb-3">
                                 <button type="button" id="sendOtpBtn" class="btn btn-primary btn-lg" disabled>
-                                    <i class="fas fa-paper-plane"></i> Gửi mã OTP
+                                    <i class="fas fa-paper-plane"></i> Send OTP Code
                                 </button>
                                 <small class="text-muted ms-2" id="otpStatus"></small>
                             </div>
 
-                            <!-- Form nhập OTP -->
+                            <!-- OTP Input Form -->
                             <form asp-action="Sign" method="post" id="signForm">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="signatureData" id="signatureData" />
@@ -172,7 +172,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label for="otpInput" class="form-label fw-bold">
-                                            <i class="fas fa-key"></i> Nhập mã OTP (6 số)
+                                            <i class="fas fa-key"></i> Enter OTP Code (6 digits)
                                         </label>
                                         <input type="text"
                                                class="form-control form-control-lg text-center"
@@ -184,7 +184,7 @@
                                                required
                                                disabled>
                                         <small class="text-muted">
-                                            <i class="fas fa-clock"></i> Mã có hiệu lực trong 5 phút
+                                            <i class="fas fa-clock"></i> Code is valid for 5 minutes
                                         </small>
                                     </div>
                                 </div>
@@ -192,10 +192,10 @@
                                 <!-- Buttons -->
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                                     <a asp-action="Details" asp-route-id="@Model.LeaseId" class="btn btn-lg btn-outline-secondary">
-                                        <i class="fas fa-times"></i> Hủy bỏ
+                                        <i class="fas fa-times"></i> Cancel
                                     </a>
                                     <button type="submit" id="submitBtn" class="btn btn-lg btn-success" disabled>
-                                        <i class="fas fa-pen-nib"></i> Xác nhận ký hợp đồng
+                                        <i class="fas fa-pen-nib"></i> Confirm & Sign Lease
                                     </button>
                                 </div>
                             </form>
@@ -301,7 +301,7 @@
         // Gửi OTP
         sendOtpBtn.addEventListener('click', async function() {
             sendOtpBtn.disabled = true;
-            sendOtpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
+            sendOtpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
             try {
                 const response = await fetch('@Url.Action("SendOtp", "Lease")?leaseId=@Model.LeaseId', {
@@ -323,29 +323,29 @@
                     document.getElementById('otpStatus').innerHTML =
                         '<span class="text-success"><i class="fas fa-check-circle"></i> ' + result.message + '</span>';
 
-                    sendOtpBtn.innerHTML = '<i class="fas fa-check"></i> Đã gửi';
+                    sendOtpBtn.innerHTML = '<i class="fas fa-check"></i> Sent';
 
                     // Countdown 60s
                     let countdown = 60;
                     const interval = setInterval(() => {
                         countdown--;
-                        sendOtpBtn.innerHTML = `<i class="fas fa-clock"></i> Gửi lại (${countdown}s)`;
+                        sendOtpBtn.innerHTML = `<i class="fas fa-clock"></i> Resend (${countdown}s)`;
                         if (countdown <= 0) {
                             clearInterval(interval);
                             sendOtpBtn.disabled = false;
-                            sendOtpBtn.innerHTML = '<i class="fas fa-redo"></i> Gửi lại mã OTP';
+                            sendOtpBtn.innerHTML = '<i class="fas fa-redo"></i> Resend OTP';
                         }
                     }, 1000);
                 } else {
-                    alert('Lỗi: ' + result.message);
+                    alert('Error: ' + result.message);
                     sendOtpBtn.disabled = false;
-                    sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Gửi mã OTP';
+                    sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP Code';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Có lỗi xảy ra. Vui lòng thử lại!');
+                alert('An error occurred. Please try again!');
                 sendOtpBtn.disabled = false;
-                sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Gửi mã OTP';
+                sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP Code';
             }
         });
 
@@ -359,23 +359,23 @@
             e.preventDefault();
 
             if (!hasDrawn) {
-                alert('Vui lòng vẽ chữ ký của bạn!');
+                alert('Please draw your signature!');
                 return false;
             }
 
             if (!otpSent) {
-                alert('Vui lòng gửi mã OTP trước!');
+                alert('Please send OTP code first!');
                 return false;
             }
 
             const otpValue = otpInput.value.trim();
             if (otpValue.length !== 6) {
-                alert('Mã OTP phải có 6 số!');
+                alert('OTP must be 6 digits!');
                 otpInput.focus();
                 return false;
             }
 
-            if (!confirm('Bạn có chắc chắn muốn ký hợp đồng này không?\n\nHành động này không thể hoàn tác.')) {
+            if (!confirm('Are you sure you want to sign this lease?\n\nThis action cannot be undone.')) {
                 return false;
             }
 

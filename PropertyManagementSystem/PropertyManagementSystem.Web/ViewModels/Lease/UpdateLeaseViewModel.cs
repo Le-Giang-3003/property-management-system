@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.Web.ViewModels.Lease
 {
@@ -8,42 +8,42 @@ namespace PropertyManagementSystem.Web.ViewModels.Lease
         public string LeaseNumber { get; set; }
 
         [Required]
-        [Display(Name = "Ngày bắt đầu")]
+        [Display(Name = "Start Date")]
         public DateTime StartDate { get; set; }
 
         public int OriginalStartDay { get; set; }
 
         [Required]
         [Range(1, 120)]
-        [Display(Name = "Thời hạn thuê (tháng)")]
+        [Display(Name = "Lease Duration (months)")]
         public int LeaseDurationMonths { get; set; }
 
-        [Display(Name = "Ngày kết thúc")]
+        [Display(Name = "End Date")]
         public DateTime EndDate { get; set; }
 
-        [Display(Name = "Ngày thanh toán")]
+        [Display(Name = "Payment Due Day")]
         public int PaymentDueDay { get; set; }
 
         [Required]
         [Range(0, double.MaxValue)]
-        [Display(Name = "Tiền thuê hàng tháng (VNĐ)")]
+        [Display(Name = "Monthly Rent (VND)")]
         public decimal MonthlyRent { get; set; }
 
         [Required]
         [Range(0, double.MaxValue)]
-        [Display(Name = "Tiền đặt cọc (VNĐ)")]
+        [Display(Name = "Security Deposit (VND)")]
         public decimal SecurityDeposit { get; set; }
 
-        [Display(Name = "Điều khoản hợp đồng")]
+        [Display(Name = "Lease Terms")]
         public string? Terms { get; set; }
 
-        [Display(Name = "Điều kiện đặc biệt")]
+        [Display(Name = "Special Conditions")]
         public string? SpecialConditions { get; set; }
 
-        [Display(Name = "Tự động gia hạn")]
+        [Display(Name = "Auto Renew")]
         public bool AutoRenew { get; set; }
 
-        // Thông tin readonly
+        // Read-only information
         public string? PropertyName { get; set; }
         public string? TenantName { get; set; }
         public string? Status { get; set; }

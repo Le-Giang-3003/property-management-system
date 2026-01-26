@@ -1,9 +1,9 @@
-﻿@model PropertyManagementSystem.BLL.DTOs.User.UpdateProfileDto
+@model PropertyManagementSystem.BLL.DTOs.User.UpdateProfileDto
 @{
-    ViewData["Title"] = "Chỉnh sửa thông tin";
+    ViewData["Title"] = "Edit Profile";
 }
 
-<h2>Chỉnh sửa thông tin</h2>
+<h2>Edit Profile</h2>
 
 @if (TempData["Error"] != null)
 {
@@ -15,36 +15,36 @@
 
     <table cellpadding="10">
         <tr>
-            <td><label asp-for="FullName">Họ tên *</label></td>
+            <td><label asp-for="FullName">Full Name *</label></td>
             <td>
                 <input asp-for="FullName" />
                 <span asp-validation-for="FullName" style="color:red;"></span>
             </td>
         </tr>
         <tr>
-            <td><label asp-for="PhoneNumber">Số điện thoại</label></td>
+            <td><label asp-for="PhoneNumber">Phone Number</label></td>
             <td>
                 <input asp-for="PhoneNumber" />
                 <span asp-validation-for="PhoneNumber" style="color:red;"></span>
             </td>
         </tr>
         <tr>
-            <td><label asp-for="DateOfBirth">Ngày sinh</label></td>
+            <td><label asp-for="DateOfBirth">Date of Birth</label></td>
             <td><input asp-for="DateOfBirth" type="date" /></td>
         </tr>
         <tr>
-            <td><label asp-for="Address">Địa chỉ</label></td>
+            <td><label asp-for="Address">Address</label></td>
             <td><textarea asp-for="Address" rows="3" cols="30"></textarea></td>
         </tr>
         <tr>
-            <td><label asp-for="Avatar">URL Avatar</label></td>
+            <td><label asp-for="Avatar">Avatar URL</label></td>
             <td><input asp-for="Avatar" size="50" /></td>
         </tr>
         <tr>
             <td></td>
             <td>
-                <button type="submit">Lưu</button>
-                <a href="@Url.Action("Index", "Profile")">Hủy</a>
+                <button type="submit">Save</button>
+                <a href="@Url.Action("Index", "Profile")">Cancel</a>
             </td>
         </tr>
     </table>

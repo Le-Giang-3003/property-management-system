@@ -16,14 +16,14 @@
         <div class="header-content">
             <h1 class="page-title">
                 <i class="bi bi-building"></i>
-                BDS của tôi
+                My Properties
             </h1>
-            <p class="page-subtitle">Quản lý tất cả bất động sản của bạn</p>
+            <p class="page-subtitle">Manage all your properties</p>
         </div>
         <div class="header-actions">
             <a asp-action="Create" class="btn-create">
                 <i class="bi bi-plus-circle"></i>
-                Thêm BDS mới
+                Add New Property
             </a>
         </div>
     </div>
@@ -36,7 +36,7 @@
             </div>
             <div class="stat-info">
                 <h3>@totalProperties</h3>
-                <p>Tổng BDS</p>
+                <p>Total</p>
             </div>
         </div>
 
@@ -46,7 +46,7 @@
             </div>
             <div class="stat-info">
                 <h3>@availableCount</h3>
-                <p>Có sẵn</p>
+                <p>Available</p>
             </div>
         </div>
 
@@ -56,7 +56,7 @@
             </div>
             <div class="stat-info">
                 <h3>@rentedCount</h3>
-                <p>Đã cho thuê</p>
+                <p>Rented</p>
             </div>
         </div>
 
@@ -66,7 +66,7 @@
             </div>
             <div class="stat-info">
                 <h3>@maintenanceCount</h3>
-                <p>Bảo trì</p>
+                <p>Maintenance</p>
             </div>
         </div>
     </div>
@@ -112,11 +112,11 @@
                         <div class="property-specs">
                             <span>
                                 <i class="bi bi-door-closed"></i>
-                                @property.Bedrooms PN
+                                @property.Bedrooms BD
                             </span>
                             <span>
                                 <i class="bi bi-droplet"></i>
-                                @property.Bathrooms PT
+                                @property.Bathrooms BA
                             </span>
                             <span>
                                 <i class="bi bi-rulers"></i>
@@ -126,13 +126,13 @@
 
                         <div class="property-price">
                             <span class="price-amount">@FormatVNCurrency(property.RentAmount)</span>
-                            <span class="price-period">/tháng</span>
+                            <span class="price-period">/month</span>
                         </div>
 
                         <div class="property-footer">
                             <div class="property-images-info">
                                 <i class="bi bi-images"></i>
-                                <span>@(property.Images?.Count ?? 0) ảnh</span>
+                                <span>@(property.Images?.Count ?? 0) photos</span>
                             </div>
                             <div class="property-date">
                                 <i class="bi bi-clock"></i>
@@ -143,20 +143,20 @@
                         <div class="property-actions">
                             <div class="action-row">
                                 <a asp-action="Details" asp-route-id="@property.PropertyId"
-                                   class="btn-action view" title="Xem chi tiết">
+                                   class="btn-action view" title="View Details">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <a asp-action="Edit" asp-route-id="@property.PropertyId"
-                                   class="btn-action edit" title="Chỉnh sửa">
+                                   class="btn-action edit" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <a asp-action="ManageImages" asp-route-id="@property.PropertyId"
-                                   class="btn-action images" title="Quản lý ảnh">
+                                   class="btn-action images" title="Manage Images">
                                     <i class="bi bi-images"></i>
                                 </a>
                                 <button type="button" class="btn-action status"
                                         onclick="showStatusModal(@property.PropertyId, '@property.Status')"
-                                        title="Đổi trạng thái">
+                                        title="Change Status">
                                     <i class="bi bi-arrow-repeat"></i>
                                 </button>
                             </div>
@@ -170,11 +170,11 @@
     {
         <div class="empty-state">
             <i class="bi bi-building-add"></i>
-            <h3>Chưa có bất động sản nào</h3>
-            <p>Bắt đầu bằng cách thêm BDS đầu tiên của bạn</p>
+            <h3>No properties yet</h3>
+            <p>Start by adding your first property</p>
             <a asp-action="Create" class="btn-create-large">
                 <i class="bi bi-plus-circle"></i>
-                Thêm BDS đầu tiên
+                Add First Property
             </a>
         </div>
     }
@@ -185,7 +185,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5><i class="bi bi-arrow-repeat"></i> Đổi trạng thái</h5>
+                <h5><i class="bi bi-arrow-repeat"></i> Change Status</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -195,19 +195,19 @@
                 <div class="status-options">
                     <button type="button" class="status-option available" data-status="Available">
                         <i class="bi bi-check-circle"></i>
-                        <span>Có sẵn</span>
+                        <span>Available</span>
                     </button>
                     <button type="button" class="status-option rented" data-status="Rented">
                         <i class="bi bi-house-check"></i>
-                        <span>Đã thuê</span>
+                        <span>Rented</span>
                     </button>
                     <button type="button" class="status-option maintenance" data-status="Maintenance">
                         <i class="bi bi-tools"></i>
-                        <span>Bảo trì</span>
+                        <span>Maintenance</span>
                     </button>
                     <button type="button" class="status-option unavailable" data-status="Unavailable">
                         <i class="bi bi-x-circle"></i>
-                        <span>Không khả dụng</span>
+                        <span>Unavailable</span>
                     </button>
                 </div>
             </div>
@@ -731,8 +731,8 @@
             if (newStatus === currentStatus) {
                 Swal.fire({
                     icon: 'info',
-                    title: 'Thông báo',
-                    text: 'Trạng thái không thay đổi',
+                    title: 'Notice',
+                    text: 'Status unchanged',
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -755,7 +755,7 @@
                 if (result.success) {
                     await Swal.fire({
                         icon: 'success',
-                        title: 'Thành công!',
+                        title: 'Success!',
                         text: result.message,
                         timer: 2000,
                         showConfirmButton: false
@@ -767,7 +767,7 @@
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi!',
+                    title: 'Error!',
                     text: error.message
                 });
             }
@@ -788,15 +788,15 @@
 
     string GetStatusDisplay(string status) => status switch
     {
-        "Available" => "Có sẵn",
-        "Rented" => "Đã thuê",
-        "Maintenance" => "Bảo trì",
-        "Unavailable" => "Không khả dụng",
+        "Available" => "Available",
+        "Rented" => "Rented",
+        "Maintenance" => "Maintenance",
+        "Unavailable" => "Unavailable",
         _ => status
     };
 
     string FormatVNCurrency(decimal amount)
     {
-        return amount.ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")) + " ₫";
+        return "$" + amount.ToString("#,##0", new System.Globalization.CultureInfo("en-US"));
     }
 }

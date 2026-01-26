@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.User;
 using PropertyManagementSystem.BLL.Services.Interface;
@@ -24,7 +24,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var profile = await _profileService.GetProfileAsync(userId.Value);
             if (profile == null)
             {
-                TempData["Error"] = "Không tìm thấy người dùng";
+                TempData["Error"] = "User not found";
                 return RedirectToAction("Index", "Home");
             }
             return View(profile);
@@ -129,7 +129,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var profile = await _profileService.GetProfileAsync(id);
             if (profile == null)
             {
-                TempData["Error"] = "Không tìm thấy người dùng";
+                TempData["Error"] = "User not found";
                 return RedirectToAction("Search");
             }
             return View(profile);

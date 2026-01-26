@@ -23,22 +23,6 @@
         </div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="pm-alert pm-alert-success" style="margin-bottom: var(--pm-space-5);">
-            <i class="bi bi-check-circle-fill"></i>
-            <span>@TempData["SuccessMessage"]</span>
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="pm-alert pm-alert-danger" style="margin-bottom: var(--pm-space-5);">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>@TempData["ErrorMessage"]</span>
-        </div>
-    }
-
     @if (Model != null && Model.Any())
     {
         <!-- Stats Cards -->

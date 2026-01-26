@@ -1,50 +1,50 @@
-﻿@model PropertyManagementSystem.Web.ViewModels.Property.ChangePropertyStatusViewModel
+@model PropertyManagementSystem.Web.ViewModels.Property.ChangePropertyStatusViewModel
 
 @{
-    ViewData["Title"] = "Thay đổi trạng thái BDS";
+    ViewData["Title"] = "Change Property Status";
     var currentStatus = Model.CurrentStatus ?? "";
 }
 
 <div class="container mt-4">
-    <h1>Thay đổi trạng thái BDS</h1>
+    <h1>Change Property Status</h1>
 
     <div class="alert alert-info">
-        <strong>Bất động sản:</strong> @Model.Name
+        <strong>Property:</strong> @Model.Name
         <br>
-        <strong>Trạng thái hiện tại:</strong> <span class="badge badge-secondary">@currentStatus</span>
+        <strong>Current Status:</strong> <span class="badge badge-secondary">@currentStatus</span>
     </div>
 
     <form asp-action="ChangeStatus" method="post" novalidate>
         <input type="hidden" asp-for="PropertyId" />
 
         <div class="form-group">
-            <label for="NewStatus">Trạng thái mới <span class="text-danger">*</span></label>
+            <label for="NewStatus">New Status <span class="text-danger">*</span></label>
             <select asp-for="NewStatus" id="statusSelect" class="form-control">
-                <option value="">-- Chọn trạng thái mới --</option>
-                <option value="Available" data-color="success" data-label="Có sẵn">Available</option>
-                <option value="Rented" data-color="primary" data-label="Đã cho thuê">Rented</option>
-                <option value="Maintenance" data-color="warning" data-label="Bảo trì">Maintenance</option>
-                <option value="Unavailable" data-color="secondary" data-label="Không khả dụng">Unavailable</option>
+                <option value="">-- Select new status --</option>
+                <option value="Available" data-color="success" data-label="Available">Available</option>
+                <option value="Rented" data-color="primary" data-label="Rented">Rented</option>
+                <option value="Maintenance" data-color="warning" data-label="Maintenance">Maintenance</option>
+                <option value="Unavailable" data-color="secondary" data-label="Unavailable">Unavailable</option>
             </select>
             <div class="invalid-feedback" id="statusError"></div>
         </div>
 
         <div class="form-group">
             <div id="statusPreview" class="alert alert-light border">
-                <p class="text-muted mb-0">Chọn trạng thái để xem trước</p>
+                <p class="text-muted mb-0">Select status to preview</p>
             </div>
         </div>
 
         <div class="alert alert-info">
-            <strong>Lưu ý:</strong> Vui lòng chọn trạng thái khác với trạng thái hiện tại (<code>@currentStatus</code>) để cập nhật.
+            <strong>Note:</strong> Please select a different status from the current one (<code>@currentStatus</code>) to update.
         </div>
 
         <div class="form-group">
             <button type="submit" id="submitBtn" class="btn btn-primary" disabled>
-                <span id="submitText">Cập nhật trạng thái</span>
+                <span id="submitText">Update Status</span>
             </button>
             <a asp-action="Details" asp-route-id="@Model.PropertyId" class="btn btn-secondary">
-                Hủy
+                Cancel
             </a>
         </div>
     </form>
@@ -73,7 +73,7 @@
                 if (!value) {
                     // No selection
                     preview.className = 'alert alert-light border';
-                    preview.innerHTML = '<p class="text-muted mb-0">Chọn trạng thái để xem trước</p>';
+                    preview.innerHTML = '<p class="text-muted mb-0">Select status to preview</p>';
                     submitBtn.disabled = true;
                     submitBtn.className = 'btn btn-primary';
                 }
@@ -81,13 +81,13 @@
                     // Same as current
                     preview.className = 'alert alert-warning';
                     preview.innerHTML = `
-                        <strong>Giữ nguyên trạng thái:</strong> ${value}
+                        <strong>Keep current status:</strong> ${value}
                         <br>
-                        <small>Vui lòng chọn trạng thái khác với hiện tại</small>
+                        <small>Please select a different status from current</small>
                     `;
                     submitBtn.disabled = true;
                     submitBtn.className = 'btn btn-warning';
-                    submitText.innerHTML = 'Không cần cập nhật';
+                    submitText.innerHTML = 'No update needed';
                 }
                 else {
                     // Valid new status
@@ -96,13 +96,13 @@
 
                     preview.className = 'alert alert-' + color;
                     preview.innerHTML = `
-                        <strong>Trạng thái mới:</strong> ${value} (${label})
+                        <strong>New Status:</strong> ${value} (${label})
                         <br>
-                        <small>Sẵn sàng cập nhật</small>
+                        <small>Ready to update</small>
                     `;
                     submitBtn.disabled = false;
                     submitBtn.className = 'btn btn-success';
-                    submitText.innerHTML = `Cập nhật thành ${value}`;
+                    submitText.innerHTML = `Update to ${value}`;
                 }
             }
 
@@ -114,7 +114,7 @@
                 if (submitBtn.disabled) {
                     e.preventDefault();
                     select.classList.add('is-invalid');
-                    statusError.textContent = 'Vui lòng chọn trạng thái khác với hiện tại.';
+                    statusError.textContent = 'Please select a different status from current.';
                     select.focus();
                 }
             });

@@ -1,5 +1,5 @@
-﻿@{
-    ViewData["Title"] = "Upload Tài liệu";
+@{
+    ViewData["Title"] = "Upload Document";
     Layout = "_AuthLayout";
     var entityType = ViewBag.EntityType as string ?? "";
     var entityId = ViewBag.EntityId as int? ?? 0;
@@ -11,7 +11,7 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">
-                        <i class="bi bi-cloud-upload"></i> Upload Tài liệu
+                        <i class="bi bi-cloud-upload"></i> Upload Document
                     </h4>
                 </div>
                 <div class="card-body">
@@ -29,10 +29,10 @@
                         <!-- Document Type -->
                         <div class="mb-3">
                             <label class="form-label">
-                                <i class="bi bi-file-earmark"></i> Loại tài liệu <span class="text-danger">*</span>
+                                <i class="bi bi-file-earmark"></i> Document Type <span class="text-danger">*</span>
                             </label>
                             <select name="documentType" class="form-select" required>
-                                <option value="">-- Chọn loại tài liệu --</option>
+                                <option value="">-- Select document type --</option>
                                 @foreach (var item in ViewBag.DocumentTypes as List<SelectListItem>)
                                 {
                                     <option value="@item.Value">@item.Text</option>
@@ -43,10 +43,10 @@
                         <!-- Entity Type -->
                         <div class="mb-3">
                             <label class="form-label">
-                                <i class="bi bi-folder"></i> Liên quan đến <span class="text-danger">*</span>
+                                <i class="bi bi-folder"></i> Related To <span class="text-danger">*</span>
                             </label>
                             <select name="entityType" class="form-select" required value="@entityType">
-                                <option value="">-- Chọn loại --</option>
+                                <option value="">-- Select type --</option>
                                 @foreach (var item in ViewBag.EntityTypes as List<SelectListItem>)
                                 {
                                     <option value="@item.Value" selected="@(item.Value == entityType)">@item.Text</option>
@@ -57,28 +57,28 @@
                         <!-- Entity ID -->
                         <div class="mb-3">
                             <label class="form-label">
-                                <i class="bi bi-hash"></i> ID của đối tượng <span class="text-danger">*</span>
+                                <i class="bi bi-hash"></i> Entity ID <span class="text-danger">*</span>
                             </label>
                             <input type="number" name="entityId" class="form-control"
-                                   placeholder="VD: 1, 2, 3..." required min="1" value="@entityId" />
+                                   placeholder="E.g: 1, 2, 3..." required min="1" value="@entityId" />
                             <small class="form-text text-muted">
-                                Nhập ID của Property, Lease, Invoice, v.v.
+                                Enter ID of Property, Lease, Invoice, etc.
                             </small>
                         </div>
 
                         <!-- File Upload -->
                         <div class="mb-3">
                             <label class="form-label">
-                                <i class="bi bi-paperclip"></i> Chọn file <span class="text-danger">*</span>
+                                <i class="bi bi-paperclip"></i> Select File <span class="text-danger">*</span>
                             </label>
                             <input type="file" name="file" class="form-control" id="fileInput" required />
                             <div class="form-text">
-                                <strong>Định dạng cho phép:</strong>
+                                <strong>Allowed formats:</strong>
                                 <ul class="mb-0 mt-1">
-                                    <li>Hình ảnh: JPG, JPEG, PNG, WEBP (tối đa 5MB)</li>
-                                    <li>Video: MP4 (tối đa 50MB)</li>
-                                    <li>Tài liệu: PDF, DOCX, XLSX, PPTX, CSV (tối đa 10MB)</li>
-                                    <li>Archive: ZIP - chỉ Admin (tối đa 20MB)</li>
+                                    <li>Images: JPG, JPEG, PNG, WEBP (max 5MB)</li>
+                                    <li>Video: MP4 (max 50MB)</li>
+                                    <li>Documents: PDF, DOCX, XLSX, PPTX, CSV (max 10MB)</li>
+                                    <li>Archive: ZIP - Admin only (max 20MB)</li>
                                 </ul>
                             </div>
                             <div id="fileInfo" class="mt-2"></div>
@@ -87,16 +87,16 @@
                         <!-- Description -->
                         <div class="mb-3">
                             <label class="form-label">
-                                <i class="bi bi-text-left"></i> Mô tả (không bắt buộc)
+                                <i class="bi bi-text-left"></i> Description (optional)
                             </label>
                             <textarea name="description" class="form-control" rows="3"
-                                      placeholder="Nhập mô tả về tài liệu..."></textarea>
+                                      placeholder="Enter document description..."></textarea>
                         </div>
 
                         <!-- Buttons -->
                         <div class="d-flex justify-content-between">
                             <a asp-action="MyDocuments" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Quay lại
+                                <i class="bi bi-arrow-left"></i> Back
                             </a>
                             <button type="submit" class="btn btn-primary" id="submitBtn">
                                 <i class="bi bi-upload"></i> Upload
@@ -120,9 +120,9 @@
                 const size = (file.size / (1024 * 1024)).toFixed(2);
                 fileInfo.innerHTML = `
                     <div class="alert alert-info">
-                        <strong>File đã chọn:</strong> ${file.name}<br>
-                        <strong>Kích thước:</strong> ${size} MB<br>
-                        <strong>Loại:</strong> ${file.type || 'Unknown'}
+                        <strong>Selected file:</strong> ${file.name}<br>
+                        <strong>Size:</strong> ${size} MB<br>
+                        <strong>Type:</strong> ${file.type || 'Unknown'}
                     </div>
                 `;
             }
@@ -132,7 +132,7 @@
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang upload...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
         });
     </script>
 }

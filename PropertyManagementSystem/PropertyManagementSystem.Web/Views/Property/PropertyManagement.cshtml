@@ -2,7 +2,7 @@
 @model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
 
 @{
-    ViewData["Title"] = "Quản lý bất động sản";
+    ViewData["Title"] = "Property Management";
     Layout = "_AuthLayout";
     var city = ViewBag.City as string ?? "";
     var propertyType = ViewBag.PropertyType as string ?? "";
@@ -25,19 +25,19 @@
         <div class="header-content">
             <h1 class="page-title">
                 <i class="bi bi-buildings"></i>
-                Danh sách bất động sản
+                Property List
             </h1>
             <p class="page-subtitle">
                 @if (Model.Any())
                 {
                     if (hasFilters)
                     {
-                        <span>Tìm thấy <strong>@Model.Count()</strong> kết quả</span>
+                        <span>Found <strong>@Model.Count()</strong> results</span>
                     }
                 }
                 else
                 {
-                    <span>Chưa có bất động sản nào</span>
+                    <span>No properties available</span>
                 }
             </p>
         </div>
@@ -46,7 +46,7 @@
             {
                 <a asp-action="Create" class="btn-create">
                     <i class="bi bi-plus-lg"></i>
-                    Đăng tin cho thuê
+                    Post for Rent
                 </a>
             }
         </div>
@@ -57,13 +57,13 @@
         <div class="filter-header">
             <h3>
                 <i class="bi bi-funnel"></i>
-                Tìm kiếm & Lọc
+                Search & Filter
             </h3>
             @if (hasFilters)
             {
                 <a asp-action="Index" class="btn-clear-filter">
                     <i class="bi bi-x-circle"></i>
-                    Xóa bộ lọc
+                    Clear Filter
                 </a>
             }
         </div>
@@ -72,18 +72,18 @@
                 <div class="filter-group">
                     <label>
                         <i class="bi bi-geo-alt"></i>
-                        Địa điểm
+                        Location
                     </label>
                     <input type="text" name="city" class="filter-input"
-                           placeholder="VD: Quận 7, TP.HCM" value="@city" />
+                           placeholder="E.g: District 7, HCMC" value="@city" />
                 </div>
                 <div class="filter-group">
                     <label>
                         <i class="bi bi-house-door"></i>
-                        Loại bất động sản
+                        Property Type
                     </label>
                     <select name="propertyType" class="filter-select">
-                        <option value="">-- Tất cả --</option>
+                        <option value="">-- All --</option>
                         @foreach (var type in propertyTypes)
                         {
                             <option value="@type.Value" selected="@(type.Value == propertyType)">
@@ -95,7 +95,7 @@
                 <div class="filter-group">
                     <label>
                         <i class="bi bi-currency-dollar"></i>
-                        Giá tối thiểu (₫)
+                        Min Price ($)
                     </label>
                     <input type="number" name="minRent" class="filter-input"
                            placeholder="0" step="500000" min="0" value="@minRent" />
@@ -103,7 +103,7 @@
                 <div class="filter-group">
                     <label>
                         <i class="bi bi-currency-dollar"></i>
-                        Giá tối đa (₫)
+                        Max Price ($)
                     </label>
                     <input type="number" name="maxRent" class="filter-input"
                            placeholder="50,000,000" step="500000" min="0" value="@maxRent" />
@@ -112,7 +112,7 @@
             <div class="filter-actions">
                 <button type="submit" class="btn-search">
                     <i class="bi bi-search"></i>
-                    Tìm kiếm
+                    Search
                 </button>
             </div>
         </form>
@@ -133,7 +133,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>@Model.Count()</h3>
-                    <p>Tổng bất động sản</p>
+                    <p>Total Properties</p>
                 </div>
             </div>
             <div class="stat-card available">
@@ -142,7 +142,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>@availableCount</h3>
-                    <p>Có sẵn</p>
+                    <p>Available</p>
                 </div>
             </div>
             <div class="stat-card rented">
@@ -151,7 +151,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>@rentedCount</h3>
-                    <p>Đã thuê</p>
+                    <p>Rented</p>
                 </div>
             </div>
             <div class="stat-card revenue">
@@ -160,7 +160,7 @@
                 </div>
                 <div class="stat-content">
                     <h3>@totalRevenue.ToString("N0")</h3>
-                    <p>VNĐ/tháng</p>
+                    <p>$/month</p>
                 </div>
             </div>
         </div>
@@ -170,10 +170,10 @@
     <div class="properties-list">
         <div class="list-header">
             <h3>
-                Danh sách bất động sản
+                Property List
                 @if (hasFilters)
                 {
-                    <span class="result-badge">@Model.Count() kết quả</span>
+                    <span class="result-badge">@Model.Count() results</span>
                 }
             </h3>
         </div>
@@ -187,13 +187,13 @@
                             <th class="col-favorite">
                                 <i class="bi bi-heart"></i>
                             </th>
-                            <th class="col-name">Tên & Địa chỉ</th>
-                            <th class="col-type">Loại</th>
-                            <th class="col-specs">Thông số</th>
-                            <th class="col-price">Giá thuê</th>
-                            <th class="col-status">Trạng thái</th>
-                            <th class="col-landlord">Chủ nhà</th>
-                            <th class="col-actions">Thao tác</th>
+                            <th class="col-name">Name & Address</th>
+                            <th class="col-type">Type</th>
+                            <th class="col-specs">Specs</th>
+                            <th class="col-price">Rent Price</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-landlord">Landlord</th>
+                            <th class="col-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -214,7 +214,7 @@
                                     }
                                     else
                                     {
-                                        <span class="favorite-disabled" title="Đăng nhập để yêu thích">
+                                        <span class="favorite-disabled" title="Sign in to favorite">
                                             <i class="bi bi-heart"></i>
                                         </span>
                                     }
@@ -262,11 +262,11 @@
                                 <td class="col-price">
                                     <div class="price-info">
                                         <span class="price">@item.RentAmount.ToString("N0") ₫</span>
-                                        <span class="period">/tháng</span>
+                                        <span class="period">/month</span>
                                         @if (item.DepositAmount.HasValue)
                                         {
                                             <span class="deposit">
-                                                Cọc: @item.DepositAmount.Value.ToString("N0") ₫
+                                                Deposit: @item.DepositAmount.Value.ToString("N0") $
                                             </span>
                                         }
                                     </div>
@@ -288,18 +288,18 @@
                                 <td class="col-actions">
                                     <div class="action-buttons">
                                         <a asp-action="Details" asp-route-id="@item.PropertyId"
-                                           class="btn-action view" title="Xem chi tiết">
+                                           class="btn-action view" title="View Details">
                                             <i class="bi bi-eye"></i>
                                         </a>
 
                                         @if (isOwner)
                                         {
                                             <a asp-action="Edit" asp-route-id="@item.PropertyId"
-                                               class="btn-action edit" title="Chỉnh sửa">
+                                               class="btn-action edit" title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <a asp-action="Delete" asp-route-id="@item.PropertyId"
-                                               class="btn-action delete" title="Xóa">
+                                               class="btn-action delete" title="Delete">
                                                 <i class="bi bi-trash3"></i>
                                             </a>
                                         }
@@ -310,13 +310,13 @@
                                                 <button type="button"
                                                         class="btn-action rent"
                                                         data-property-id="@item.PropertyId"
-                                                        title="Thuê ngay">
+                                                        title="Rent Now">
                                                     <i class="bi bi-key"></i>
                                                 </button>
                                             }
                                             else
                                             {
-                                                <button type="button" class="btn-action disabled" disabled title="Không khả dụng">
+                                                <button type="button" class="btn-action disabled" disabled title="Unavailable">
                                                     <i class="bi bi-ban"></i>
                                                 </button>
                                             }
@@ -338,29 +338,29 @@
                 <h3>
                     @if (hasFilters)
                     {
-                        <span>Không tìm thấy bất động sản phù hợp</span>
+                        <span>No matching properties found</span>
                     }
                     else
                     {
-                        <span>Chưa có bất động sản nào</span>
+                        <span>No properties available</span>
                     }
                 </h3>
                 <p>
                     @if (hasFilters)
                     {
-                        <span>Thử điều chỉnh bộ lọc hoặc </span>
-                        <a asp-action="Index">xóa bộ lọc</a>
+                        <span>Try adjusting the filter or </span>
+                        <a asp-action="Index">clear filter</a>
                     }
                     else
                     {
-                        <span>Bắt đầu bằng cách đăng tin cho thuê</span>
+                        <span>Start by posting a rental listing</span>
                     }
                 </p>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <a asp-action="Create" class="btn-explore">
                         <i class="bi bi-plus-lg"></i>
-                        Đăng tin cho thuê
+                        Post for Rent
                     </a>
                 }
             </div>
@@ -1085,12 +1085,12 @@
                                 timerProgressBar: true
                             });
                         } else {
-                            Swal.fire('Lỗi', response.message, 'error');
+                            Swal.fire('Error', response.message, 'error');
                         }
                     },
                     error: function() {
                         btn.prop('disabled', false);
-                        Swal.fire('Lỗi', 'Có lỗi xảy ra', 'error');
+                        Swal.fire('Error', 'An error occurred', 'error');
                     }
                 });
             });
@@ -1101,8 +1101,8 @@
 
                 Swal.fire({
                     icon: 'info',
-                    title: 'Thuê ngay',
-                    text: 'Chức năng thuê bất động sản đang được phát triển',
+                    title: 'Rent Now',
+                    text: 'The property rental feature is under development',
                     footer: `Property ID: ${propertyId}`,
                     confirmButtonText: 'OK'
                 });
@@ -1168,10 +1168,10 @@
 
     string GetStatusDisplay(string status) => status switch
     {
-        "Available" => "Có sẵn",
-        "Rented" => "Đã thuê",
-        "Maintenance" => "Bảo trì",
-        "Unavailable" => "Không khả dụng",
+        "Available" => "Available",
+        "Rented" => "Rented",
+        "Maintenance" => "Maintenance",
+        "Unavailable" => "Unavailable",
         _ => status
     };
 }

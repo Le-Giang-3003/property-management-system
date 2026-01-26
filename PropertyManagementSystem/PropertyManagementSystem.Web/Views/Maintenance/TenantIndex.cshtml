@@ -1,4 +1,4 @@
-﻿@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
+@model List<PropertyManagementSystem.BLL.DTOs.Maintenance.MaintenanceRequestDto>
 @{
     ViewData["Title"] = "Maintenance Requests";
     Layout = "_AuthLayout";
@@ -578,15 +578,6 @@
 </style>
 
 <div class="maintenance-container">
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-    }
-
     <div class="maintenance-header">
         <div>
             <h1>Maintenance Requests</h1>
@@ -691,7 +682,7 @@
                             @if (!string.IsNullOrEmpty(request.TechnicianNote))
                             {
                                 <br />
-                                <strong>Ghi chú của thợ:</strong> @request.TechnicianNote
+                                <strong>Technician Notes:</strong> @request.TechnicianNote
                             }
                         </div>
                     }
@@ -703,7 +694,7 @@
                             @if (!string.IsNullOrEmpty(request.ResolutionNotes))
                             {
                                 <br />
-                                <strong>Ghi chú của thợ:</strong>
+                                <strong>Technician Notes:</strong>
 
                                 @request.ResolutionNotes
                             }

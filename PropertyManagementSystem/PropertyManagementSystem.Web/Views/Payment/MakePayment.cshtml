@@ -24,22 +24,6 @@
         </div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="pm-alert pm-alert-success">
-            <i class="bi bi-check-circle-fill"></i>
-            <span>@TempData["SuccessMessage"]</span>
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="pm-alert pm-alert-danger">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>@TempData["ErrorMessage"]</span>
-        </div>
-    }
-
     <div class="pm-grid pm-grid-cols-3 pm-gap-6">
         <div class="pm-col-span-2">
             <div class="pm-card">

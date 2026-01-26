@@ -35,7 +35,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int landlordId))
             {
-                TempData["Error"] = "Không tìm thấy thông tin người dùng";
+                TempData["Error"] = "User information not found";
                 return RedirectToAction("Login", "Auth");
             }
             Console.WriteLine($"✅ Landlord ID: {landlordId}");
@@ -72,7 +72,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
                 }
-                TempData["Error"] = "Có lỗi xảy ra khi tải dữ liệu dashboard";
+                TempData["Error"] = "An error occurred while loading dashboard data";
                 return RedirectToAction("Index", "Home");
             }
         }

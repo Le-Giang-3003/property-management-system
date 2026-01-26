@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Lease;
 using PropertyManagementSystem.BLL.Services.Implementation;
@@ -73,7 +73,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var lease = await _leaseService.GetLeaseByIdAsync(id);
             if (lease == null)
             {
-                TempData["Error"] = "Không tìm thấy hợp đồng";
+                TempData["Error"] = "Lease not found";
                 return RedirectToAction("Index");
             }
 
@@ -86,7 +86,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (!isLandlord && !isTenant)
             {
-                TempData["Error"] = "Bạn không có quyền xem hợp đồng này";
+                TempData["Error"] = "You do not have permission to view this lease";
                 return RedirectToAction("Index");
             }
 
@@ -116,7 +116,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (application == null || application.Status != "Approved")
             {
-                TempData["Error"] = "Đơn xin thuê không hợp lệ hoặc chưa được duyệt";
+                TempData["Error"] = "Invalid rental application or not yet approved";
                 return RedirectToAction("Index", "RentalApplication");
             }
 
@@ -124,7 +124,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             if (application.Property?.LandlordId != userId)
             {
-                TempData["Error"] = "Bạn không có quyền tạo hợp đồng cho đơn này";
+                TempData["Error"] = "You do not have permission to create a lease for this application";
                 return RedirectToAction("Index", "RentalApplication");
             }
 
@@ -132,7 +132,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var canCreate = await _leaseService.CanCreateLeaseFromApplication(applicationId);
             if (!canCreate)
             {
-                TempData["Error"] = "Hợp đồng cho đơn này đã được tạo rồi";
+                TempData["Error"] = "A lease for this application has already been created";
                 return RedirectToAction("Details", "RentalApplication", new { id = applicationId });
             }
 
@@ -226,7 +226,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 if (lease == null)
                 {
                     Console.WriteLine("❌ Service trả về NULL");
-                    TempData["Error"] = "Không thể tạo hợp đồng. Vui lòng kiểm tra lại.";
+                    TempData["Error"] = "Unable to create lease. Please check and try again.";
 
                     // Reload data để hiển thị form lại
                     var app = await _applicationService.GetApplicationByIdAsync(model.ApplicationId);
@@ -241,14 +241,14 @@ namespace PropertyManagementSystem.Web.Controllers
                 }
 
                 Console.WriteLine($"✅ Lease created successfully: {lease.LeaseNumber}");
-                TempData["Success"] = $"Hợp đồng {lease.LeaseNumber} đã được tạo thành công!";
+                TempData["Success"] = $"Lease {lease.LeaseNumber} has been created successfully!";
                 return RedirectToAction("Details", new { id = lease.LeaseId });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ EXCEPTION: {ex.Message}");
                 Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                TempData["Error"] = $"Lỗi: {ex.Message}";
+                TempData["Error"] = $"Error: {ex.Message}";
 
                 // Reload data
                 var app = await _applicationService.GetApplicationByIdAsync(model.ApplicationId);
@@ -270,14 +270,14 @@ namespace PropertyManagementSystem.Web.Controllers
             var lease = await _leaseService.GetLeaseByIdAsync(id);
             if (lease == null)
             {
-                TempData["Error"] = "Không tìm thấy hợp đồng";
+                TempData["Error"] = "Lease not found";
                 return RedirectToAction("Index");
             }
 
             // Chỉ cho phép edit khi Status = Draft
             if (lease.Status != "Draft")
             {
-                TempData["Error"] = "Chỉ có thể chỉnh sửa hợp đồng ở trạng thái Nháp";
+                TempData["Error"] = "Can only edit lease in Draft status";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -285,7 +285,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var isFullySigned = await _leaseService.IsLeaseFullySignedAsync(id);
             if (isFullySigned)
             {
-                TempData["Error"] = "Không thể chỉnh sửa hợp đồng đã được ký";
+                TempData["Error"] = "Cannot edit a lease that has been signed";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -293,7 +293,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var signatures = await _leaseService.GetLeaseSignaturesAsync(id);
             if (signatures.Any())
             {
-                TempData["Error"] = "Không thể chỉnh sửa hợp đồng đã có người ký. Vui lòng hủy và tạo hợp đồng mới.";
+                TempData["Error"] = "Cannot edit a lease that has signatures. Please cancel and create a new lease.";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -301,7 +301,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             if (lease.Property?.LandlordId != userId)
             {
-                TempData["Error"] = "Bạn không có quyền chỉnh sửa hợp đồng này";
+                TempData["Error"] = "You do not have permission to edit this lease";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -349,13 +349,13 @@ namespace PropertyManagementSystem.Web.Controllers
             var lease = await _leaseService.GetLeaseByIdAsync(model.LeaseId);
             if (lease == null)
             {
-                TempData["Error"] = "Không tìm thấy hợp đồng";
+                TempData["Error"] = "Lease not found";
                 return RedirectToAction("Index");
             }
 
             if (lease.Status != "Draft")
             {
-                TempData["Error"] = "Chỉ có thể chỉnh sửa hợp đồng ở trạng thái Nháp";
+                TempData["Error"] = "Can only edit lease in Draft status";
                 return RedirectToAction("Details", new { id = model.LeaseId });
             }
 
@@ -363,7 +363,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var signatures = await _leaseService.GetLeaseSignaturesAsync(model.LeaseId);
             if (signatures.Any())
             {
-                TempData["Error"] = "Không thể chỉnh sửa hợp đồng đã có người ký";
+                TempData["Error"] = "Cannot edit a lease that has signatures";
                 return RedirectToAction("Details", new { id = model.LeaseId });
             }
             var dto = new UpdateLeaseDto
@@ -382,12 +382,12 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (success)
             {
-                TempData["Success"] = "Cập nhật hợp đồng thành công!";
+                TempData["Success"] = "Lease updated successfully!";
                 return RedirectToAction("Details", new { id = model.LeaseId });
             }
             else
             {
-                TempData["Error"] = "Không thể cập nhật hợp đồng";
+                TempData["Error"] = "Unable to update lease";
                 return View(model);
             }
         }
@@ -398,7 +398,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var property = await _propertyService.GetPropertyByIdAsync(propertyId);
             if (property == null)
             {
-                TempData["Error"] = "Không tìm thấy bất động sản";
+                TempData["Error"] = "Property not found";
                 return RedirectToAction("Index", "Property");
             }
 
@@ -406,7 +406,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             if (property.LandlordId != userId)
             {
-                TempData["Error"] = "Bạn không có quyền xem lịch sử hợp đồng này";
+                TempData["Error"] = "You do not have permission to view this lease history";
                 return RedirectToAction("Index", "Property");
             }
 
@@ -428,7 +428,7 @@ namespace PropertyManagementSystem.Web.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Có lỗi xảy ra", error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred", error = ex.Message });
             }
         }
 
@@ -449,7 +449,7 @@ namespace PropertyManagementSystem.Web.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Có lỗi xảy ra", error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred", error = ex.Message });
             }
         }
 
@@ -459,14 +459,14 @@ namespace PropertyManagementSystem.Web.Controllers
             var lease = await _leaseService.GetLeaseByIdAsync(id);
             if (lease == null)
             {
-                TempData["Error"] = "Không tìm thấy hợp đồng";
+                TempData["Error"] = "Lease not found";
                 return RedirectToAction("Index");
             }
 
             // Kiểm tra status
             if (lease.Status != "Draft")
             {
-                TempData["Error"] = "Chỉ có thể ký hợp đồng ở trạng thái Nháp";
+                TempData["Error"] = "Can only sign lease in Draft status";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -476,7 +476,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var canSign = await _leaseService.CanUserSignAsync(id, userId);
             if (!canSign)
             {
-                TempData["Error"] = "Bạn không có quyền ký hợp đồng này hoặc đã ký rồi";
+                TempData["Error"] = "You do not have permission to sign this lease or have already signed";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -505,7 +505,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (lease == null)
             {
-                TempData["Error"] = "Không tìm thấy hợp đồng";
+                TempData["Error"] = "Lease not found";
                 return RedirectToAction("Index");
             }
 
@@ -515,7 +515,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (string.IsNullOrEmpty(sessionOtp) || string.IsNullOrEmpty(otpTimeStr))
             {
-                TempData["Error"] = "Vui lòng gửi mã OTP trước khi ký!";
+                TempData["Error"] = "Please request OTP before signing!";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -525,14 +525,14 @@ namespace PropertyManagementSystem.Web.Controllers
             {
                 HttpContext.Session.Remove($"OTP_{id}_{userId}");
                 HttpContext.Session.Remove($"OTP_Time_{id}_{userId}");
-                TempData["Error"] = "Mã OTP đã hết hạn (quá 5 phút). Vui lòng gửi lại!";
+                TempData["Error"] = "OTP has expired (over 5 minutes). Please request a new one!";
                 return RedirectToAction("Details", new { id });
             }
 
             // Validate OTP
             if (!OtpHelper.ValidateOtp(sessionOtp, otp))
             {
-                TempData["Error"] = "Mã OTP không chính xác! Vui lòng kiểm tra lại.";
+                TempData["Error"] = "Invalid OTP! Please check and try again.";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -582,7 +582,7 @@ namespace PropertyManagementSystem.Web.Controllers
                         );
                         await _emailService.SendEmailAsync(
                             landlord.Email,
-                            $"Hợp đồng {lease.LeaseNumber} đã có hiệu lực",
+                            $"Lease {lease.LeaseNumber} is now active",
                             landlordEmailBody
                         );
 
@@ -594,7 +594,7 @@ namespace PropertyManagementSystem.Web.Controllers
                         );
                         await _emailService.SendEmailAsync(
                             tenant.Email,
-                            $"Hợp đồng {lease.LeaseNumber} đã có hiệu lực",
+                            $"Lease {lease.LeaseNumber} is now active",
                             tenantEmailBody
                         );
                     }
@@ -603,11 +603,11 @@ namespace PropertyManagementSystem.Web.Controllers
                         Console.WriteLine($"Error sending completion emails: {ex.Message}");
                     }
 
-                    TempData["Success"] = "🎉 Hợp đồng đã được ký đầy đủ và chuyển sang trạng thái Hiệu lực! Email thông báo đã được gửi.";
+                    TempData["Success"] = "Lease has been fully signed and is now Active! Notification emails have been sent.";
                 }
                 else
                 {
-                    TempData["Success"] = "✅ Bạn đã ký hợp đồng thành công. Đang chờ bên kia ký.";
+                    TempData["Success"] = "You have signed the lease successfully. Waiting for the other party to sign.";
                 }
 
                 return RedirectToAction("Details", new { id });
@@ -627,16 +627,16 @@ namespace PropertyManagementSystem.Web.Controllers
                 var lease = await _leaseService.GetLeaseByIdAsync(leaseId);
                 if (lease == null)
                 {
-                    return Json(new { success = false, message = "Không tìm thấy hợp đồng" });
+                    return Json(new { success = false, message = "Lease not found" });
                 }
 
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                var userName = User.FindFirst(ClaimTypes.Name)?.Value ?? "Người dùng";
+                var userName = User.FindFirst(ClaimTypes.Name)?.Value ?? "User";
                 var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrEmpty(userEmail))
                 {
-                    return Json(new { success = false, message = "Không tìm thấy email của bạn" });
+                    return Json(new { success = false, message = "Your email was not found" });
                 }
 
                 // Generate OTP
@@ -652,14 +652,14 @@ namespace PropertyManagementSystem.Web.Controllers
                 // Gửi email
                 await _emailService.SendEmailAsync(
                     userEmail,
-                    $"Mã OTP xác nhận ký hợp đồng {lease.LeaseNumber}",
+                    $"OTP Confirmation for Signing Lease {lease.LeaseNumber}",
                     emailBody
                 );
 
                 return Json(new
                 {
                     success = true,
-                    message = $"Mã OTP đã được gửi đến {userEmail}"
+                    message = $"OTP has been sent to {userEmail}"
                 });
             }
             catch (Exception ex)
@@ -668,7 +668,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 return Json(new
                 {
                     success = false,
-                    message = "Không thể gửi email. Vui lòng thử lại sau."
+                    message = "Failed to send email. Please try again later."
                 });
             }
         }
@@ -680,7 +680,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var lease = await _leaseService.GetLeaseByIdAsync(id);
             if (lease == null)
             {
-                TempData["Error"] = "Không tìm thấy hợp đồng";
+                TempData["Error"] = "Lease not found";
                 return RedirectToAction("Index");
             }
 
@@ -691,14 +691,14 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (!isLandlord && !isTenant)
             {
-                TempData["Error"] = "Bạn không có quyền tải hợp đồng này";
+                TempData["Error"] = "You do not have permission to download this lease";
                 return RedirectToAction("Index");
             }
 
             // ✅ SỬA: Cho phép tải cả Draft và Active
             if (lease.Status != "Draft" && lease.Status != "Active")
             {
-                TempData["Error"] = "Không thể tải PDF cho hợp đồng đã hết hạn hoặc bị chấm dứt";
+                TempData["Error"] = "Cannot download PDF for expired or terminated leases";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -712,7 +712,7 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error generating PDF: {ex.Message}");
-                TempData["Error"] = "Không thể tạo file PDF. Vui lòng thử lại sau.";
+                TempData["Error"] = "Unable to generate PDF. Please try again later.";
                 return RedirectToAction("Details", new { id });
             }
         }
@@ -727,7 +727,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (lease.Status != "Active")
             {
-                TempData["Error"] = "Chỉ có thể hủy hợp đồng đang Active";
+                TempData["Error"] = "Can only terminate Active leases";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -783,11 +783,11 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (result)
             {
-                TempData["Success"] = "Hủy hợp đồng thành công";
+                TempData["Success"] = "Lease terminated successfully";
                 return RedirectToAction("Details", new { id });
             }
 
-            TempData["Error"] = "Không thể hủy hợp đồng";
+            TempData["Error"] = "Unable to terminate lease";
             return View(viewModel);
         }
         // Renew Lease
@@ -801,7 +801,7 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (lease.Status != "Active")
             {
-                TempData["Error"] = "Chỉ có thể gia hạn hợp đồng đang Active";
+                TempData["Error"] = "Can only renew Active leases";
                 return RedirectToAction("Details", new { id });
             }
 

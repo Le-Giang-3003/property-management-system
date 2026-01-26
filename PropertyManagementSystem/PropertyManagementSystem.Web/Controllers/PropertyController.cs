@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PropertyManagementSystem.BLL.DTOs.Property;
@@ -54,7 +54,7 @@ namespace PropertyManagementSystem.Web.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Lỗi tải danh sách: " + ex.Message;
+                TempData["Error"] = "Error loading list: " + ex.Message;
                 properties = new List<Property>();
             }
 
@@ -141,7 +141,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var property = await _propertyService.GetPropertyByIdAsync(id);
             if (property == null)
             {
-                TempData["Error"] = "Không tìm thấy BDS.";
+                TempData["Error"] = "Property not found.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -228,12 +228,12 @@ namespace PropertyManagementSystem.Web.Controllers
                     };
 
                     await _propertyService.AddPropertyAsync(property);
-                    TempData["Success"] = $"✅ Tạo BDS '{property.Name}' thành công!";
+                    TempData["Success"] = $"Property '{property.Name}' created successfully!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"❌ Lỗi tạo BDS: {ex.Message}");
+                    ModelState.AddModelError("", $"Error creating property: {ex.Message}");
                 }
             }
 
@@ -253,7 +253,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var property = await _propertyService.GetPropertyByIdAsync(id);
             if (property == null)
             {
-                TempData["Error"] = "Không tìm thấy BDS.";
+                TempData["Error"] = "Property not found.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -261,7 +261,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var currentUserId = GetCurrentUserId();
             if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
             {
-                TempData["Error"] = "Bạn không có quyền sửa BDS này.";
+                TempData["Error"] = "You do not have permission to edit this property.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -279,7 +279,7 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             if (id != property.PropertyId)
             {
-                TempData["Error"] = "Dữ liệu không hợp lệ.";
+                TempData["Error"] = "Invalid data.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -289,7 +289,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var currentUserId = GetCurrentUserId();
                 if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
                 {
-                    TempData["Error"] = "Bạn không có quyền sửa BDS này.";
+                    TempData["Error"] = "You do not have permission to edit this property.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -297,14 +297,14 @@ namespace PropertyManagementSystem.Web.Controllers
                 var existingProperty = await _propertyService.GetPropertyByIdAsync(id);
                 if (existingProperty == null)
                 {
-                    TempData["Error"] = "Không tìm thấy BDS.";
+                    TempData["Error"] = "Property not found.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 // Kiểm tra có thay đổi
                 if (!HasPropertyChanges(existingProperty, property))
                 {
-                    TempData["Warning"] = "⚠️ Không có thay đổi nào được thực hiện.";
+                    TempData["Warning"] = "No changes were made.";
                     return RedirectToAction(nameof(Details), new { id = property.PropertyId });
                 }
 
@@ -319,12 +319,12 @@ namespace PropertyManagementSystem.Web.Controllers
                 property.UpdatedAt = DateTime.UtcNow;
                 await _propertyService.UpdatePropertyAsync(property);
 
-                TempData["Success"] = $"✅ Cập nhật '{property.Name}' thành công!";
+                TempData["Success"] = $"Property '{property.Name}' updated successfully!";
                 return RedirectToAction(nameof(Details), new { id = property.PropertyId });
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"❌ Lỗi cập nhật: {ex.Message}");
+                ModelState.AddModelError("", $"Error updating: {ex.Message}");
                 ViewBag.PropertyTypes = GetPropertyTypesSelectList();
                 return View("PropertyEdit", property);
             }
@@ -366,7 +366,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var property = await _propertyService.GetPropertyByIdAsync(id);
             if (property == null)
             {
-                TempData["Error"] = "Không tìm thấy BDS.";
+                TempData["Error"] = "Property not found.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -374,7 +374,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var currentUserId = GetCurrentUserId();
             if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
             {
-                TempData["Error"] = "Bạn không có quyền xóa BDS này.";
+                TempData["Error"] = "You do not have permission to delete this property.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -390,7 +390,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var property = await _propertyService.GetPropertyByIdAsync(id);
                 if (property == null)
                 {
-                    TempData["Error"] = "Không tìm thấy BDS.";
+                    TempData["Error"] = "Property not found.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -398,17 +398,17 @@ namespace PropertyManagementSystem.Web.Controllers
                 var currentUserId = GetCurrentUserId();
                 if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
                 {
-                    TempData["Error"] = "Bạn không có quyền xóa BDS này.";
+                    TempData["Error"] = "You do not have permission to delete this property.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 await _propertyService.DeletePropertyAsync(id);
-                TempData["Success"] = $"✅ Đã xóa '{property.Name}' thành công!";
+                TempData["Success"] = $"Property '{property.Name}' deleted successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"❌ Lỗi xóa BDS: {ex.Message}";
+                TempData["Error"] = $"Error deleting property: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -423,7 +423,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var property = await _propertyService.GetPropertyByIdAsync(id);
             if (property == null)
             {
-                TempData["Error"] = "Không tìm thấy BDS.";
+                TempData["Error"] = "Property not found.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -449,7 +449,7 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             if (string.IsNullOrWhiteSpace(vm.NewStatus))
             {
-                ModelState.AddModelError("NewStatus", "Vui lòng chọn trạng thái.");
+                ModelState.AddModelError("NewStatus", "Please select a status.");
                 ViewBag.ValidStatuses = new List<string>
                 {
                     "Available", "Rented", "Maintenance", "Unavailable"
@@ -460,13 +460,13 @@ namespace PropertyManagementSystem.Web.Controllers
             var property = await _propertyService.GetPropertyByIdAsync(vm.PropertyId);
             if (property == null)
             {
-                TempData["Error"] = "Không tìm thấy BDS.";
+                TempData["Error"] = "Property not found.";
                 return RedirectToAction(nameof(Index));
             }
 
             if (!IsValidStatus(vm.NewStatus))
             {
-                ModelState.AddModelError("NewStatus", "Trạng thái không hợp lệ.");
+                ModelState.AddModelError("NewStatus", "Invalid status.");
                 ViewBag.ValidStatuses = new List<string>
                 {
                     "Available", "Rented", "Maintenance", "Unavailable"
@@ -480,11 +480,11 @@ namespace PropertyManagementSystem.Web.Controllers
 
             if (vm.NewStatus == vm.CurrentStatus)
             {
-                TempData["Warning"] = "⚠️ Trạng thái được làm mới.";
+                TempData["Warning"] = "Status has been refreshed.";
             }
             else
             {
-                TempData["Success"] = $"✅ Đã cập nhật trạng thái: {vm.NewStatus}";
+                TempData["Success"] = $"Status updated to: {vm.NewStatus}";
             }
 
             return RedirectToAction(nameof(Details), new { id = vm.PropertyId });
@@ -547,7 +547,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var userId = GetCurrentUserId();
                 if (userId < 0)
                 {
-                    TempData["Error"] = "Vui lòng đăng nhập";
+                    TempData["Error"] = "Please log in";
                     return RedirectToAction("Login", "Account");
                 }
 
@@ -556,7 +556,7 @@ namespace PropertyManagementSystem.Web.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Lỗi tải danh sách yêu thích: " + ex.Message;
+                TempData["Error"] = "Error loading favorites: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -574,16 +574,16 @@ namespace PropertyManagementSystem.Web.Controllers
                 var userId = GetCurrentUserId();
                 if (userId < 0)
                 {
-                    TempData["Error"] = "Vui lòng đăng nhập";
+                    TempData["Error"] = "Please log in";
                     return RedirectToAction("Login", "Account");
                 }
 
                 var result = await _favoritePropertyService.RemoveFromFavoriteAsync(userId, propertyId);
 
                 if (result)
-                    TempData["Success"] = "✅ Đã xóa khỏi danh sách yêu thích";
+                    TempData["Success"] = "Removed from favorites";
                 else
-                    TempData["Error"] = "❌ Không thể xóa";
+                    TempData["Error"] = "Unable to remove";
 
                 // Redirect về trang trước đó hoặc MyFavorites
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -593,7 +593,7 @@ namespace PropertyManagementSystem.Web.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Lỗi: " + ex.Message;
+                TempData["Error"] = "Error: " + ex.Message;
                 return RedirectToAction(nameof(MyFavorites));
             }
         }
@@ -608,7 +608,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var property = await _propertyService.GetPropertyByIdAsync(id);
             if (property == null)
             {
-                TempData["Error"] = "Không tìm thấy BDS.";
+                TempData["Error"] = "Property not found.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -616,7 +616,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var currentUserId = GetCurrentUserId();
             if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
             {
-                TempData["Error"] = "Bạn không có quyền quản lý ảnh BDS này.";
+                TempData["Error"] = "You do not have permission to manage images for this property.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -746,7 +746,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var userId = GetCurrentUserId();
                 if (userId <= 0)
                 {
-                    TempData["Error"] = "Vui lòng đăng nhập";
+                    TempData["Error"] = "Please log in";
                     return RedirectToAction("Login", "Account");
                 }
 
@@ -768,7 +768,7 @@ namespace PropertyManagementSystem.Web.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Lỗi tải danh sách: " + ex.Message;
+                TempData["Error"] = "Error loading list: " + ex.Message;
                 return RedirectToAction("Dashboard", "Home");
             }
         }

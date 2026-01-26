@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Auth;
@@ -41,7 +41,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var result = await _authService.LoginAsync(model);
             if (!result.Success)
             {
-                ModelState.AddModelError(string.Empty, result.Message ?? "Đăng nhập thất bại");
+                ModelState.AddModelError(string.Empty, result.Message ?? "Login failed");
                 return View(model);
             }
 
@@ -77,7 +77,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            TempData["SuccessMessage"] = $"Chào mừng {result.User.FullName}!";
+            TempData["SuccessMessage"] = $"Welcome {result.User.FullName}!";
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
@@ -102,7 +102,7 @@ namespace PropertyManagementSystem.Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            TempData["SuccessMessage"] = "Bạn đã đăng xuất thành công";
+            TempData["SuccessMessage"] = "You have been logged out successfully";
             return RedirectToAction("Login");
         }
 
@@ -122,7 +122,7 @@ namespace PropertyManagementSystem.Web.Controllers
             var user = await _userService.GetUserByEmailAsync(vm.Email);
             if (user == null)
             {
-                ModelState.AddModelError(nameof(vm.Email), "Email không tồn tại trong hệ thống");
+                ModelState.AddModelError(nameof(vm.Email), "Email does not exist in the system");
                 return View(vm);
             }
 
@@ -133,13 +133,13 @@ namespace PropertyManagementSystem.Web.Controllers
                 var sent = await _authService.SendOtpEmailAsync(dto);
                 if (!sent)
                 {
-                    ModelState.AddModelError("", "Không gửi được OTP. Vui lòng thử lại.");
+                    ModelState.AddModelError("", "Failed to send OTP. Please try again.");
                     return View(vm);
                 }
 
                 vm.IsOtpSent = true;
                 ModelState.Clear();
-                TempData["Message"] = "Mã OTP đã được gửi tới email của bạn.";
+                TempData["Message"] = "OTP code has been sent to your email.";
                 return View(vm);
             }
             else
@@ -153,7 +153,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var (isValid, userId) = await _authService.VerifyOtpAsync(verifyDto);
                 if (!isValid)
                 {
-                    ModelState.AddModelError("", "OTP không đúng hoặc đã hết hạn.");
+                    ModelState.AddModelError("", "OTP is incorrect or has expired.");
                     return View(vm);
                 }
 
@@ -187,11 +187,11 @@ namespace PropertyManagementSystem.Web.Controllers
             var ok = await _authService.ResetPasswordAsync(dto);
             if (!ok)
             {
-                ModelState.AddModelError("", "Không tìm thấy tài khoản.");
+                ModelState.AddModelError("", "Account not found.");
                 return View(vm);
             }
 
-            TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập.";  
+            TempData["SuccessMessage"] = "Password reset successful. Please sign in.";  
             return RedirectToAction("Login", "Auth");
         }
 
@@ -225,14 +225,14 @@ namespace PropertyManagementSystem.Web.Controllers
             if (!result)
             {
                 ModelState.AddModelError(string.Empty,
-                    "Mật khẩu hiện tại không đúng hoặc mật khẩu mới không khớp.");
+                    "Current password is incorrect or new passwords do not match.");
                 return View(vm);
             }
 
             // Logout user
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            TempData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+            TempData["SuccessMessage"] = "Password changed successfully! Please sign in again.";
             return RedirectToAction("Login");
         }
         

@@ -1,65 +1,65 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.Web.ViewModels.Application
 {
     public class CreateRentalApplicationViewModel
     {
-        [Required(ErrorMessage = "Vui lòng chọn bất động sản")]
-        [Display(Name = "Bất động sản")]
+        [Required(ErrorMessage = "Please select a property")]
+        [Display(Name = "Property")]
         public int PropertyId { get; set; }
 
-        // Danh sách properties để hiển thị trong dropdown
+        // List of properties for dropdown display
         public IEnumerable<SelectListItem>? AvailableProperties { get; set; }
 
         public string? PropertyName { get; set; }
         public string? PropertyAddress { get; set; }
         public decimal MonthlyRent { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập tình trạng việc làm")]
-        [Display(Name = "Tình trạng việc làm")]
+        [Required(ErrorMessage = "Please enter employment status")]
+        [Display(Name = "Employment Status")]
         public string EmploymentStatus { get; set; }
 
-        [Display(Name = "Tên công ty/Nơi làm việc")]
+        [Display(Name = "Employer/Workplace")]
         [MaxLength(200)]
         public string? Employer { get; set; }
 
-        [Display(Name = "Thu nhập hàng tháng (VNĐ)")]
-        [Range(0, double.MaxValue, ErrorMessage = "Thu nhập phải là số dương")]
+        [Display(Name = "Monthly Income (VND)")]
+        [Range(0, double.MaxValue, ErrorMessage = "Income must be a positive number")]
         public decimal? MonthlyIncome { get; set; }
 
-        [Display(Name = "Địa chỉ nơi ở trước đây")]
+        [Display(Name = "Previous Address")]
         [MaxLength(500)]
         public string? PreviousAddress { get; set; }
 
-        [Display(Name = "Tên chủ nhà trước")]
+        [Display(Name = "Previous Landlord Name")]
         [MaxLength(200)]
         public string? PreviousLandlord { get; set; }
 
         [RegularExpression(@"^(0[3|5|7|8|9])+([0-9]{8})$",
-            ErrorMessage = "Số điện thoại không hợp lệ. VD: 0901234567")]
-        [Display(Name = "Số điện thoại chủ nhà trước")]
+            ErrorMessage = "Phone number is invalid. Example: 0901234567")]
+        [Display(Name = "Previous Landlord Phone")]
         [MaxLength(20)]
         public string? PreviousLandlordPhone { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập số người ở")]
-        [Range(1, 20, ErrorMessage = "Số người ở phải từ 1 đến 20")]
-        [Display(Name = "Số người ở")]
+        [Required(ErrorMessage = "Please enter the number of occupants")]
+        [Range(1, 20, ErrorMessage = "Number of occupants must be between 1 and 20")]
+        [Display(Name = "Number of Occupants")]
         public int NumberOfOccupants { get; set; } = 1;
 
-        [Display(Name = "Bạn có nuôi thú cưng không?")]
+        [Display(Name = "Do you have pets?")]
         public bool HasPets { get; set; } = false;
 
-        [Display(Name = "Thông tin thú cưng")]
+        [Display(Name = "Pet Details")]
         [MaxLength(200)]
         public string? PetDetails { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn ngày dự kiến chuyển vào")]
-        [Display(Name = "Ngày dự kiến chuyển vào")]
+        [Required(ErrorMessage = "Please select the desired move-in date")]
+        [Display(Name = "Desired Move-in Date")]
         [DataType(DataType.Date)]
         public DateTime DesiredMoveInDate { get; set; }
 
-        [Display(Name = "Ghi chú thêm")]
+        [Display(Name = "Additional Notes")]
         [MaxLength(2000)]
         public string? AdditionalNotes { get; set; }
     }

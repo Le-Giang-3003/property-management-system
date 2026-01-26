@@ -19,28 +19,28 @@
                 <div class="card-header bg-primary text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">
-                            <i class="fas fa-file-contract"></i> Hợp đồng @Model.LeaseNumber
+                            <i class="fas fa-file-contract"></i> Lease @Model.LeaseNumber
                         </h4>
                         @switch (Model.Status)
                         {
                             case "Draft":
                                 <span class="badge bg-secondary fs-6">
-                                    <i class="fas fa-file-alt"></i> Chờ ký
+                                    <i class="fas fa-file-alt"></i> Pending Signature
                                 </span>
                                 break;
                             case "Active":
                                 <span class="badge bg-success fs-6">
-                                    <i class="fas fa-check-circle"></i> Đang hiệu lực
+                                    <i class="fas fa-check-circle"></i> Active
                                 </span>
                                 break;
                             case "Expired":
                                 <span class="badge bg-danger fs-6">
-                                    <i class="fas fa-calendar-times"></i> Hết hạn
+                                    <i class="fas fa-calendar-times"></i> Expired
                                 </span>
                                 break;
                             case "Terminated":
                                 <span class="badge bg-dark fs-6">
-                                    <i class="fas fa-ban"></i> Đã chấm dứt
+                                    <i class="fas fa-ban"></i> Terminated
                                 </span>
                                 break;
                         }
@@ -57,7 +57,7 @@
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h5 class="alert-heading mb-2">
-                                        <i class="fas fa-exclamation-triangle"></i> Hợp đồng chưa hoàn tất
+                                        <i class="fas fa-exclamation-triangle"></i> Lease Not Completed
                                     </h5>
 
                                     <!-- Trạng thái ký -->
@@ -66,13 +66,13 @@
                                             @if (hasLandlordSigned)
                                             {
                                                 <span class="badge bg-success fs-6">
-                                                    <i class="fas fa-check-circle"></i> Chủ nhà đã ký
+                                                    <i class="fas fa-check-circle"></i> Landlord Signed
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="badge bg-secondary fs-6">
-                                                    <i class="fas fa-clock"></i> Chờ chủ nhà ký
+                                                    <i class="fas fa-clock"></i> Awaiting Landlord Signature
                                                 </span>
                                             }
                                         </div>
@@ -80,13 +80,13 @@
                                             @if (hasTenantSigned)
                                             {
                                                 <span class="badge bg-success fs-6">
-                                                    <i class="fas fa-check-circle"></i> Người thuê đã ký
+                                                    <i class="fas fa-check-circle"></i> Tenant Signed
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="badge bg-secondary fs-6">
-                                                    <i class="fas fa-clock"></i> Chờ người thuê ký
+                                                    <i class="fas fa-clock"></i> Awaiting Tenant Signature
                                                 </span>
                                             }
                                         </div>
@@ -97,11 +97,11 @@
                                     {
                                         <a asp-action="Sign" asp-route-id="@Model.LeaseId"
                                            class="btn btn-success btn-lg">
-                                            <i class="fas fa-pen-nib"></i> Ký hợp đồng ngay
+                                            <i class="fas fa-pen-nib"></i> Sign Now
                                         </a>
                                         <p class="mb-0 mt-2 text-muted">
                                             <i class="fas fa-info-circle"></i>
-                                            Vui lòng ký hợp đồng để hoàn tất thủ tục.
+                                            Please sign the lease to complete the process.
                                         </p>
                                     }
                                     else
@@ -110,21 +110,21 @@
                                         {
                                             <div class="alert alert-info mb-0">
                                                 <i class="fas fa-check-circle"></i>
-                                                <strong>Bạn đã ký hợp đồng.</strong> Đang chờ người thuê ký để hợp đồng có hiệu lực.
+                                                <strong>You have signed the lease.</strong> Waiting for tenant to sign for the lease to take effect.
                                             </div>
                                         }
                                         else if (isTenant && hasTenantSigned)
                                         {
                                             <div class="alert alert-info mb-0">
                                                 <i class="fas fa-check-circle"></i>
-                                                <strong>Bạn đã ký hợp đồng.</strong> Đang chờ chủ nhà ký để hợp đồng có hiệu lực.
+                                                <strong>You have signed the lease.</strong> Waiting for landlord to sign for the lease to take effect.
                                             </div>
                                         }
                                         else if (!isLandlord && !isTenant)
                                         {
                                             <div class="alert alert-secondary mb-0">
                                                 <i class="fas fa-eye"></i>
-                                                Bạn không có quyền ký hợp đồng này.
+                                                You do not have permission to sign this lease.
                                             </div>
                                         }
                                     }
@@ -141,13 +141,13 @@
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h5 class="alert-heading mb-2">
-                                        <i class="fas fa-check-double"></i> Hợp đồng đã có hiệu lực pháp lý
+                                        <i class="fas fa-check-double"></i> Lease is Legally Effective
                                     </h5>
                                     @if (Model.SignedDate.HasValue)
                                     {
                                         <p class="mb-0">
                                             <i class="fas fa-calendar-check"></i>
-                                            Hợp đồng được ký đầy đủ vào ngày <strong>@Model.SignedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
+                                            Lease was fully signed on <strong>@Model.SignedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
                                         </p>
                                     }
                                 </div>
@@ -164,11 +164,11 @@
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h5 class="alert-heading mb-2">
-                                        <i class="fas fa-times-circle"></i> Hợp đồng đã bị chấm dứt
+                                        <i class="fas fa-times-circle"></i> Lease Has Been Terminated
                                     </h5>
                                     <p class="mb-0">
                                         <i class="fas fa-info-circle"></i>
-                                        Hợp đồng này đã bị chấm dứt và không còn hiệu lực.
+                                        This lease has been terminated and is no longer valid.
                                     </p>
                                 </div>
                             </div>
@@ -178,11 +178,11 @@
                     <div class="alert alert-light border mb-4">
                         <div class="row">
                             <div class="col-md-3">
-                                <small class="text-muted">Ngày tạo</small>
+                                <small class="text-muted">Created Date</small>
                                 <div><strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong></div>
                             </div>
                             <div class="col-md-4">
-                                <small class="text-muted">Thời hạn hợp đồng</small>
+                                <small class="text-muted">Lease Duration</small>
                                 <div>
                                     <strong>
                                         @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")
@@ -190,58 +190,58 @@
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <small class="text-muted">Ngày thanh toán</small>
-                                <div><strong>Ngày @Model.PaymentDueDay hàng tháng</strong></div>
+                                <small class="text-muted">Payment Due Date</small>
+                                <div><strong>Day @Model.PaymentDueDay monthly</strong></div>
                             </div>
                             <div class="col-md-2">
-                                <small class="text-muted">Tự động gia hạn</small>
+                                <small class="text-muted">Auto Renew</small>
                                 <div>
                                     @if (Model.AutoRenew)
                                     {
-                                        <span class="badge bg-success">Có</span>
+                                        <span class="badge bg-success">Yes</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Không</span>
+                                        <span class="badge bg-secondary">No</span>
                                     }
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Thông tin bất động sản -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-home"></i> Thông tin bất động sản</h5>
+                    <!-- Property Information -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-home"></i> Property Information</h5>
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Tên:</strong> @Model.Property?.Name</p>
-                            <p><strong>Địa chỉ:</strong> @Model.Property?.Address</p>
-                            <p><strong>Loại:</strong> @Model.Property?.PropertyType</p>
+                            <p><strong>Name:</strong> @Model.Property?.Name</p>
+                            <p><strong>Address:</strong> @Model.Property?.Address</p>
+                            <p><strong>Type:</strong> @Model.Property?.PropertyType</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Diện tích:</strong> @Model.Property?.SquareFeet m²</p>
-                            <p><strong>Phòng ngủ/WC:</strong> @Model.Property?.Bedrooms / @Model.Property?.Bathrooms</p>
+                            <p><strong>Area:</strong> @Model.Property?.SquareFeet m²</p>
+                            <p><strong>Bedrooms/Bathrooms:</strong> @Model.Property?.Bedrooms / @Model.Property?.Bathrooms</p>
                             <p>
                                 <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId"
                                    class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i> Xem bất động sản
+                                    <i class="fas fa-eye"></i> View Property
                                 </a>
                             </p>
                         </div>
                     </div>
 
-                    <!-- Thông tin người thuê -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-user"></i> Thông tin người thuê</h5>
+                    <!-- Tenant Information -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-user"></i> Tenant Information</h5>
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Họ tên:</strong> @Model.Tenant?.FullName</p>
+                            <p><strong>Full Name:</strong> @Model.Tenant?.FullName</p>
                             <p><strong>Email:</strong> @Model.Tenant?.Email</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Số điện thoại:</strong> @Model.Tenant?.PhoneNumber</p>
+                            <p><strong>Phone:</strong> @Model.Tenant?.PhoneNumber</p>
                             @if (Model.ApplicationId.HasValue)
                             {
                                 <p>
-                                    <strong>Đơn xin thuê:</strong>
+                                    <strong>Application:</strong>
                                     <a asp-controller="RentalApplication" asp-action="Details" asp-route-id="@Model.ApplicationId">
                                         @Model.RentalApplication?.ApplicationNumber
                                     </a>
@@ -250,44 +250,44 @@
                         </div>
                     </div>
 
-                    <!-- Thông tin tài chính -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-dollar-sign"></i> Thông tin tài chính</h5>
+                    <!-- Financial Information -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-dollar-sign"></i> Financial Information</h5>
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
-                                    <small class="text-muted">Tiền thuê hàng tháng</small>
-                                    <h3 class="text-danger mb-0">@Model.MonthlyRent.ToString("N0") VNĐ</h3>
+                                    <small class="text-muted">Monthly Rent</small>
+                                    <h3 class="text-danger mb-0">$@Model.MonthlyRent.ToString("N0")</h3>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
-                                    <small class="text-muted">Tiền đặt cọc</small>
-                                    <h3 class="text-success mb-0">@Model.SecurityDeposit.ToString("N0") VNĐ</h3>
+                                    <small class="text-muted">Security Deposit</small>
+                                    <h3 class="text-success mb-0">$@Model.SecurityDeposit.ToString("N0")</h3>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
-                                    <small class="text-muted">Tần suất thanh toán</small>
+                                    <small class="text-muted">Payment Frequency</small>
                                     <h3 class="mb-0">@Model.PaymentFrequency</h3>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Điều khoản -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-file-alt"></i> Điều khoản hợp đồng</h5>
+                    <!-- Terms -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-file-alt"></i> Lease Terms</h5>
                     <div class="mb-4">
                         <pre class="bg-light p-3 rounded" style="white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">@Model.Terms</pre>
                     </div>
 
                     @if (!string.IsNullOrEmpty(Model.SpecialConditions))
                     {
-                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-star"></i> Điều kiện đặc biệt</h5>
+                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-star"></i> Special Conditions</h5>
                         <div class="mb-4">
                             <div class="alert alert-info">
                                 @Model.SpecialConditions
@@ -298,49 +298,49 @@
                     <!-- Buttons -->
                     <div class="mt-4 d-flex gap-2 flex-wrap">
                         <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Quay lại
+                            <i class="fas fa-arrow-left"></i> Back
                         </a>
 
                         @* ✅ SỬA: Chỉ hiện nút Edit khi chưa có ai ký *@
                         @if (Model.Status == "Draft" && isLandlord && !hasLandlordSigned && !hasTenantSigned)
                         {
                             <a asp-action="Edit" asp-route-id="@Model.LeaseId" class="btn btn-warning">
-                                <i class="fas fa-edit"></i> Chỉnh sửa
+                                <i class="fas fa-edit"></i> Edit
                             </a>
                         }
 
                         @if (canSign)
                         {
                             <a asp-action="Sign" asp-route-id="@Model.LeaseId" class="btn btn-success btn-lg">
-                                <i class="fas fa-pen-nib"></i> Ký hợp đồng
+                                <i class="fas fa-pen-nib"></i> Sign Lease
                             </a>
                         }
                         @* ✅ THÊM: NÚT HỦY HỢP ĐỒNG - CHỈ HIỆN KHI ACTIVE VÀ LÀ LANDLORD *@
                         @if (Model.Status == "Active" && isLandlord)
                         {
                             <a asp-action="Terminate" asp-route-id="@Model.LeaseId" class="btn btn-danger">
-                                <i class="fas fa-times-circle"></i> Hủy hợp đồng
+                                <i class="fas fa-times-circle"></i> Terminate Lease
                             </a>
                         }
                         @if (Model.Status == "Active")
                         {
                         <div class="btn-group" role="group">
                             <a asp-action="Renew" asp-route-id="@Model.LeaseId" class="btn btn-success">
-                                <i class="bi bi-arrow-repeat"></i> Gia hạn hợp đồng
+                                <i class="bi bi-arrow-repeat"></i> Renew Lease
                             </a>
                         </div>
                         }
                         @if (Model.Status == "Draft" || Model.Status == "Active")
                         {
                             <a asp-action="DownloadPdf" asp-route-id="@Model.LeaseId" class="btn btn-info">
-                                <i class="fas fa-file-pdf"></i> Tải PDF
+                                <i class="fas fa-file-pdf"></i> Download PDF
                             </a>
                         }
 
                         @if (isLandlord)
                         {
                             <a asp-action="History" asp-route-propertyId="@Model.PropertyId" class="btn btn-outline-info">
-                                <i class="fas fa-history"></i> Lịch sử HĐ
+                                <i class="fas fa-history"></i> Lease History
                             </a>
                         }
 
@@ -352,13 +352,13 @@
                     {
                         <hr class="my-4">
 
-                        <h5><i class="fas fa-signature"></i> Chữ ký xác nhận</h5>
+                        <h5><i class="fas fa-signature"></i> Signatures</h5>
 
                         @foreach (var sig in signatures.OrderBy(s => s.SignedAt))
                         {
                             <div class="mb-3 p-3 border rounded">
                                 <p class="mb-1">
-                                    <strong>@(sig.SignerRole == "Landlord" ? "Chủ nhà" : "Người thuê"):</strong>
+                                    <strong>@(sig.SignerRole == "Landlord" ? "Landlord" : "Tenant"):</strong>
                                     @sig.UserName
                                 </p>
                                 <p class="mb-2">
@@ -370,7 +370,7 @@
                                 @if (!string.IsNullOrEmpty(sig.SignatureData))
                                 {
                                     <img src="@sig.SignatureData"
-                                         alt="Chữ ký"
+                                         alt="Signature"
                                          style="max-width: 200px; border: 1px solid #ddd; padding: 5px; background: white;" />
                                 }
                             </div>
