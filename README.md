@@ -89,7 +89,7 @@ Before running the project, make sure your environment meets the following requi
 ### Step 1: Clone the repository
 
 ```bash
-git clone <[repository-url](https://github.com/Le-Giang-3003/property-management-system.git)>
+git clone https://github.com/Le-Giang-3003/property-management-system.git
 cd property-management-system
 ```
 
