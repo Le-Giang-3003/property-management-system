@@ -101,11 +101,9 @@ Open appsettings.json and update the connection string:
 }
 
 ### Step 3: Apply database migrations
-
-At navigation bar, open Tools -> NuGet Package Manager -> Package Manager Console
-Enter add-migration <Name of migration>, choose default project is the project that have AppDbContext
-Then enter update-database
-
+- At navigation bar, open Tools -> NuGet Package Manager -> Package Manager Console.
+- Enter add-migration <Name of migration>, choose default project is the project that have AppDbContext (DataAccessLayer).
+- Then enter update-database.
 ## Running the Application
 Using Visual Studio
 1. Open the solution file (.sln) in Visual Studio 2022
