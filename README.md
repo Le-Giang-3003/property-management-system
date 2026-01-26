@@ -91,6 +91,7 @@ Before running the project, make sure your environment meets the following requi
 ```bash
 git clone <repository-url>
 cd property-management-system
+```
 
 ### Step 2: Configure database connection
 
@@ -104,3 +105,130 @@ Open appsettings.json and update the connection string:
 At navigation bar, open Tools -> NuGet Package Manager -> Package Manager Console
 Enter add-migration <Name of migration>, choose default project is the project that have AppDbContext
 Then enter update-database
+
+## Running the Application
+Using Visual Studio
+1. Open the solution file (.sln) in Visual Studio 2022
+2. Set the Web project as the Startup Project
+3. Press F5 or click Run
+4. The application will be available at:
+```bash
+https://localhost:7206
+```
+Using .NET CLI (optional)
+```bash
+dotnet restore
+dotnet build
+dotnet run
+```
+## Project Structure
+```bash
+PropertyManagementSystem
+│
+├── PropertyManagementSystem.Web        (Presentation Layer - MVC)
+│   │
+│   ├── Controllers
+│   │   ├── UserController.cs
+│   │   ├── PropertyController.cs
+│   │   ├── DashboardController.cs
+│   │
+│   ├── Views
+│   │   ├── Shared
+│   │   ├── User
+│   │   ├── Property
+│   │
+│   ├── wwwroot
+│   │   ├── css
+│   │   ├── js
+│   │   └── images
+│   │
+│   ├── Program.cs
+│   ├── appsettings.json
+│   └── PropertyManagementSystem.Web.csproj
+│
+├── PropertyManagementSystem.BLL        (Business Logic Layer)
+│   │
+│   ├── Services
+│   │   ├── Interfaces
+│   │   │   ├── IPropertyService.cs
+│   │   │   ├── IUserService.cs
+│   │   │   └── IDocumentService.cs
+│   │   │
+│   │   └── Implementations
+│   │       ├── PropertyService.cs
+│   │       ├── UserService.cs
+│   │       └── DocumentService.cs
+│   │
+│   ├── DTOs
+│   │   ├── PropertyDTO.cs
+│   │   ├── UserDTO.cs
+│   │   └── ContractDTO.cs
+│   │
+│   └── PropertyManagementSystem.BLL.csproj
+│
+├── PropertyManagementSystem.DAL        (Data Access Layer)
+│   │
+│   ├── Entities
+│   │   ├── Property.cs
+│   │   ├── User.cs
+│   │   ├── Lease.cs
+│   │   └── Document.cs
+│   │
+│   ├── DbContext
+│   │   └── AppDbContext.cs
+│   │
+│   ├── Repositories
+│   │   ├── Interfaces
+│   │   │   ├── IPropertyRepository.cs
+│   │   │   └── IUserRepository.cs
+│   │   │
+│   │   └── Implementations
+│   │       ├── PropertyRepository.cs
+│   │       └── UserRepository.cs
+│   │
+│   ├── Migrations
+│   │
+│   └── PropertyManagementSystem.DAL.csproj
+│
+├── PropertyManagementSystem.sln
+└── README.md
+```
+## Key Design Principles
+1. MVC Architecture
+Clear separation of concerns between:
+- Model (Business logic & data)
+- View (UI)
+- Controller (Request handling)
+2. Layered Architecture
+- Presentation Layer (Controllers, Views)
+- Business Logic Layer (Services)
+- Data Access Layer (EF Core, DbContext)
+3. Dependency Injection
+- Services are injected via interfaces
+- Improves testability and maintainability
+
+## Security Considerations
+- Authentication using ASP.NET Identity / JWT
+- Role-based authorization using [Authorize] attributes
+- Secure password hashing
+- Validation for user input
+- Protection against common attacks (SQL Injection via EF Core)
+
+## Future Improvements
+- Online payment integration
+- Advanced search (map-based, price range, location)
+- Notification system (email / in-app)
+- Report and analytics dashboard
+- Mobile-friendly UI or mobile application
+- Microservice architecture (optional extension)
+## Limitations
+- The project is developed for educational purposes
+- Not optimized for large-scale production use
+- Some business flows may be simplified
+## License
+This project is developed for academic use in the course PRN222.
+All rights reserved © 2026.
+## Author
+Group: Group 3 - SE1815
+Course: PRN222 – ASP.NET MVC
+Institution: FPT University
