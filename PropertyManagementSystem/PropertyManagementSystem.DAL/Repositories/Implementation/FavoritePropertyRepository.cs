@@ -15,6 +15,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         {
             return await _context.FavoriteProperties
                 .Include(fp => fp.Property) // Include Property để có thông tin chi tiết
+                .ThenInclude(fp => fp.Images)
                 .Where(fp => fp.UserId == userId)
                 .ToListAsync();
         }
