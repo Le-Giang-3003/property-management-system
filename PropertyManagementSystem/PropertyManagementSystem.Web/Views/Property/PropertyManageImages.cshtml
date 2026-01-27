@@ -156,14 +156,14 @@
                 <div class="modal-body">
                     <div class="upload-area">
                         <input type="file" name="files" id="fileInput"
-                               accept="image/*" multiple required style="display: none;" />
+                               accept="image/*" multiple style="display: none;" />
 
                         <div class="drop-zone" id="dropZone">
                             <div class="drop-zone-content">
                                 <i class="bi bi-cloud-upload"></i>
                                 <h4>Drag and drop images here</h4>
                                 <p>or click to select files</p>
-                                <button type="button" class="btn-choose" onclick="document.getElementById('fileInput').click()">
+                                <button type="button" class="btn-choose" onclick="triggerFileSelect()">
                                     <i class="bi bi-folder2-open"></i>
                                     Choose Files
                                 </button>
@@ -386,7 +386,9 @@
             .image-preview img {
                 width: 100%;
                 height: 100%;
-                object-fit: cover;
+                object-fit: contain;
+                object-position: center;
+                background: #f8fafc;
             }
 
         .thumbnail-badge {
@@ -686,7 +688,9 @@
             .preview-item img {
                 width: 100%;
                 height: 120px;
-                object-fit: cover;
+                object-fit: contain;
+                object-position: center;
+                background: #f8fafc;
             }
 
             .preview-item .remove-preview {
@@ -773,12 +777,46 @@
     <script>
         const propertyId = @propertyId;
         let selectedFiles = [];
+        let isProcessingFiles = false;
 
         // Drop zone functionality
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
 
-        dropZone.addEventListener('click', () => fileInput.click());
+        // Safe function to trigger file input click
+        function triggerFileSelect() {
+            if (isProcessingFiles || isUploading) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Đang xử lý...',
+                    text: 'Vui lòng đợi hoàn tất',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+            if (fileInput && !fileInput.disabled) {
+                // Reset value before clicking to allow selecting same files again
+                fileInput.value = '';
+                fileInput.click();
+            }
+        }
+
+        // Safe click handler for drop zone - only trigger if clicking on drop zone itself, not on buttons
+        dropZone.addEventListener('click', function(e) {
+            // Prevent if clicking on button or if already processing
+            if (e.target.closest('.btn-choose') || isProcessingFiles || isUploading) {
+                return;
+            }
+            // Only trigger if clicking directly on drop zone area
+            if (e.target === dropZone || e.target.closest('.drop-zone-content')) {
+                if (fileInput && !fileInput.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fileInput.click();
+                }
+            }
+        });
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults);
@@ -791,7 +829,9 @@
 
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, () => {
-                dropZone.classList.add('drag-over');
+                if (!isProcessingFiles) {
+                    dropZone.classList.add('drag-over');
+                }
             });
         });
 
@@ -802,18 +842,62 @@
         });
 
         dropZone.addEventListener('drop', (e) => {
+            if (isProcessingFiles) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
             const dt = e.dataTransfer;
             const files = dt.files;
-            handleFiles(files);
+            if (files.length > 0) {
+                handleFiles(files);
+            }
         });
 
         fileInput.addEventListener('change', function(e) {
-            handleFiles(this.files);
+            if (isProcessingFiles) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            if (this.files && this.files.length > 0) {
+                handleFiles(this.files);
+            }
         });
 
         function handleFiles(files) {
-            selectedFiles = Array.from(files);
-            displayPreview();
+            // Prevent multiple triggers
+            if (isProcessingFiles || isUploading) {
+                return;
+            }
+
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            // Set flag to prevent multiple processing
+            isProcessingFiles = true;
+
+            // Disable file input to prevent multiple clicks
+            if (fileInput) {
+                fileInput.disabled = true;
+            }
+
+            try {
+                selectedFiles = Array.from(files);
+                displayPreview();
+            } finally {
+                // Reset flag and enable input after processing
+                // Don't reset value immediately to prevent file explorer from reopening
+                setTimeout(() => {
+                    isProcessingFiles = false;
+                    if (fileInput) {
+                        fileInput.disabled = false;
+                        // Only reset value after a delay to prevent immediate re-trigger
+                        // Value will be reset when user clicks choose files again
+                    }
+                }, 300);
+            }
         }
 
         function displayPreview() {
@@ -840,23 +924,46 @@
         }
 
         function removeFile(index) {
+            if (isProcessingFiles || isUploading) {
+                return;
+            }
             selectedFiles.splice(index, 1);
             displayPreview();
 
             // Update file input
-            const dt = new DataTransfer();
-            selectedFiles.forEach(file => dt.items.add(file));
-            fileInput.files = dt.files;
+            if (fileInput) {
+                const dt = new DataTransfer();
+                selectedFiles.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+                // Reset input value to allow selecting same files again
+                fileInput.value = '';
+            }
         }
 
         // Upload form
+        let isUploading = false;
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            // Prevent multiple uploads
+            if (isUploading) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Đang upload...',
+                    text: 'Vui lòng đợi upload hoàn tất',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
 
             if (selectedFiles.length === 0) {
                 Swal.fire('Error', 'No files selected', 'error');
                 return;
             }
+
+            // Set flag
+            isUploading = true;
 
             const btn = document.getElementById('uploadBtn');
             const progressDiv = document.getElementById('uploadProgress');
@@ -867,11 +974,24 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
             progressDiv.style.display = 'block';
 
-            try {
-                const formData = new FormData(this);
+            // Disable file input during upload
+            if (fileInput) {
+                fileInput.disabled = true;
+            }
 
-                // Remove old files and add selected files
-                formData.delete('files');
+            try {
+                const formData = new FormData();
+
+                // Add anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    formData.append('__RequestVerificationToken', token.value);
+                }
+
+                // Add propertyId
+                formData.append('propertyId', propertyId);
+
+                // Add selected files
                 selectedFiles.forEach(file => {
                     formData.append('files', file);
                 });
@@ -888,44 +1008,133 @@
 
                 xhr.addEventListener('load', async function() {
                     if (xhr.status === 200) {
-                        const result = JSON.parse(xhr.responseText);
-                        if (result.success) {
-                            await Swal.fire({
-                                icon: 'success',
-                                title: 'Success!',
-                                text: result.message,
-                                timer: 2000,
-                                showConfirmButton: false
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            if (result.success) {
+                                await Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: result.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                // Reset flags before reload
+                                isUploading = false;
+                                isProcessingFiles = false;
+                                location.reload();
+                            } else {
+                                throw new Error(result.message || 'Upload failed');
+                            }
+                        } catch (parseError) {
+                            isUploading = false;
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                            progressDiv.style.display = 'none';
+                            if (fileInput) {
+                                fileInput.disabled = false;
+                            }
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: parseError.message || 'Failed to parse server response'
                             });
-                            location.reload();
-                        } else {
-                            throw new Error(result.message);
                         }
                     } else {
-                        throw new Error('Upload failed');
+                        isUploading = false;
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                        progressDiv.style.display = 'none';
+                        if (fileInput) {
+                            fileInput.disabled = false;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: `Upload failed with status ${xhr.status}`
+                        });
                     }
                 });
 
                 xhr.addEventListener('error', function() {
-                    throw new Error('Upload error');
+                    isUploading = false;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                    progressDiv.style.display = 'none';
+                    if (fileInput) {
+                        fileInput.disabled = false;
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Upload error occurred'
+                    });
+                });
+
+                xhr.addEventListener('abort', function() {
+                    isUploading = false;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                    progressDiv.style.display = 'none';
+                    if (fileInput) {
+                        fileInput.disabled = false;
+                    }
                 });
 
                 xhr.open('POST', '@Url.Action("UploadImages", "Property")');
-                xhr.setRequestHeader('RequestVerificationToken',
-                    document.querySelector('input[name="__RequestVerificationToken"]').value);
                 xhr.send(formData);
 
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
-                    text: error.message
+                    text: error.message || 'An error occurred'
                 });
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
                 progressDiv.style.display = 'none';
+                // Reset flags on error
+                isUploading = false;
+                if (fileInput) {
+                    fileInput.disabled = false;
+                }
             }
         });
+
+        // Reset state when modal is closed
+        const uploadModal = document.getElementById('uploadModal');
+        if (uploadModal) {
+            uploadModal.addEventListener('hidden.bs.modal', function() {
+                // Reset flags
+                isUploading = false;
+                isProcessingFiles = false;
+                
+                // Clear selected files and preview
+                selectedFiles = [];
+                const preview = document.getElementById('imagePreview');
+                if (preview) {
+                    preview.innerHTML = '';
+                }
+                
+                // Reset file input
+                if (fileInput) {
+                    fileInput.value = '';
+                    fileInput.disabled = false;
+                }
+                
+                // Reset upload button
+                const btn = document.getElementById('uploadBtn');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                }
+                
+                // Hide progress
+                const progressDiv = document.getElementById('uploadProgress');
+                if (progressDiv) {
+                    progressDiv.style.display = 'none';
+                }
+            });
+        }
 
         // View image
         function viewImage(url, title) {
