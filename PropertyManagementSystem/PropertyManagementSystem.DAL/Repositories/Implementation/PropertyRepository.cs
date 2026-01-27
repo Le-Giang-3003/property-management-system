@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementSystem.DAL.Data;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -191,16 +191,32 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         /// <param name="propertyType">Type of the property.</param>
         /// <param name="minRent">The minimum rent.</param>
         /// <param name="maxRent">The maximum rent.</param>
+        /// <param name="minBedrooms">The minimum bedrooms.</param>
+        /// <param name="status">The status filter.</param>
         /// <returns></returns>
         public async Task<IEnumerable<Property>> SearchPropertiesAsync(
             string? city = null,
             string? propertyType = null,
             decimal? minRent = null,
-            decimal? maxRent = null)
+            decimal? maxRent = null,
+            int? minBedrooms = null,
+            string? status = null)
         {
             var query = _context.Properties
                 .Include(p => p.Landlord)
-                .Where(p => p.Status == "Available"); // Chỉ show Available
+                .Include(p => p.Images)
+                .Where(p => p.Status != "Unavailable"); // Exclude unavailable
+
+            // Status filter (optional)
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(p => p.Status == status);
+            }
+            else
+            {
+                // Default: chỉ show Available nếu không có status filter
+                query = query.Where(p => p.Status == "Available");
+            }
 
             // City filter (optional)
             if (!string.IsNullOrWhiteSpace(city))
@@ -221,6 +237,12 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 query = query.Where(p => p.RentAmount >= minRent.Value);
             if (maxRent.HasValue)
                 query = query.Where(p => p.RentAmount <= maxRent.Value);
+
+            // Min bedrooms filter
+            if (minBedrooms.HasValue)
+            {
+                query = query.Where(p => p.Bedrooms >= minBedrooms.Value);
+            }
 
             return await query
                 .OrderByDescending(p => p.CreatedAt)

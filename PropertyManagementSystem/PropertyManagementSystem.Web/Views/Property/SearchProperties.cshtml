@@ -9,8 +9,9 @@
     var minRent = ViewBag.MinRent as decimal?;
     var maxRent = ViewBag.MaxRent as decimal?;
     var minBedrooms = ViewBag.MinBedrooms as int?;
+    var status = ViewBag.Status as string ?? "";
     var propertyTypes = ViewBag.PropertyTypes as List<SelectListItem> ?? new();
-    var hasFilters = !string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(propertyType) || minRent.HasValue || maxRent.HasValue || minBedrooms.HasValue;
+    var hasFilters = !string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(propertyType) || minRent.HasValue || maxRent.HasValue || minBedrooms.HasValue || !string.IsNullOrEmpty(status);
     var favoritePropertyIds = ViewBag.FavoritePropertyIds as HashSet<int> ?? new HashSet<int>();
 
     var currentUserId = 0;
@@ -36,14 +37,38 @@
                 <div class="sp-search-input-wrapper">
                     <i class="bi bi-search"></i>
                     <input type="text" name="city" class="sp-search-input"
-                           placeholder="Search properties..." value="@city" />
+                           placeholder="Search by city or district..." value="@city" />
                 </div>
-                <select name="filterStatus" class="sp-filter-status-select">
-                    <option value="all">All Status</option>
-                    <option value="Available">Available</option>
-                    <option value="Rented">Rented</option>
-                    <option value="Maintenance">Maintenance</option>
+                <select name="status" class="sp-filter-status-select">
+                    <option value="">All Status</option>
+                    @if (status == "Available")
+                    {
+                        <option value="Available" selected>Available</option>
+                    }
+                    else
+                    {
+                        <option value="Available">Available</option>
+                    }
+                    @if (status == "Rented")
+                    {
+                        <option value="Rented" selected>Rented</option>
+                    }
+                    else
+                    {
+                        <option value="Rented">Rented</option>
+                    }
+                    @if (status == "Maintenance")
+                    {
+                        <option value="Maintenance" selected>Maintenance</option>
+                    }
+                    else
+                    {
+                        <option value="Maintenance">Maintenance</option>
+                    }
                 </select>
+                <button type="submit" class="sp-search-btn">
+                    <i class="bi bi-search"></i> Search
+                </button>
                 <div class="sp-view-toggle">
                     <button type="button" class="sp-view-btn active" data-view="grid" aria-label="Grid view">
                         <i class="bi bi-grid-3x3-gap"></i>
@@ -58,19 +83,47 @@
             <div class="sp-filter-row">
                 <div class="sp-filter-group">
                     <input type="number" name="minRent" class="sp-filter-input"
-                           placeholder="Min Price" min="0" step="100000" value="@minRent" />
+                           placeholder="Min Price" min="0" step="100000" value="@(minRent.HasValue ? minRent.Value.ToString("0") : "")" />
                 </div>
                 <div class="sp-filter-group">
                     <input type="number" name="maxRent" class="sp-filter-input"
-                           placeholder="Max Price" min="0" step="100000" value="@maxRent" />
+                           placeholder="Max Price" min="0" step="100000" value="@(maxRent.HasValue ? maxRent.Value.ToString("0") : "")" />
                 </div>
                 <div class="sp-filter-group">
                     <select name="minBedrooms" class="sp-filter-select">
                         <option value="">All Bedrooms</option>
-                        <option value="1" selected="@(minBedrooms == 1)">1+ Bedroom</option>
-                        <option value="2" selected="@(minBedrooms == 2)">2+ Bedrooms</option>
-                        <option value="3" selected="@(minBedrooms == 3)">3+ Bedrooms</option>
-                        <option value="4" selected="@(minBedrooms == 4)">4+ Bedrooms</option>
+                        @if (minBedrooms == 1)
+                        {
+                            <option value="1" selected>1+ Bedroom</option>
+                        }
+                        else
+                        {
+                            <option value="1">1+ Bedroom</option>
+                        }
+                        @if (minBedrooms == 2)
+                        {
+                            <option value="2" selected>2+ Bedrooms</option>
+                        }
+                        else
+                        {
+                            <option value="2">2+ Bedrooms</option>
+                        }
+                        @if (minBedrooms == 3)
+                        {
+                            <option value="3" selected>3+ Bedrooms</option>
+                        }
+                        else
+                        {
+                            <option value="3">3+ Bedrooms</option>
+                        }
+                        @if (minBedrooms == 4)
+                        {
+                            <option value="4" selected>4+ Bedrooms</option>
+                        }
+                        else
+                        {
+                            <option value="4">4+ Bedrooms</option>
+                        }
                     </select>
                 </div>
                 <div class="sp-filter-group">
@@ -78,12 +131,29 @@
                         <option value="">All Types</option>
                         @foreach (var type in propertyTypes)
                         {
-                            <option value="@type.Value" selected="@(type.Value == propertyType)">
-                                @type.Text
-                            </option>
+                            @if (type.Value == propertyType)
+                            {
+                                <option value="@type.Value" selected>
+                                    @type.Text
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@type.Value">
+                                    @type.Text
+                                </option>
+                            }
                         }
                     </select>
                 </div>
+                @if (hasFilters)
+                {
+                    <div class="sp-filter-group">
+                        <a asp-action="SearchProperties" class="sp-clear-btn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
+                }
             </div>
         </form>
     </div>
@@ -393,8 +463,40 @@
 
         .sp-filter-row {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, 1fr) auto;
             gap: 12px;
+            align-items: center;
+        }
+
+        .sp-clear-btn {
+            padding: 10px 16px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .sp-clear-btn:hover {
+            background: #fecaca;
+            color: #b91c1c;
+        }
+
+        .sp-search-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sp-search-btn i {
+            font-size: 16px;
         }
 
         .sp-filter-input,
@@ -812,16 +914,26 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
+            .sp-filter-row .sp-filter-group:last-child {
+                grid-column: span 2;
+                justify-self: center;
+            }
+
             .sp-search-row {
                 flex-wrap: wrap;
             }
 
             .sp-search-input-wrapper {
                 flex: 1 1 100%;
+                margin-bottom: 8px;
             }
 
             .sp-filter-status-select {
                 flex: 1;
+            }
+
+            .sp-search-btn {
+                padding: 12px 20px;
             }
 
             .sp-view-toggle {
@@ -852,6 +964,19 @@
         @@media (max-width: 480px) {
             .sp-filter-row {
                 grid-template-columns: 1fr;
+            }
+
+            .sp-filter-row .sp-filter-group:last-child {
+                grid-column: span 1;
+            }
+
+            .sp-search-row {
+                gap: 8px;
+            }
+
+            .sp-search-btn {
+                flex: 1;
+                justify-content: center;
             }
         }
     </style>
@@ -885,6 +1010,11 @@
                 }
                 
                 localStorage.setItem('propertyView', view);
+            });
+
+            // Auto-submit form when filter changes
+            $('.sp-filter-select, .sp-filter-status-select').on('change', function() {
+                $('.sp-filter-form').submit();
             });
             // Toggle favorite
             $('.sp-favorite-btn').on('click', function(e) {

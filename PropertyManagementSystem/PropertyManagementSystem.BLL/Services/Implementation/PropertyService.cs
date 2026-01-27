@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.BLL.DTOs.Property;
+using PropertyManagementSystem.BLL.DTOs.Property;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -82,7 +82,18 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 throw new ArgumentException("Minimum rent cannot be greater than maximum rent");
             }
 
-            return await _repo.SearchPropertiesAsync(property.City, property.PropertyType, property.MinRent, property.MaxRent);
+            if (property.MinBedrooms.HasValue && property.MinBedrooms.Value < 0)
+            {
+                throw new ArgumentException("Minimum bedrooms cannot be negative");
+            }
+
+            return await _repo.SearchPropertiesAsync(
+                property.City, 
+                property.PropertyType, 
+                property.MinRent, 
+                property.MaxRent,
+                property.MinBedrooms,
+                property.Status);
         }
 
         public async Task<bool> UpdatePropertyAsync(Property property)

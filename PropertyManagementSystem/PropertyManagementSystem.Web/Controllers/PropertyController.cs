@@ -136,6 +136,7 @@ namespace PropertyManagementSystem.Web.Controllers
             ViewBag.MinRent = searchDto.MinRent;
             ViewBag.MaxRent = searchDto.MaxRent;
             ViewBag.MinBedrooms = searchDto.MinBedrooms;
+            ViewBag.Status = searchDto.Status;
             ViewBag.PropertyTypes = GetPropertyTypesSelectList();
 
             return View("SearchProperties", properties);
