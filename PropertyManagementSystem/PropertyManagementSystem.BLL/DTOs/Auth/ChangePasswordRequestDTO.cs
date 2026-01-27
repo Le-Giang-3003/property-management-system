@@ -1,22 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.BLL.DTOs.Auth
 {
     public class ChangePasswordRequestDTO
     {
-        [Required(ErrorMessage = "Vui lòng nhập mật khẩu hiện tại")]
+        [Required(ErrorMessage = "Please enter your current password")]
         [DataType(DataType.Password)]
         public string CurrentPassword { get; set; } = null!;
 
-        [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới")]
-        [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
+        [Required(ErrorMessage = "Please enter a new password")]
+        [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
-            ErrorMessage = "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt")]
+            ErrorMessage = "Password must include uppercase, lowercase, number and special character")]
         [DataType(DataType.Password)]
         public string NewPassword { get; set; } = null!;
 
-        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu mới")]
-        [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        [Required(ErrorMessage = "Please confirm your new password")]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; } = null!;
     }

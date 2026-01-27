@@ -298,7 +298,7 @@
         agreeInfo.addEventListener('change', checkCanSendOtp);
         agreeSign.addEventListener('change', checkCanSendOtp);
 
-        // Gửi OTP
+        // Send OTP
         sendOtpBtn.addEventListener('click', async function() {
             sendOtpBtn.disabled = true;
             sendOtpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
@@ -349,7 +349,7 @@
             }
         });
 
-        // Validate OTP input (chỉ cho nhập số)
+        // Validate OTP input (digits only)
         otpInput.addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');
         });

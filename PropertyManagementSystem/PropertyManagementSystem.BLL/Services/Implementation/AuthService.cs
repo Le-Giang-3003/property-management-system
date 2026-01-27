@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Memory;
 using PropertyManagementSystem.BLL.DTOs.Auth;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Data;
@@ -40,7 +40,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 return new LoginResult
                 {
                     Success = false,
-                    Message = "Email không tồn tại trong hệ thống"
+                    Message = "Email not found"
                 };
             }
 
@@ -49,7 +49,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 return new LoginResult
                 {
                     Success = false,
-                    Message = "Tài khoản đã bị vô hiệu hóa"
+                    Message = "Account has been disabled"
                 };
             }
 
@@ -58,11 +58,11 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 return new LoginResult
                 {
                     Success = false,
-                    Message = "Mật khẩu không chính xác"
+                    Message = "Incorrect password"
                 };
             }
 
-            // Cập nhật LastLoginAt - dùng trực tiếp context
+            // Update LastLoginAt
             user.LastLoginAt = DateTime.UtcNow;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -72,7 +72,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return new LoginResult
             {
                 Success = true,
-                Message = "Đăng nhập thành công",
+                Message = "Login successful",
                 User = new DTOs.Auth.UserDto
                 {
                     UserId = user.UserId,
@@ -127,13 +127,13 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 
             try
             {
-                await _emailService.SendEmailAsync(user.Email, "Mã OTP đặt lại mật khẩu", $"Mã OTP của bạn là: {otpCode}");
-                Console.WriteLine($"✅ OTP đã gửi đến: {user.Email}");
-                Console.WriteLine($"🔐 Mã OTP (dev): {otpCode}");
+                await _emailService.SendEmailAsync(user.Email, "Password reset OTP", $"Your OTP code is: {otpCode}");
+                Console.WriteLine($"OTP sent to: {user.Email}");
+                Console.WriteLine($"[Dev] OTP: {otpCode}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Lỗi gửi email: {ex.Message}");
+                Console.WriteLine($"Send email error: {ex.Message}");
                 _cache.Remove($"OTP_{request.Email}");
                 return false;
             }
@@ -152,19 +152,19 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (data.attemptCount >= 5)
             {
                 _cache.Remove(cacheKey);
-                Console.WriteLine($"⚠️ OTP bị khóa do thử quá 5 lần: {request.Email}");
+                Console.WriteLine($"OTP locked (too many attempts): {request.Email}");
                 return (false, 0);
             }
 
             if (data.otpCode != request.OtpCode)
             {
                 _cache.Set(cacheKey, (data.otpCode, data.userId, data.attemptCount + 1), TimeSpan.FromMinutes(5));
-                Console.WriteLine($"❌ OTP sai. Lần thử: {data.attemptCount + 1}/5");
+                Console.WriteLine($"Invalid OTP. Attempt {data.attemptCount + 1}/5");
                 return (false, 0);
             }
 
             _cache.Remove(cacheKey);
-            Console.WriteLine($"✅ OTP xác thực thành công: {request.Email}");
+            Console.WriteLine($"OTP verified: {request.Email}");
 
             return (true, data.userId);
         }
@@ -185,21 +185,18 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             var user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null) return false;
 
-            // 1. Kiểm tra mật khẩu hiện tại
             if (!_passwordService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
             {
                 Console.WriteLine($"ChangePassword failed: wrong current password for {email}");
                 return false;
             }
 
-            // 2. Kiểm tra mật khẩu mới và confirm
             if (request.NewPassword != request.ConfirmPassword)
             {
                 Console.WriteLine($"ChangePassword failed: new password and confirm do not match for {email}");
                 return false;
             }
 
-            // 3. Hash và lưu mật khẩu mới
             var oldHash = user.PasswordHash;
             var newHash = _passwordService.HashPassword(request.NewPassword);
             user.PasswordHash = newHash;

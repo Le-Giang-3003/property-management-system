@@ -1,23 +1,23 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.BLL.DTOs.Payments
 {
     public class MakePaymentRequestDto
     {
-        [Required(ErrorMessage = "Vui lòng chọn hóa đơn cần thanh toán.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Mã hóa đơn không hợp lệ.")]
+        [Required(ErrorMessage = "Please select an invoice to pay.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Invalid invoice ID.")]
         public int InvoiceId { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập số tiền thanh toán.")]
-        [Range(1000, double.MaxValue, ErrorMessage = "Số tiền thanh toán tối thiểu là 1.000 VNĐ.")]
+        [Required(ErrorMessage = "Please enter the payment amount.")]
+        [Range(1000, double.MaxValue, ErrorMessage = "Minimum payment amount is 1,000 VND.")]
         public decimal Amount { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán.")]
+        [Required(ErrorMessage = "Please select a payment method.")]
         [RegularExpression("^(Cash|BankTransfer|CreditCard)$",
-            ErrorMessage = "Phương thức thanh toán không hợp lệ (Chỉ chấp nhận: Cash, BankTransfer, CreditCard).")]
+            ErrorMessage = "Invalid payment method (only Cash, BankTransfer, CreditCard accepted).")]
         public string PaymentMethod { get; set; } = null!;
 
-        [StringLength(500, ErrorMessage = "Ghi chú không được vượt quá 500 ký tự.")]
+        [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters.")]
         public string? Notes { get; set; }
     }
 }

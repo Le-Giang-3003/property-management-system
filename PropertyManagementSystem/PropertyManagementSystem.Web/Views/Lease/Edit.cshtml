@@ -217,7 +217,7 @@
     }
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ✅ LẤY ELEMENTS ĐÚNG VỚI ID ASP.NET GENERATED
+            // Get form elements by ASP.NET-generated IDs
             const startDateInput = document.getElementById('startDate');
             const leaseDurationSelect = document.getElementById('leaseDuration');
             const monthlyRentInput = document.getElementById('monthlyRentInput');
@@ -228,7 +228,7 @@
             const paymentNote = document.getElementById('paymentNote');
             const paymentDayInfo = document.getElementById('paymentDayInfo');
 
-            // ✅ HÀM TÍNH TOÁN
+            // Calculation logic
             function updateCalculations() {
                 const startDateValue = startDateInput.value;
                 if (!startDateValue) return;
@@ -237,7 +237,7 @@
                 const months = parseInt(leaseDurationSelect.value) || 12;
                 const monthlyRent = parseFloat(monthlyRentInput.value) || 0;
 
-                // Tính EndDate
+                // Compute EndDate
                 const endDate = new Date(startDate);
                 endDate.setMonth(endDate.getMonth() + months);
 
@@ -247,7 +247,7 @@
 
                 endDateDisplay.value = day + '/' + month + '/' + year;
 
-                // Tính PaymentDueDay
+                // Compute PaymentDueDay
                 const startDay = startDate.getDate();
                 const paymentDay = startDay >= 29 ? 28 : startDay;
 
@@ -269,15 +269,15 @@
                 monthsDisplaySpan.textContent = months + ' months';
             }
 
-            // ✅ LẮNG NGHE SỰ KIỆN
+            // Event listeners
             startDateInput.addEventListener('change', updateCalculations);
             leaseDurationSelect.addEventListener('change', updateCalculations);
             monthlyRentInput.addEventListener('input', updateCalculations);
 
-            // ✅ CHẠY LẦN ĐẦU
+            // Run on load
             updateCalculations();
 
-            // ✅ CONFIRM KHI SUBMIT
+            // Confirm on submit
             const form = document.getElementById('editLeaseForm');
             form.addEventListener('submit', function(e) {
                 if (!confirm('Are you sure you want to save these changes?')) {

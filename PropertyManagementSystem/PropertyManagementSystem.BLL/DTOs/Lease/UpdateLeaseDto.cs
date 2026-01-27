@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -12,12 +12,12 @@ namespace PropertyManagementSystem.BLL.DTOs.Lease
         public int LeaseId { get; set; }
 
         [Required]
-        [Display(Name = "Ngày bắt đầu")]
+        [Display(Name = "Start date")]
         public DateTime StartDate { get; set; }
 
         [Required]
         [Range(1, 120)]
-        [Display(Name = "Thời hạn thuê (tháng)")]
+        [Display(Name = "Lease duration (months)")]
         public int LeaseDurationMonths { get; set; }
 
         [Required]

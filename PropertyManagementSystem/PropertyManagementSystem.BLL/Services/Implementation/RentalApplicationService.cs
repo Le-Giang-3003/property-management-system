@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.BLL.DTOs.Application;
+using PropertyManagementSystem.BLL.DTOs.Application;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -143,7 +143,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                     otherApp.Status == "Pending")  // ← CHỈ reject các đơn "Pending"
                 {
                     otherApp.Status = "Rejected";
-                    otherApp.RejectionReason = "Bất động sản đã được cho thuê cho người khác";
+                    otherApp.RejectionReason = "Property has been rented to another applicant";
                     otherApp.ReviewedBy = reviewerId;
                     otherApp.ReviewedAt = DateTime.UtcNow;
                     otherApp.UpdatedAt = DateTime.UtcNow;

@@ -524,14 +524,14 @@ namespace PropertyManagementSystem.Web.Controllers
                 var userId = GetCurrentUserId();
                 if (userId<0)
                 {
-                    return Json(new { success = false, message = "Vui lòng đăng nhập" });
+                    return Json(new { success = false, message = "Please log in" });
                 }
 
                 // Check property có tồn tại không
                 var property = await _propertyService.GetPropertyByIdAsync(propertyId);
                 if (property == null)
                 {
-                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                    return Json(new { success = false, message = "Property not found" });
                 }
 
                 var result = await _favoritePropertyService.ToggleFavoriteAsync(userId, propertyId);
@@ -541,12 +541,12 @@ namespace PropertyManagementSystem.Web.Controllers
                 {
                     success = result,
                     isFavorited = isFavorited,
-                    message = isFavorited ? "✅ Đã thêm vào yêu thích" : "❌ Đã xóa khỏi yêu thích"
+                    message = isFavorited ? "Added to favorites" : "Removed from favorites"
                 });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+                return Json(new { success = false, message = "An error occurred: " + ex.Message });
             }
         }
 
@@ -651,19 +651,19 @@ namespace PropertyManagementSystem.Web.Controllers
                 var property = await _propertyService.GetPropertyByIdAsync(propertyId);
                 if (property == null)
                 {
-                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                    return Json(new { success = false, message = "Property not found" });
                 }
 
                 // Authorization
                 var currentUserId = GetCurrentUserId();
                 if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
                 {
-                    return Json(new { success = false, message = "Không có quyền" });
+                    return Json(new { success = false, message = "Permission denied" });
                 }
 
                 if (files == null || !files.Any())
                 {
-                    return Json(new { success = false, message = "Chưa chọn file" });
+                    return Json(new { success = false, message = "No files selected" });
                 }
 
                 var uploadedImages = await _propertyImageService.UploadMultipleImagesAsync(propertyId, files);
@@ -671,7 +671,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = $"✅ Upload thành công {uploadedImages.Count} ảnh",
+                    message = $"Successfully uploaded {uploadedImages.Count} image(s)",
                     count = uploadedImages.Count
                 });
             }
@@ -690,14 +690,14 @@ namespace PropertyManagementSystem.Web.Controllers
                 var property = await _propertyService.GetPropertyByIdAsync(propertyId);
                 if (property == null)
                 {
-                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                    return Json(new { success = false, message = "Property not found" });
                 }
 
                 // Authorization
                 var currentUserId = GetCurrentUserId();
                 if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
                 {
-                    return Json(new { success = false, message = "Không có quyền" });
+                    return Json(new { success = false, message = "Permission denied" });
                 }
 
                 var result = await _propertyImageService.DeleteImageAsync(imageId, propertyId);
@@ -705,7 +705,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 return Json(new
                 {
                     success = result,
-                    message = result ? " Đã xóa ảnh" : " Không thể xóa"
+                    message = result ? "Image deleted" : "Unable to delete"
                 });
             }
             catch (Exception ex)
@@ -723,14 +723,14 @@ namespace PropertyManagementSystem.Web.Controllers
                 var property = await _propertyService.GetPropertyByIdAsync(propertyId);
                 if (property == null)
                 {
-                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                    return Json(new { success = false, message = "Property not found" });
                 }
 
                 // Authorization
                 var currentUserId = GetCurrentUserId();
                 if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
                 {
-                    return Json(new { success = false, message = "Không có quyền" });
+                    return Json(new { success = false, message = "Permission denied" });
                 }
 
                 var result = await _propertyImageService.SetThumbnailAsync(propertyId, imageId);
@@ -738,7 +738,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 return Json(new
                 {
                     success = result,
-                    message = result ? " Đã đặt làm ảnh đại diện" : " Không thể cập nhật"
+                    message = result ? "Set as thumbnail" : "Unable to update"
                 });
             }
             catch (Exception ex)
@@ -803,25 +803,25 @@ namespace PropertyManagementSystem.Web.Controllers
                 var userId = GetCurrentUserId();
                 if (userId <= 0)
                 {
-                    return Json(new { success = false, message = "Vui lòng đăng nhập" });
+                    return Json(new { success = false, message = "Please log in" });
                 }
 
                 var property = await _propertyService.GetPropertyByIdAsync(propertyId);
                 if (property == null)
                 {
-                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                    return Json(new { success = false, message = "Property not found" });
                 }
 
                 // Authorization check
                 if (property.LandlordId != userId && !User.IsInRole("Admin"))
                 {
-                    return Json(new { success = false, message = "Bạn không có quyền cập nhật BDS này" });
+                    return Json(new { success = false, message = "You do not have permission to update this property" });
                 }
 
                 // Validate status
                 if (!IsValidStatus(newStatus))
                 {
-                    return Json(new { success = false, message = "Trạng thái không hợp lệ" });
+                    return Json(new { success = false, message = "Invalid status" });
                 }
 
                 // Update status
@@ -834,19 +834,19 @@ namespace PropertyManagementSystem.Web.Controllers
                     return Json(new
                     {
                         success = true,
-                        message = $"✅ Đã cập nhật trạng thái: {GetStatusDisplay(newStatus)}",
+                        message = $"Status updated: {GetStatusDisplay(newStatus)}",
                         newStatus = newStatus,
                         statusDisplay = GetStatusDisplay(newStatus)
                     });
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Không thể cập nhật trạng thái" });
+                    return Json(new { success = false, message = "Unable to update status" });
                 }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+                return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
 
@@ -861,14 +861,14 @@ namespace PropertyManagementSystem.Web.Controllers
                 var property = await _propertyService.GetPropertyByIdAsync(propertyId);
                 if (property == null)
                 {
-                    return Json(new { success = false, message = "Không tìm thấy BDS" });
+                    return Json(new { success = false, message = "Property not found" });
                 }
 
                 // Authorization
                 var currentUserId = GetCurrentUserId();
                 if (property.LandlordId != currentUserId && !User.IsInRole("Admin"))
                 {
-                    return Json(new { success = false, message = "Không có quyền" });
+                    return Json(new { success = false, message = "Permission denied" });
                 }
 
                 var result = await _propertyImageService.UpdateCaptionAsync(imageId, propertyId, caption);
@@ -876,7 +876,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 return Json(new
                 {
                     success = result,
-                    message = result ? " Đã cập nhật caption" : " Không thể cập nhật"
+                    message = result ? "Caption updated" : "Unable to update"
                 });
             }
             catch (Exception ex)
@@ -892,12 +892,12 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             return new List<SelectListItem>
             {
-                new() { Value = "Apartment", Text = "Căn hộ (Apartment)" },
-                new() { Value = "House", Text = "Nhà riêng (House)" },
-                new() { Value = "Condo", Text = "Căn hộ chung cư (Condo)" },
+                new() { Value = "Apartment", Text = "Apartment" },
+                new() { Value = "House", Text = "House" },
+                new() { Value = "Condo", Text = "Condo" },
                 new() { Value = "Studio", Text = "Studio" },
-                new() { Value = "Villa", Text = "Biệt thự (Villa)" },
-                new() { Value = "Office", Text = "Văn phòng (Office)" }
+                new() { Value = "Villa", Text = "Villa" },
+                new() { Value = "Office", Text = "Office" }
             };
         }
 
@@ -926,10 +926,10 @@ namespace PropertyManagementSystem.Web.Controllers
 
         private string GetStatusDisplay(string status) => status switch
         {
-            "Available" => "Có sẵn",
-            "Rented" => "Đã thuê",
-            "Maintenance" => "Bảo trì",
-            "Unavailable" => "Không khả dụng",
+            "Available" => "Available",
+            "Rented" => "Rented",
+            "Maintenance" => "Maintenance",
+            "Unavailable" => "Unavailable",
             _ => status
         };
 
