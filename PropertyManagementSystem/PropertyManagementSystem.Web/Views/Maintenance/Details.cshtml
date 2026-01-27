@@ -669,12 +669,12 @@
                     @* LANDLORD ACTIONS *@
                     @if (isLandlord)
                     {
-                        @if (Model.Status == "Pending")
+                        @* @if (Model.Status == "Pending")
                         {
                             <button class="btn btn-primary" onclick="openAssignModal(@Model.RequestId)">
                                 <i class="bi bi-person-plus"></i> Assign Technician
                             </button>
-                        }
+                        } *@
                         @if (Model.Status == "Completed")
                         {
                             <button class="btn btn-success" onclick="confirmCompletion(@Model.RequestId)">
