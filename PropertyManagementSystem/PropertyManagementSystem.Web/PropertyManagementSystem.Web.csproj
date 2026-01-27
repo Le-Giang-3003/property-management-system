@@ -7,8 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Filters\" />
-    <Folder Include="Middlewares\" />
+    <Compile Remove="Filters\**" />
+    <Compile Remove="Middlewares\**" />
+    <Content Remove="Filters\**" />
+    <Content Remove="Middlewares\**" />
+    <EmbeddedResource Remove="Filters\**" />
+    <EmbeddedResource Remove="Middlewares\**" />
+    <None Remove="Filters\**" />
+    <None Remove="Middlewares\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,7 +27,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PropertyManagementSystem.BLL\PropertyManagementSystem.BLL.csproj" />
-    <ProjectReference Include="..\PropertyManagementSystem.DAL\PropertyManagementSystem.DAL.csproj" />
   </ItemGroup>
 
 </Project>
