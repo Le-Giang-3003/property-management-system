@@ -286,7 +286,7 @@
             <span></span>
         </button>
 
-        <!-- Panel Danh mục -->
+        <!-- Categories panel -->
         <div id="categoryPanel" class="category-panel shadow">
             <div class="category-header">
                 Categories
@@ -388,7 +388,7 @@
                 panel.style.display = isVisible ? "none" : "block";
             });
 
-            // Ẩn panel khi click ra ngoài
+            // Hide panel when clicking outside
             document.addEventListener("click", function (e) {
                 if (!panel.contains(e.target) && !btn.contains(e.target)) {
                     panel.style.display = "none";

@@ -1,14 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.BLL.DTOs.User
 {
     public class UpdateProfileDto
     {
-        [Required(ErrorMessage = "Họ tên là bắt buộc")]
+        [Required(ErrorMessage = "Full name is required")]
         [MaxLength(100)]
         public string FullName { get; set; } = string.Empty;
 
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [Phone(ErrorMessage = "Invalid phone number")]
         [MaxLength(20)]
         public string? PhoneNumber { get; set; }
 

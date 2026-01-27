@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,11 +9,11 @@ namespace PropertyManagementSystem.BLL.DTOs.Lease
 {
     public class TerminateLeaseDto
     {
-        [Required(ErrorMessage = "Lý do hủy hợp đồng là bắt buộc")]
-        [MinLength(10, ErrorMessage = "Lý do phải có ít nhất 10 ký tự")]
+        [Required(ErrorMessage = "Termination reason is required")]
+        [MinLength(10, ErrorMessage = "Reason must be at least 10 characters")]
         public string Reason { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Ngày chấm dứt là bắt buộc")]
+        [Required(ErrorMessage = "Termination date is required")]
         [DataType(DataType.Date)]
         public DateTime TerminationDate { get; set; }
     }

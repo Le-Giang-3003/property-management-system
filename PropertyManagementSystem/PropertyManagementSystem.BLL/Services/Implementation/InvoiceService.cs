@@ -98,7 +98,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         {
             var lease = await _leaseRepository.GetByIdAsync(leaseId);
             if (lease == null)
-                throw new Exception("Lease không tồn tại");
+                throw new Exception("Lease not found");
 
             var amount = lease.MonthlyRent;
 
@@ -118,7 +118,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 TotalAmount = amount,
                 PaidAmount = 0,
                 RemainingAmount = amount,
-                Description = $"Tiền thuê kỳ {periodStart:MM/yyyy}",
+                Description = $"Rent for {periodStart:MM/yyyy}",
                 Notes = "",
                 Status = "Pending",
                 CreatedAt = DateTime.UtcNow,

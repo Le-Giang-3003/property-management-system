@@ -60,7 +60,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 if (!_documentService.IsValidFileType(file.FileName, documentType, isAdmin))
                 {
                     if (isAjax)
-                        return Json(new { success = false, message = $"Loại file không được phép cho {documentType}" });
+                        return Json(new { success = false, message = $"File type not allowed for {documentType}" });
 
                     TempData["Error"] = $"File type not allowed for {documentType}";
                     return RedirectToAction(nameof(Upload), new { entityType, entityId });
@@ -73,7 +73,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 {
                     var maxSize = GetMaxSizeForFileType(fileType);
                     if (isAjax)
-                        return Json(new { success = false, message = $"File vượt quá dung lượng cho phép ({maxSize})" });
+                        return Json(new { success = false, message = $"File exceeds maximum size ({maxSize})" });
 
                     TempData["Error"] = $"File exceeds maximum size ({maxSize})";
                     return RedirectToAction(nameof(Upload), new { entityType, entityId });
@@ -96,7 +96,7 @@ namespace PropertyManagementSystem.Web.Controllers
                         return Json(new
                         {
                             success = true,
-                            message = $"Upload '{file.FileName}' thành công! ({FormatFileSize(file.Length)})"
+                            message = $"Uploaded '{file.FileName}' successfully! ({FormatFileSize(file.Length)})"
                         });
 
                     TempData["Success"] = $"Uploaded '{file.FileName}' successfully! ({FormatFileSize(file.Length)})";
@@ -108,7 +108,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 }
 
                 if (isAjax)
-                    return Json(new { success = false, message = "Không thể upload file" });
+                    return Json(new { success = false, message = "Unable to upload file" });
 
                 TempData["Error"] = "Unable to upload file";
                 return RedirectToAction(nameof(Upload), new { entityType, entityId });
@@ -414,16 +414,16 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             return new List<SelectListItem>
             {
-                new() { Value = "Contract", Text = "Hợp đồng (Contract)" },
-                new() { Value = "Invoice", Text = "Hóa đơn (Invoice)" },
-                new() { Value = "Receipt", Text = "Biên lai (Receipt)" },
-                new() { Value = "ID", Text = "Giấy tờ tùy thân (ID)" },
-                new() { Value = "Application", Text = "Đơn đăng ký (Application)" },
-                new() { Value = "Image", Text = "Hình ảnh (Image)" },
+                new() { Value = "Contract", Text = "Contract" },
+                new() { Value = "Invoice", Text = "Invoice" },
+                new() { Value = "Receipt", Text = "Receipt" },
+                new() { Value = "ID", Text = "ID Document" },
+                new() { Value = "Application", Text = "Application" },
+                new() { Value = "Image", Text = "Image" },
                 new() { Value = "Video", Text = "Video" },
-                new() { Value = "Spreadsheet", Text = "Bảng tính (Spreadsheet)" },
-                new() { Value = "Presentation", Text = "Trình chiếu (Presentation)" },
-                new() { Value = "Other", Text = "Khác (Other)" }
+                new() { Value = "Spreadsheet", Text = "Spreadsheet" },
+                new() { Value = "Presentation", Text = "Presentation" },
+                new() { Value = "Other", Text = "Other" }
             };
         }
 
@@ -431,12 +431,12 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             return new List<SelectListItem>
             {
-                new() { Value = "Property", Text = "Bất động sản (Property)" },
-                new() { Value = "Lease", Text = "Hợp đồng thuê (Lease)" },
-                new() { Value = "Invoice", Text = "Hóa đơn (Invoice)" },
-                new() { Value = "Payment", Text = "Thanh toán (Payment)" },
-                new() { Value = "MaintenanceRequest", Text = "Yêu cầu bảo trì (Maintenance)" },
-                new() { Value = "RentalApplication", Text = "Đơn thuê nhà (Application)" }
+                new() { Value = "Property", Text = "Property" },
+                new() { Value = "Lease", Text = "Lease" },
+                new() { Value = "Invoice", Text = "Invoice" },
+                new() { Value = "Payment", Text = "Payment" },
+                new() { Value = "MaintenanceRequest", Text = "Maintenance" },
+                new() { Value = "RentalApplication", Text = "Rental Application" }
             };
         }
 
@@ -444,12 +444,12 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             return entityType switch
             {
-                "Property" => "Bất động sản",
-                "Lease" => "Hợp đồng thuê",
-                "Invoice" => "Hóa đơn",
-                "Payment" => "Thanh toán",
-                "MaintenanceRequest" => "Yêu cầu bảo trì",
-                "RentalApplication" => "Đơn thuê nhà",
+                "Property" => "Property",
+                "Lease" => "Lease",
+                "Invoice" => "Invoice",
+                "Payment" => "Payment",
+                "MaintenanceRequest" => "Maintenance",
+                "RentalApplication" => "Rental Application",
                 _ => entityType
             };
         }
@@ -497,7 +497,7 @@ namespace PropertyManagementSystem.Web.Controllers
                 var userId = GetCurrentUserId();
                 var leaseDocuments = await _documentService.GetLeaseDocumentsByTenantUserIdAsync(userId);
 
-                ViewBag.PageTitle = "Tài liệu hợp đồng thuê";
+                ViewBag.PageTitle = "Lease Documents";
 
                 return View(leaseDocuments);
             }

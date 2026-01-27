@@ -159,80 +159,75 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         private string GenerateDefaultTerms(decimal monthlyRent, int paymentDueDay, DateTime startDate)
         {
             string paymentNote = startDate.Day >= 29
-                ? $"\n   * Lưu ý: Mặc dù ngày bắt đầu hợp đồng là ngày {startDate.Day}, ngày thanh toán được điều chỉnh về ngày 28 để đảm bảo tính nhất quán (do không phải tháng nào cũng có đủ 29-31 ngày)."
+                ? $"\n   * Note: Although the lease start date is day {startDate.Day}, the payment due day is adjusted to day 28 for consistency (not all months have 29–31 days)."
                 : "";
 
-            return $@"ĐIỀU KHOẢN HỢP ĐỒNG THUÊ NHÀ
+            return $@"LEASE AGREEMENT TERMS
 
-I. ĐIỀU KHOẢN THANH TOÁN:
-1. Tiền thuê hàng tháng: {monthlyRent:N0} VNĐ
-2. Ngày thanh toán: Ngày {paymentDueDay} hàng tháng{paymentNote}
-3. Phạt trễ hạn: 50,000 VNĐ/ngày sau ngày đến hạn
-4. Hình thức thanh toán: Chuyển khoản hoặc tiền mặt
+I. PAYMENT TERMS:
+1. Monthly rent: {monthlyRent:N0} VND
+2. Payment due date: Day {paymentDueDay} of each month{paymentNote}
+3. Late payment fee: 50,000 VND/day after the due date
+4. Payment methods: Bank transfer or cash
 
-II. NGHĨA VỤ BÊN THUÊ:
-1. Thanh toán tiền thuê đầy đủ và đúng hạn
-2. Sử dụng nhà đúng mục đích
-3. Bảo quản tài sản, không làm hư hỏng
-4. Chịu trách nhiệm về các hóa đơn điện, nước, internet
-5. Thông báo trước 30 ngày nếu muốn chấm dứt hợp đồng
+II. TENANT OBLIGATIONS:
+1. Pay rent in full and on time
+2. Use the property for its intended purpose
+3. Maintain the property and avoid damage
+4. Be responsible for electricity, water, and internet bills
+5. Provide 30 days' notice if terminating the lease
 
-III. NGHĨA VỤ BÊN CHO THUÊ:
-1. Giao nhà đúng thời gian cam kết
-2. Đảm bảo nhà ở tình trạng tốt, an toàn
-3. Sửa chữa các hư hỏng do lỗi kết cấu
-4. Không tăng giá thuê trong thời hạn hợp đồng
+III. LANDLORD OBLIGATIONS:
+1. Deliver the property on the agreed date
+2. Ensure the property is in good, safe condition
+3. Repair structural defects
+4. Do not raise rent during the lease term
 
-IV. ĐIỀU KHOẢN CHẤM DỨT:
-1. Hợp đồng tự động chấm dứt khi hết hạn (trừ khi có gia hạn)
-2. Chấm dứt sớm phải thông báo trước 30 ngày
-3. Vi phạm nghiêm trọng: Hợp đồng có thể bị chấm dứt ngay lập tức";
+IV. TERMINATION:
+1. The lease ends automatically at expiry (unless renewed)
+2. Early termination requires 30 days' notice
+3. Serious breach: The lease may be terminated immediately";
         }
 
-        // ✅ KÝ HỢP ĐỒNG
         public async Task<SignLeaseResponseDto> SignLeaseAsync(SignLeaseDto dto)
         {
             var response = new SignLeaseResponseDto
             {
                 Success = false,
-                Message = "Không thể ký hợp đồng"
+                Message = "Unable to sign the lease"
             };
 
-            // Validate lease tồn tại
             var lease = await _unitOfWork.Leases.GetByIdAsync(dto.LeaseId);
             if (lease == null)
             {
-                response.Message = "Không tìm thấy hợp đồng";
+                response.Message = "Lease not found";
                 return response;
             }
 
-            // Validate lease status
             if (lease.Status != "Draft")
             {
-                response.Message = $"Hợp đồng đang ở trạng thái '{lease.Status}', không thể ký";
+                response.Message = $"Lease status is '{lease.Status}', cannot sign";
                 response.LeaseStatus = lease.Status;
                 return response;
             }
 
-            // Kiểm tra user có quyền ký không
             var canSign = await CanUserSignAsync(dto.LeaseId, dto.UserId);
             if (!canSign)
             {
-                response.Message = "Bạn không có quyền ký hợp đồng này hoặc đã ký rồi";
+                response.Message = "You do not have permission to sign this lease or have already signed";
                 return response;
             }
 
-            // Kiểm tra user đã ký chưa
             var existingSignature = await _unitOfWork.LeaseSignatures
                 .GetByLeaseAndUserAsync(dto.LeaseId, dto.UserId);
 
             if (existingSignature != null)
             {
-                response.Message = "Bạn đã ký hợp đồng này rồi";
+                response.Message = "You have already signed this lease";
                 return response;
             }
 
-            // Tạo signature mới
+            // Create new signature
             var signature = new LeaseSignature
             {
                 LeaseId = dto.LeaseId,
@@ -243,22 +238,20 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 IpAddress = dto.IpAddress
             };
 
-            // Lưu signature
             await _unitOfWork.LeaseSignatures.CreateAsync(signature);
 
-            // Kiểm tra xem đã ký đầy đủ chưa
+            // Check if all parties have signed
             var hasLandlordSignature = dto.SignerRole == "Landlord" ||
                 await _unitOfWork.LeaseSignatures.HasLandlordSignedAsync(dto.LeaseId);
             var hasTenantSignature = dto.SignerRole == "Tenant" ||
                 await _unitOfWork.LeaseSignatures.HasTenantSignedAsync(dto.LeaseId);
 
-            // Nếu cả 2 đã ký → Cập nhật status
             if (hasLandlordSignature && hasTenantSignature)
             {
                 lease.Status = "Active";
                 lease.SignedDate = DateTime.UtcNow;
 
-                // Cập nhật Property Status → "Rented"
+                // Update property status to Rented
                 var property = await _unitOfWork.Properties.GetPropertyByIdAsync(lease.PropertyId);
                 if (property != null)
                 {
@@ -268,7 +261,6 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
 
                 await _unitOfWork.Leases.UpdateAsync(lease);
 
-                // ✅ Tự động tạo invoice đầu tiên khi lease trở thành Active
                 try
                 {
                     var periodStart = lease.StartDate;
@@ -277,17 +269,15 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 }
                 catch (Exception ex)
                 {
-                    // Log error nhưng không fail việc ký lease
-                    // Invoice có thể được tạo sau
                     System.Diagnostics.Debug.WriteLine($"Error creating initial invoice: {ex.Message}");
                 }
 
-                response.Message = "Ký hợp đồng thành công! Hợp đồng đã được kích hoạt.";
+                response.Message = "Lease signed successfully! The lease has been activated.";
                 response.IsFullySigned = true;
             }
             else
             {
-                response.Message = "Ký hợp đồng thành công! Đang chờ bên còn lại ký.";
+                response.Message = "Lease signed successfully! Waiting for the other party to sign.";
                 response.IsFullySigned = false;
             }
 
@@ -396,10 +386,10 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
 
 
                 var terminationNote =
-                    $"\n\n--- HỦY HỢP ĐỒNG ---\n" +
-                    $"Ngày hủy: {terminateDto.TerminationDate:dd/MM/yyyy}\n" +
-                    $"Lý do: {terminateDto.Reason}\n" +
-                    $"Ghi nhận lúc: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+                    $"\n\n--- LEASE TERMINATION ---\n" +
+                    $"Termination date: {terminateDto.TerminationDate:dd/MM/yyyy}\n" +
+                    $"Reason: {terminateDto.Reason}\n" +
+                    $"Recorded at: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
 
                 lease.SpecialConditions = string.IsNullOrEmpty(lease.SpecialConditions)
                     ? terminationNote
@@ -444,26 +434,26 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
             var response = new RenewLeaseResponseDto
             {
                 Success = false,
-                Message = "Không thể gia hạn hợp đồng"
+                Message = "Unable to renew the lease"
             };
 
             var oldLease = await _unitOfWork.Leases.GetLeaseWithDetailsAsync(dto.LeaseId);
 
             if (oldLease == null)
             {
-                response.Message = "Không tìm thấy hợp đồng";
+                response.Message = "Lease not found";
                 return response;
             }
 
             if (oldLease.Status != "Active")
             {
-                response.Message = "Chỉ có thể gia hạn hợp đồng đang Active";
+                response.Message = "Only Active leases can be renewed";
                 return response;
             }
 
             if (dto.ExtensionMonths < 1 || dto.ExtensionMonths > 36)
             {
-                response.Message = "Thời gian gia hạn phải từ 1 đến 36 tháng";
+                response.Message = "Extension period must be between 1 and 36 months";
                 return response;
             }
 
@@ -478,21 +468,21 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 decimal monthlyRent = dto.NewMonthlyRent ?? oldLease.MonthlyRent;
                 decimal securityDeposit = dto.NewSecurityDeposit ?? oldLease.SecurityDeposit;
 
-                string renewalNote = $"\n\n--- GIA HẠN TỪ HỢP ĐỒNG {oldLease.LeaseNumber} ---\n" +
-                                   $"Hợp đồng gốc: {oldLease.LeaseNumber}\n" +
-                                   $"Kỳ hạn cũ: {oldLease.StartDate:dd/MM/yyyy} - {oldLease.EndDate:dd/MM/yyyy}\n" +
-                                   $"Gia hạn lúc: {DateTime.UtcNow:dd/MM/yyyy HH:mm:ss}\n";
+                string renewalNote = $"\n\n--- RENEWAL FROM LEASE {oldLease.LeaseNumber} ---\n" +
+                                   $"Original lease: {oldLease.LeaseNumber}\n" +
+                                   $"Previous term: {oldLease.StartDate:dd/MM/yyyy} - {oldLease.EndDate:dd/MM/yyyy}\n" +
+                                   $"Renewed at: {DateTime.UtcNow:dd/MM/yyyy HH:mm:ss}\n";
 
                 if (dto.NewMonthlyRent.HasValue)
                 {
-                    renewalNote += $"Tiền thuê cũ: {oldLease.MonthlyRent:N0} VNĐ → Mới: {monthlyRent:N0} VNĐ\n";
+                    renewalNote += $"Previous rent: {oldLease.MonthlyRent:N0} VND → New: {monthlyRent:N0} VND\n";
                 }
 
                 string terms = oldLease.Terms + renewalNote;
 
                 if (!string.IsNullOrWhiteSpace(dto.AdditionalTerms))
                 {
-                    terms += $"\n--- ĐIỀU KHOẢN BỔ SUNG ---\n{dto.AdditionalTerms.Trim()}\n";
+                    terms += $"\n--- ADDITIONAL TERMS ---\n{dto.AdditionalTerms.Trim()}\n";
                 }
 
                 var newLease = new Lease
@@ -511,23 +501,22 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                     SpecialConditions = dto.AdditionalTerms,
                     AutoRenew = dto.AutoRenew,
                     Status = "Draft",
-                    PreviousLeaseId = oldLease.LeaseId,  // ✅ Link với lease cũ
+                    PreviousLeaseId = oldLease.LeaseId,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 var result = await _unitOfWork.Leases.CreateAsync(newLease);
 
-                // Cập nhật lease cũ
                 oldLease.Status = "Renewed";
                 oldLease.SpecialConditions = string.IsNullOrEmpty(oldLease.SpecialConditions)
-                    ? $"Đã gia hạn bằng hợp đồng {newLeaseNumber}"
-                    : oldLease.SpecialConditions + $"\n\nĐã gia hạn bằng hợp đồng {newLeaseNumber}";
+                    ? $"Renewed by lease {newLeaseNumber}"
+                    : oldLease.SpecialConditions + $"\n\nRenewed by lease {newLeaseNumber}";
 
                 await _unitOfWork.Leases.UpdateAsync(oldLease);
                 await _unitOfWork.SaveChangesAsync();
 
                 response.Success = true;
-                response.Message = "Gia hạn hợp đồng thành công! Vui lòng ký hợp đồng mới.";
+                response.Message = "Lease renewed successfully! Please sign the new lease.";
                 response.NewLeaseId = result.LeaseId;
                 response.NewStartDate = newStartDate;
                 response.NewEndDate = newEndDate;

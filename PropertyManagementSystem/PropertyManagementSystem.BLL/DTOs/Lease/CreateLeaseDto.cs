@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,31 +9,31 @@ namespace PropertyManagementSystem.BLL.DTOs.Lease
 {
     public class CreateLeaseDto
     {
-        [Required(ErrorMessage = "Vui lòng chọn đơn xin thuê")]
+        [Required(ErrorMessage = "Please select a rental application")]
         public int ApplicationId { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn thời hạn thuê")]
-        [Range(1, 120, ErrorMessage = "Thời hạn thuê phải từ 1-120 tháng")]
-        [Display(Name = "Thời hạn thuê (tháng)")]
+        [Required(ErrorMessage = "Please select lease duration")]
+        [Range(1, 120, ErrorMessage = "Lease duration must be 1–120 months")]
+        [Display(Name = "Lease duration (months)")]
         public int LeaseDurationMonths { get; set; } = 12;
 
-        [Required(ErrorMessage = "Vui lòng nhập tiền thuê hàng tháng")]
-        [Range(0, double.MaxValue, ErrorMessage = "Tiền thuê phải là số dương")]
-        [Display(Name = "Tiền thuê hàng tháng (VNĐ)")]
+        [Required(ErrorMessage = "Please enter monthly rent")]
+        [Range(0, double.MaxValue, ErrorMessage = "Monthly rent must be positive")]
+        [Display(Name = "Monthly rent (VND)")]
         public decimal MonthlyRent { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập tiền đặt cọc")]
-        [Range(0, double.MaxValue, ErrorMessage = "Tiền cọc phải là số dương")]
-        [Display(Name = "Tiền đặt cọc (VNĐ)")]
+        [Required(ErrorMessage = "Please enter security deposit")]
+        [Range(0, double.MaxValue, ErrorMessage = "Security deposit must be positive")]
+        [Display(Name = "Security deposit (VND)")]
         public decimal SecurityDeposit { get; set; }
 
-        [Display(Name = "Điều khoản hợp đồng")]
+        [Display(Name = "Lease terms")]
         public string Terms { get; set; }
 
-        [Display(Name = "Điều kiện đặc biệt")]
+        [Display(Name = "Special conditions")]
         public string SpecialConditions { get; set; }
 
-        [Display(Name = "Tự động gia hạn")]
+        [Display(Name = "Auto-renew")]
         public bool AutoRenew { get; set; } = false;
     } 
 }

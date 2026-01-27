@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.BLL.DTOs.User;
+using PropertyManagementSystem.BLL.DTOs.User;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -48,12 +48,12 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         {
             var user = await _userGenericRepository.GetByIdAsync(userId);
             if (user == null)
-                return (false, "Không tìm thấy người dùng");
+                return (false, "User not found");
 
             if (!string.IsNullOrWhiteSpace(model.PhoneNumber))
             {
                 if (await _unitOfWork.Users.IsPhoneExistsAsync(model.PhoneNumber, userId))
-                    return (false, "Số điện thoại đã được sử dụng");
+                    return (false, "Phone number is already in use");
             }
 
             user.FullName = model.FullName;
@@ -66,7 +66,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();
 
-            return (true, "Cập nhật thành công");
+            return (true, "Profile updated successfully");
         }
         private static UserProfileDto MapToDto(User user) => new()
         {

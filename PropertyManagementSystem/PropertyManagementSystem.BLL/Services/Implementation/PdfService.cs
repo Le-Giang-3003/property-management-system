@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.BLL.Services.Interface;
+using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
 using QuestPDF.Fluent;
@@ -27,7 +27,6 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         {
             QuestPDF.Settings.License = LicenseType.Community;
 
-            // ✅ LẤY CHỮ KÝ
             var signatures = await _unitOfWork.LeaseSignatures.GetByLeaseIdAsync(lease.LeaseId);
             var landlordSig = signatures.FirstOrDefault(s => s.SignerRole == "Landlord");
             var tenantSig = signatures.FirstOrDefault(s => s.SignerRole == "Tenant");
@@ -44,13 +43,13 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                     // HEADER
                     page.Header().Column(col =>
                     {
-                        col.Item().Text("HỢP ĐỒNG THUÊ NHÀ")
+                        col.Item().Text("LEASE AGREEMENT")
                             .FontSize(18)
                             .Bold()
                             .FontColor(Colors.Blue.Medium)
                             .AlignCenter();
 
-                        col.Item().Text($"Ngày tạo: {DateTime.Now:dd/MM/yyyy}")
+                        col.Item().Text($"Created: {DateTime.Now:dd/MM/yyyy}")
                             .FontSize(9)
                             .AlignRight();
                     });
@@ -60,46 +59,46 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                     {
                         column.Spacing(3);
 
-                        column.Item().Text($"Số hợp đồng: {lease.LeaseNumber}").Bold().FontSize(10);
+                        column.Item().Text($"Lease Number: {lease.LeaseNumber}").Bold().FontSize(10);
                         column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
 
-                        // I. BÊN CHO THUÊ
-                        column.Item().PaddingTop(8).Text("I. BÊN CHO THUÊ (BÊN A)")
+                        // I. LANDLORD
+                        column.Item().PaddingTop(8).Text("I. LANDLORD (PARTY A)")
                             .FontSize(10)
                             .Bold()
                             .FontColor(Colors.Blue.Medium);
 
                         column.Item().Text($"{lease.Property?.Landlord?.FullName ?? "N/A"} | {lease.Property?.Landlord?.PhoneNumber ?? "N/A"}").FontSize(9);
 
-                        // II. BÊN THUÊ
-                        column.Item().PaddingTop(6).Text("II. BÊN THUÊ (BÊN B)")
+                        // II. TENANT
+                        column.Item().PaddingTop(6).Text("II. TENANT (PARTY B)")
                             .FontSize(10)
                             .Bold()
                             .FontColor(Colors.Blue.Medium);
 
                         column.Item().Text($"{lease.Tenant?.FullName ?? "N/A"} | {lease.Tenant?.PhoneNumber ?? "N/A"}").FontSize(9);
 
-                        // III. THÔNG TIN BẤT ĐỘNG SẢN
-                        column.Item().PaddingTop(6).Text("III. THÔNG TIN BẤT ĐỘNG SẢN")
+                        // III. PROPERTY INFORMATION
+                        column.Item().PaddingTop(6).Text("III. PROPERTY INFORMATION")
                             .FontSize(10)
                             .Bold()
                             .FontColor(Colors.Blue.Medium);
 
                         column.Item().Text($"{lease.Property?.Name} - {lease.Property?.Address}").FontSize(9);
-                        column.Item().Text($"Diện tích: {lease.Property?.SquareFeet} m² | Phòng: {lease.Property?.Bedrooms}/{lease.Property?.Bathrooms}").FontSize(9);
+                        column.Item().Text($"Area: {lease.Property?.SquareFeet} m² | Rooms: {lease.Property?.Bedrooms}/{lease.Property?.Bathrooms}").FontSize(9);
 
-                        // IV. THÔNG TIN TÀI CHÍNH
-                        column.Item().PaddingTop(6).Text("IV. THÔNG TIN TÀI CHÍNH")
+                        // IV. FINANCIAL INFORMATION
+                        column.Item().PaddingTop(6).Text("IV. FINANCIAL INFORMATION")
                             .FontSize(10)
                             .Bold()
                             .FontColor(Colors.Blue.Medium);
 
-                        column.Item().Text($"Tiền thuê: {lease.MonthlyRent:N0} VNĐ/tháng | Đặt cọc: {lease.SecurityDeposit:N0} VNĐ").FontSize(9);
-                        column.Item().Text($"Thanh toán: Ngày {lease.PaymentDueDay} hàng tháng").FontSize(9);
-                        column.Item().Text($"Thời hạn: {lease.StartDate:dd/MM/yyyy} - {lease.EndDate:dd/MM/yyyy}").FontSize(9);
+                        column.Item().Text($"Rent: {lease.MonthlyRent:N0} VND/month | Deposit: {lease.SecurityDeposit:N0} VND").FontSize(9);
+                        column.Item().Text($"Payment: Day {lease.PaymentDueDay} of each month").FontSize(9);
+                        column.Item().Text($"Term: {lease.StartDate:dd/MM/yyyy} - {lease.EndDate:dd/MM/yyyy}").FontSize(9);
 
-                        // V. ĐIỀU KHOẢN HỢP ĐỒNG
-                        column.Item().PaddingTop(8).Text("V. ĐIỀU KHOẢN HỢP ĐỒNG")
+                        // V. LEASE TERMS
+                        column.Item().PaddingTop(8).Text("V. LEASE TERMS")
                             .FontSize(10)
                             .Bold()
                             .FontColor(Colors.Blue.Medium);
@@ -108,14 +107,14 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                             .Border(1)
                             .BorderColor(Colors.Grey.Lighten2)
                             .Padding(8)
-                            .Text(lease.Terms ?? "Không có điều khoản")
+                            .Text(lease.Terms ?? "No terms specified")
                             .FontSize(8)
                             .LineHeight(1.3f);
 
-                        // VI. ĐIỀU KIỆN ĐẶC BIỆT
+                        // VI. SPECIAL CONDITIONS
                         if (!string.IsNullOrEmpty(lease.SpecialConditions))
                         {
-                            column.Item().PaddingTop(6).Text("VI. ĐIỀU KIỆN ĐẶC BIỆT")
+                            column.Item().PaddingTop(6).Text("VI. SPECIAL CONDITIONS")
                                 .FontSize(10)
                                 .Bold()
                                 .FontColor(Colors.Orange.Medium);
@@ -129,20 +128,19 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                                 .LineHeight(1.3f);
                         }
 
-                        // ✅ VII. CHỮ KÝ - CẢI TIẾN
+                        // VII. SIGNATURES
                         
                             column.Item().PaddingTop(15).Row(row =>
                             {
-                                // BÊN CHO THUÊ
+                                // LANDLORD
                                 row.RelativeItem().Column(col =>
                                 {
-                                    col.Item().AlignCenter().Text("BÊN CHO THUÊ").Bold().FontSize(9);
+                                    col.Item().AlignCenter().Text("LANDLORD").Bold().FontSize(9);
 
                                     if (landlordSig != null)
                                     {
                                         col.Item().AlignCenter().Text(landlordSig.User?.FullName ?? "").FontSize(8);
 
-                                        // Hiển thị ảnh chữ ký nếu có
                                         if (!string.IsNullOrEmpty(landlordSig.SignatureData))
                                         {
                                             try
@@ -167,7 +165,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                                                 .FontSize(8);
                                         }
 
-                                        col.Item().AlignCenter().Text($"Ký ngày: {landlordSig.SignedAt:dd/MM/yyyy}").FontSize(7);
+                                        col.Item().AlignCenter().Text($"Signed: {landlordSig.SignedAt:dd/MM/yyyy}").FontSize(7);
                                     }
                                     else
                                     {
@@ -177,16 +175,15 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                                     }
                                 });
 
-                                // BÊN THUÊ
+                                // TENANT
                                 row.RelativeItem().Column(col =>
                                 {
-                                    col.Item().AlignCenter().Text("BÊN THUÊ").Bold().FontSize(9);
+                                    col.Item().AlignCenter().Text("TENANT").Bold().FontSize(9);
 
                                     if (tenantSig != null)
                                     {
                                         col.Item().AlignCenter().Text(tenantSig.User?.FullName ?? "").FontSize(8);
 
-                                        // Hiển thị ảnh chữ ký nếu có
                                         if (!string.IsNullOrEmpty(tenantSig.SignatureData))
                                         {
                                             try
@@ -211,7 +208,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                                                 .FontSize(8);
                                         }
 
-                                        col.Item().AlignCenter().Text($"Ký ngày: {tenantSig.SignedAt:dd/MM/yyyy}").FontSize(7);
+                                        col.Item().AlignCenter().Text($"Signed: {tenantSig.SignedAt:dd/MM/yyyy}").FontSize(7);
                                     }
                                     else
                                     {
@@ -223,11 +220,10 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                                 });
                             });
 
-                            // Hiển thị trạng thái hợp đồng
                             if (lease.Status == "Active" && lease.SignedDate.HasValue)
                             {
                                 column.Item().PaddingTop(5).AlignCenter()
-                                    .Text($"Hợp đồng có hiệu lực từ ngày {lease.SignedDate.Value:dd/MM/yyyy}")
+                                    .Text($"Lease effective from {lease.SignedDate.Value:dd/MM/yyyy}")
                                     .FontSize(8)
                                     .Italic()
                                     .FontColor(Colors.Green.Medium);
@@ -237,7 +233,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                     // FOOTER
                     page.Footer().AlignCenter().Text(text =>
                     {
-                        text.Span("Trang ");
+                        text.Span("Page ");
                         text.CurrentPageNumber();
                         text.Span(" / ");
                         text.TotalPages();

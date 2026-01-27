@@ -1,4 +1,4 @@
-﻿using QuestPDF.Fluent;
+using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using QuestPDF.Helpers;
 using PropertyManagementSystem.BLL.Services.Interface;
@@ -17,7 +17,7 @@ public class InvoiceExportService : IInvoiceExportService
     {
         var invoice = await _invoiceService.GetInvoiceByIdAsync(invoiceId);
         if (invoice == null)
-            throw new KeyNotFoundException($"Invoice {invoiceId} không tồn tại");
+            throw new KeyNotFoundException($"Invoice {invoiceId} not found");
 
         QuestPDF.Settings.License = LicenseType.Community;
 

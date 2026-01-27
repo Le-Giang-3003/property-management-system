@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
@@ -169,25 +169,20 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         /// </summary>
         /// <param name="file">The file.</param>
         /// <exception cref="ArgumentException">
-        /// File không hợp lệ
-        /// or
-        /// Chỉ chấp nhận file ảnh (jpg, jpeg, png, webp, gif)
-        /// or
-        /// File không được vượt quá 5MB
+        /// Invalid file, only image files (jpg, jpeg, png, webp, gif) accepted, or file exceeds 5MB.
         /// </exception>
         private void ValidateImageFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                throw new ArgumentException("File không hợp lệ");
+                throw new ArgumentException("Invalid file");
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtensions.Contains(extension))
-                throw new ArgumentException("Chỉ chấp nhận file ảnh (jpg, jpeg, png, webp, gif)");
+                throw new ArgumentException("Only image files (jpg, jpeg, png, webp, gif) are allowed");
 
-            // Max 5MB
             if (file.Length > 5 * 1024 * 1024)
-                throw new ArgumentException("File không được vượt quá 5MB");
+                throw new ArgumentException("File size must not exceed 5MB");
         }
 
         public async Task<bool> UpdateCaptionAsync(int imageId, int propertyId, string caption)

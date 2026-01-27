@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyManagementSystem.BLL.DTOs.Auth
 {
@@ -8,14 +8,14 @@ namespace PropertyManagementSystem.BLL.DTOs.Auth
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
-        [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
+        [Required(ErrorMessage = "Please enter a password")]
+        [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
-            ErrorMessage = "Mật khẩu phải chứa: chữ hoa, chữ thường, số và ký tự đặc biệt")]
+            ErrorMessage = "Password must include uppercase, lowercase, number and special character")]
         public string NewPassword { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu")]
-        [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        [Required(ErrorMessage = "Please confirm your password")]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }
