@@ -36,11 +36,22 @@
                 <div class="sp-search-input-wrapper">
                     <i class="bi bi-search"></i>
                     <input type="text" name="city" class="sp-search-input"
-                           placeholder="Search by location, property name..." value="@city" />
+                           placeholder="Search properties..." value="@city" />
                 </div>
-                <button type="submit" class="sp-search-btn">
-                    Search
-                </button>
+                <select name="filterStatus" class="sp-filter-status-select">
+                    <option value="all">All Status</option>
+                    <option value="Available">Available</option>
+                    <option value="Rented">Rented</option>
+                    <option value="Maintenance">Maintenance</option>
+                </select>
+                <div class="sp-view-toggle">
+                    <button type="button" class="sp-view-btn active" data-view="grid" aria-label="Grid view">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </button>
+                    <button type="button" class="sp-view-btn" data-view="list" aria-label="List view">
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Filter Row -->
@@ -77,10 +88,11 @@
         </form>
     </div>
 
-    <!-- Properties Grid -->
+    <!-- Properties Grid/List -->
     @if (Model != null && Model.Any())
     {
-        <div class="sp-properties-grid">
+        <div class="sp-properties-container" id="propertiesContainer">
+            <div class="sp-properties-grid" id="propertiesGrid">
             @foreach (var item in Model)
             {
                 var isFavorited = favoritePropertyIds.Contains(item.PropertyId);
@@ -211,6 +223,7 @@
                     </div>
                 </div>
             }
+            </div>
         </div>
     }
     else
@@ -277,6 +290,7 @@
             display: flex;
             gap: 12px;
             margin-bottom: 16px;
+            align-items: center;
         }
 
         .sp-search-input-wrapper {
@@ -324,6 +338,59 @@
             background: #2563eb;
         }
 
+        .sp-filter-status-select {
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sp-filter-status-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .sp-view-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--pm-slate-100);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .sp-view-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--pm-text-muted);
+            transition: all 0.2s;
+        }
+
+        .sp-view-btn:hover {
+            background: white;
+            color: var(--pm-text);
+        }
+
+        .sp-view-btn.active {
+            background: white;
+            color: var(--pm-primary);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .sp-view-btn i {
+            font-size: 18px;
+        }
+
         .sp-filter-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -348,11 +415,43 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
+        /* Properties Container */
+        .sp-properties-container {
+            width: 100%;
+        }
+
         /* Properties Grid */
         .sp-properties-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 24px;
+        }
+
+        .sp-properties-grid.list-view {
+            grid-template-columns: 1fr;
+        }
+
+        .sp-properties-grid.list-view .sp-property-card {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .sp-properties-grid.list-view .sp-card-image {
+            width: 300px;
+            height: 200px;
+            flex-shrink: 0;
+        }
+
+        .sp-properties-grid.list-view .sp-card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sp-properties-grid.list-view .sp-card-footer {
+            border-top: none;
+            padding-top: 0;
         }
 
         /* Property Card */
@@ -690,7 +789,17 @@
         /* Responsive */
         @@media (max-width: 1200px) {
             .sp-properties-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 1024px) {
+            .sp-properties-grid.list-view .sp-property-card {
+                flex-direction: column;
+            }
+
+            .sp-properties-grid.list-view .sp-card-image {
+                width: 100%;
             }
         }
 
@@ -704,11 +813,23 @@
             }
 
             .sp-search-row {
-                flex-direction: column;
+                flex-wrap: wrap;
             }
 
-            .sp-search-btn {
-                width: 100%;
+            .sp-search-input-wrapper {
+                flex: 1 1 100%;
+            }
+
+            .sp-filter-status-select {
+                flex: 1;
+            }
+
+            .sp-view-toggle {
+                flex-shrink: 0;
+            }
+
+            .sp-properties-grid {
+                grid-template-columns: 1fr;
             }
 
             .sp-card-footer {
@@ -740,6 +861,31 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
+            // View toggle functionality
+            var currentView = localStorage.getItem('propertyView') || 'grid';
+            var propertiesGrid = $('#propertiesGrid');
+            
+            // Set initial view
+            if (currentView === 'list') {
+                propertiesGrid.addClass('list-view');
+                $('.sp-view-btn[data-view="list"]').addClass('active');
+                $('.sp-view-btn[data-view="grid"]').removeClass('active');
+            }
+
+            // Toggle view
+            $('.sp-view-btn').on('click', function() {
+                var view = $(this).data('view');
+                $('.sp-view-btn').removeClass('active');
+                $(this).addClass('active');
+                
+                if (view === 'list') {
+                    propertiesGrid.addClass('list-view');
+                } else {
+                    propertiesGrid.removeClass('list-view');
+                }
+                
+                localStorage.setItem('propertyView', view);
+            });
             // Toggle favorite
             $('.sp-favorite-btn').on('click', function(e) {
                 e.preventDefault();

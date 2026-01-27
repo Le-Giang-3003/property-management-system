@@ -7,67 +7,54 @@
 }
 
 <div class="pm-dashboard">
-    <!-- Dashboard Header -->
+    <!-- Header -->
     <div class="pm-dashboard-header">
-        <div class="pm-header-content">
-            <h1 class="pm-page-title">
-                <i class="bi bi-speedometer2"></i>
-                Dashboard
-            </h1>
-            <p class="pm-page-subtitle">Welcome back, @userName! Here's your property overview.</p>
+        <div>
+            <h1>Landlord Dashboard</h1>
+            <p class="pm-page-subtitle">Manage your properties and monitor performance</p>
         </div>
-        <div class="pm-header-actions">
-            <a asp-controller="Property" asp-action="Create" class="pm-btn pm-btn-success">
-                <i class="bi bi-plus-lg"></i>
-                Add Property
-            </a>
-        </div>
+        <a asp-controller="Property" asp-action="Create" class="pm-btn pm-btn-primary">
+            <i class="bi bi-plus-lg"></i>
+            Add Property
+        </a>
     </div>
 
     <!-- Stats Cards -->
     <div class="pm-stats-grid">
-        <div class="pm-stat-card">
-            <div class="pm-stat-icon primary">
-                <i class="bi bi-buildings"></i>
-            </div>
-            <div class="pm-stat-content">
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
                 <span class="pm-stat-label">Total Properties</span>
-                <span class="pm-stat-value">@Model.TotalProperties</span>
-                <span class="pm-stat-change">Under management</span>
+                <i class="bi bi-buildings pm-stat-icon-small"></i>
             </div>
+            <div class="pm-stat-value-large">@Model.TotalProperties</div>
+            <p class="pm-stat-description">@Model.RentedProperties occupied, @Model.AvailableProperties vacant</p>
         </div>
 
-        <div class="pm-stat-card">
-            <div class="pm-stat-icon success">
-                <i class="bi bi-check-circle"></i>
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Occupancy Rate</span>
+                <i class="bi bi-graph-up pm-stat-icon-small"></i>
             </div>
-            <div class="pm-stat-content">
-                <span class="pm-stat-label">Available</span>
-                <span class="pm-stat-value">@Model.AvailableProperties</span>
-                <span class="pm-stat-change">Ready to rent</span>
-            </div>
+            <div class="pm-stat-value-large">@Model.OccupancyRate%</div>
+            <p class="pm-stat-description">+5% from last month</p>
         </div>
 
-        <div class="pm-stat-card">
-            <div class="pm-stat-icon warning">
-                <i class="bi bi-key"></i>
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Monthly Income</span>
+                <i class="bi bi-currency-dollar pm-stat-icon-small"></i>
             </div>
-            <div class="pm-stat-content">
-                <span class="pm-stat-label">Rented</span>
-                <span class="pm-stat-value">@Model.RentedProperties</span>
-                <span class="pm-stat-change positive">@Model.OccupancyRate% occupancy</span>
-            </div>
+            <div class="pm-stat-value-large">@Model.TotalMonthlyRevenue.ToString("N0") ₫</div>
+            <p class="pm-stat-description">Expected this month</p>
         </div>
 
-        <div class="pm-stat-card">
-            <div class="pm-stat-icon info">
-                <i class="bi bi-cash-stack"></i>
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Applications</span>
+                <i class="bi bi-people pm-stat-icon-small"></i>
             </div>
-            <div class="pm-stat-content">
-                <span class="pm-stat-label">Monthly Revenue</span>
-                <span class="pm-stat-value" style="font-size: var(--pm-text-xl);">@Model.TotalMonthlyRevenue.ToString("N0") ₫</span>
-                <span class="pm-stat-change positive">This month</span>
-            </div>
+            <div class="pm-stat-value-large">@Model.PendingApplicationsCount</div>
+            <p class="pm-stat-description">Pending review</p>
         </div>
     </div>
 
@@ -380,27 +367,18 @@
             align-items: flex-start;
             justify-content: space-between;
             margin-bottom: var(--pm-space-6);
-            padding-bottom: var(--pm-space-6);
-            border-bottom: 1px solid var(--pm-border);
         }
 
-        .pm-page-title {
+        .pm-dashboard-header h1 {
             font-size: var(--pm-text-2xl);
             font-weight: var(--pm-font-bold);
-            color: var(--pm-text);
             margin: 0 0 var(--pm-space-2);
-            display: flex;
-            align-items: center;
-            gap: var(--pm-space-3);
-        }
-
-        .pm-page-title i {
-            color: var(--pm-primary);
+            color: var(--pm-text);
         }
 
         .pm-page-subtitle {
             font-size: var(--pm-text-sm);
-            color: var(--pm-text-secondary);
+            color: var(--pm-text-muted);
             margin: 0;
         }
 
@@ -408,8 +386,47 @@
         .pm-stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: var(--pm-space-5);
+            gap: var(--pm-space-4);
             margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-stat-card-modern {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+        }
+
+        .pm-stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--pm-space-3);
+        }
+
+        .pm-stat-label {
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-stat-icon-small {
+            width: 16px;
+            height: 16px;
+            color: var(--pm-text-muted);
+        }
+
+        .pm-stat-value-large {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin-bottom: var(--pm-space-1);
+        }
+
+        .pm-stat-description {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin: 0;
         }
 
         /* Quick Stats Grid */

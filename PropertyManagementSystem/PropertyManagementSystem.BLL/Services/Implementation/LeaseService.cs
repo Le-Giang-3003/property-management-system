@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.BLL.DTOs.Lease;
+using PropertyManagementSystem.BLL.DTOs.Lease;
 using PropertyManagementSystem.BLL.DTOs.Maintenance;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
@@ -9,10 +9,12 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
     public class LeaseService : ILeaseService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IInvoiceService _invoiceService;
 
-        public LeaseService(IUnitOfWork unitOfWork)
+        public LeaseService(IUnitOfWork unitOfWork, IInvoiceService invoiceService)
         {
             _unitOfWork = unitOfWork;
+            _invoiceService = invoiceService;
         }
 
         private int CalculatePaymentDueDay(DateTime startDate)
@@ -265,6 +267,20 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
                 }
 
                 await _unitOfWork.Leases.UpdateAsync(lease);
+
+                // ✅ Tự động tạo invoice đầu tiên khi lease trở thành Active
+                try
+                {
+                    var periodStart = lease.StartDate;
+                    var periodEnd = lease.StartDate.AddMonths(1);
+                    await _invoiceService.CreateInvoiceFromLeaseAsync(lease.LeaseId, periodStart, periodEnd);
+                }
+                catch (Exception ex)
+                {
+                    // Log error nhưng không fail việc ký lease
+                    // Invoice có thể được tạo sau
+                    System.Diagnostics.Debug.WriteLine($"Error creating initial invoice: {ex.Message}");
+                }
 
                 response.Message = "Ký hợp đồng thành công! Hợp đồng đã được kích hoạt.";
                 response.IsFullySigned = true;
@@ -528,14 +544,16 @@ IV. ĐIỀU KHOẢN CHẤM DỨT:
         {
             var activeLeases = await _unitOfWork.Leases.GetByTenantIdAsync(tenantId);
 
+            // Include Active, Draft, and PendingSignature leases (tenant can create maintenance requests for properties they have leases for, even if not fully signed yet)
             var result = activeLeases
-                .Where(l => l.Status == "Active")
+                .Where(l => l.Status == "Active" || l.Status == "Draft" || l.Status == "PendingSignature")
                 .Select(l => new PropertySelectDto
                 {
                     PropertyId = l.PropertyId,
                     Name = l.Property?.Name ?? "N/A",
                     Address = l.Property?.Address ?? "N/A"
                 })
+                .Distinct()
                 .ToList();
 
             return result;

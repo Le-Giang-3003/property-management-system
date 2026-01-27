@@ -5,117 +5,122 @@
     ViewData["PortalMode"] = "Tenant";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-file-contract"></i> My Applications</h2>
-
-        <a asp-controller="RentalApplication" asp-action="Create" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Create New Application
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-file-earmark-person"></i>
+                My Applications
+            </h1>
+            <p class="pm-page-subtitle">Track your rental applications and their status</p>
+        </div>
+        <a asp-controller="RentalApplication" asp-action="Create" class="pm-btn pm-btn-primary">
+            <i class="bi bi-plus-lg"></i>
+            Create New Application
         </a>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="card text-center py-5">
-            <div class="card-body">
-                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-                <h4 class="text-muted">You don't have any applications yet</h4>
-                <p class="text-muted mb-4">Start searching for your ideal home</p>
-
-                <a asp-controller="RentalApplication" asp-action="Create" class="btn btn-primary btn-lg">
-                    <i class="fas fa-file-alt"></i> Create Your First Application
-                </a>
+        <div class="pm-card">
+            <div class="pm-card-body">
+                <div class="pm-empty">
+                    <div class="pm-empty-icon">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h4>No Applications Yet</h4>
+                    <p>Start searching for your ideal home and submit your first application</p>
+                    <a asp-controller="RentalApplication" asp-action="Create" class="pm-btn pm-btn-primary">
+                        <i class="bi bi-file-earmark-plus"></i>
+                        Create Your First Application
+                    </a>
+                </div>
             </div>
         </div>
     }
     else
     {
-        <ul class="nav nav-tabs mb-3" id="statusTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-filter="all">
-                    All <span class="badge bg-secondary">@Model.Count()</span>
+        <!-- Filter Tabs -->
+        <div class="pm-tabs-container">
+            <div class="pm-tabs">
+                <button class="pm-tab active" data-filter="all">
+                    All <span class="pm-badge pm-badge-secondary">@Model.Count()</span>
                 </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-filter="Pending">
-                    Pending <span class="badge bg-warning text-dark">@Model.Count(a => a.Status == "Pending")</span>
+                <button class="pm-tab" data-filter="Pending">
+                    Pending <span class="pm-badge pm-badge-warning">@Model.Count(a => a.Status == "Pending")</span>
                 </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-filter="Approved">
-                    Approved <span class="badge bg-success">@Model.Count(a => a.Status == "Approved")</span>
+                <button class="pm-tab" data-filter="Approved">
+                    Approved <span class="pm-badge pm-badge-success">@Model.Count(a => a.Status == "Approved")</span>
                 </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-filter="Rejected">
-                    Rejected <span class="badge bg-danger">@Model.Count(a => a.Status == "Rejected")</span>
+                <button class="pm-tab" data-filter="Rejected">
+                    Rejected <span class="pm-badge pm-badge-danger">@Model.Count(a => a.Status == "Rejected")</span>
                 </button>
-            </li>
-        </ul>
+            </div>
+        </div>
 
-        <div class="row" id="applicationsContainer">
+        <!-- Applications Grid -->
+        <div class="pm-applications-grid" id="applicationsContainer">
             @foreach (var app in Model.OrderByDescending(a => a.CreatedAt))
             {
-                <div class="col-md-6 mb-3 application-card" data-status="@app.Status">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">@app.Property?.Name</h5>
-                                @switch (app.Status)
-                                {
-                                    case "Pending":
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                        break;
-                                    case "Approved":
-                                        <span class="badge bg-success">Approved</span>
-                                        break;
-                                    case "Rejected":
-                                        <span class="badge bg-danger">Rejected</span>
-                                        break;
-                                    case "Withdrawn":
-                                        <span class="badge bg-secondary">Withdrawn</span>
-                                        break;
-                                }
+                <div class="pm-application-card" data-status="@app.Status">
+                    <div class="pm-application-header">
+                        <div class="pm-application-number">@app.ApplicationNumber</div>
+                        @switch (app.Status)
+                        {
+                            case "Pending":
+                                <span class="pm-badge pm-badge-warning">Pending</span>
+                                break;
+                            case "Approved":
+                                <span class="pm-badge pm-badge-success">Approved</span>
+                                break;
+                            case "Rejected":
+                                <span class="pm-badge pm-badge-danger">Rejected</span>
+                                break;
+                            case "Withdrawn":
+                                <span class="pm-badge pm-badge-secondary">Withdrawn</span>
+                                break;
+                        }
+                    </div>
+                    <div class="pm-application-body">
+                        <h3 class="pm-application-title">@app.Property?.Name</h3>
+                        <p class="pm-application-location">
+                            <i class="bi bi-geo-alt"></i>
+                            @app.Property?.Address
+                        </p>
+                        
+                        <div class="pm-application-details">
+                            <div class="pm-application-detail">
+                                <span class="pm-detail-label">Submitted</span>
+                                <span class="pm-detail-value">@app.CreatedAt.ToString("MMM dd, yyyy")</span>
                             </div>
-
-                            <p class="text-muted small mb-2">
-                                <i class="fas fa-map-marker-alt"></i> @app.Property?.Address
-                            </p>
-
-                            <div class="row text-center border-top border-bottom py-2 my-2">
-                                <div class="col-4">
-                                    <small class="text-muted d-block">App ID</small>
-                                    <strong class="text-primary">@app.ApplicationNumber</strong>
-                                </div>
-                                <div class="col-4 border-start">
-                                    <small class="text-muted d-block">Submitted</small>
-                                    <strong>@app.CreatedAt.ToString("dd/MM/yyyy")</strong>
-                                </div>
-                                <div class="col-4 border-start">
-                                    <small class="text-muted d-block">Move-in Date</small>
-                                    <strong>@app.DesiredMoveInDate.ToString("dd/MM/yyyy")</strong>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-2 mt-3">
-                                <a asp-action="Details" asp-route-id="@app.ApplicationId"
-                                   class="btn btn-sm btn-outline-primary flex-fill">
-                                    <i class="fas fa-eye"></i> Details
-                                </a>
-
-                                @if (app.Status == "Pending")
-                                {
-                                    <form asp-action="Withdraw" asp-route-id="@app.ApplicationId"
-                                          method="post" class="d-inline flex-fill"
-                                          onsubmit="return confirm('Are you sure you want to withdraw this application?');">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                                            <i class="fas fa-times"></i> Withdraw
-                                        </button>
-                                    </form>
-                                }
+                            <div class="pm-application-detail">
+                                <span class="pm-detail-label">Move-in Date</span>
+                                <span class="pm-detail-value">@app.DesiredMoveInDate.ToString("MMM dd, yyyy")</span>
                             </div>
                         </div>
+
+                        <div class="pm-application-rent">
+                            <span class="pm-rent-label">Monthly Rent</span>
+                            <span class="pm-rent-value">@app.Property?.RentAmount.ToString("N0") ₫</span>
+                        </div>
+                    </div>
+                    <div class="pm-application-footer">
+                        <a asp-action="Details" asp-route-id="@app.ApplicationId" class="pm-btn pm-btn-primary pm-btn-sm pm-w-full">
+                            <i class="bi bi-eye"></i>
+                            View Details
+                        </a>
+                        @if (app.Status == "Pending")
+                        {
+                            <form asp-action="Withdraw" asp-route-id="@app.ApplicationId"
+                                  method="post" class="pm-w-full"
+                                  onsubmit="return confirm('Are you sure you want to withdraw this application?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="pm-btn pm-btn-danger pm-btn-sm pm-w-full">
+                                    <i class="bi bi-x-circle"></i>
+                                    Withdraw
+                                </button>
+                            </form>
+                        }
                     </div>
                 </div>
             }
@@ -123,20 +128,221 @@
     }
 </div>
 
+@section Styles {
+    <style>
+        .pm-page {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pm-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-page-title {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin: 0 0 var(--pm-space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-page-title i {
+            color: var(--pm-primary);
+        }
+
+        .pm-page-subtitle {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        .pm-tabs-container {
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-tabs {
+            display: flex;
+            gap: var(--pm-space-2);
+            border-bottom: 1px solid var(--pm-border);
+            padding-bottom: 0;
+        }
+
+        .pm-tab {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-2);
+            padding: var(--pm-space-3) var(--pm-space-5);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-text-secondary);
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            cursor: pointer;
+            transition: all var(--pm-transition-fast);
+        }
+
+        .pm-tab:hover {
+            color: var(--pm-text);
+        }
+
+        .pm-tab.active {
+            color: var(--pm-primary);
+            border-bottom-color: var(--pm-primary);
+        }
+
+        .pm-applications-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--pm-space-6);
+        }
+
+        .pm-application-card {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            overflow: hidden;
+            transition: all var(--pm-transition);
+        }
+
+        .pm-application-card:hover {
+            box-shadow: var(--pm-shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .pm-application-header {
+            padding: var(--pm-space-4) var(--pm-space-5);
+            background: var(--pm-slate-50);
+            border-bottom: 1px solid var(--pm-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pm-application-number {
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text-secondary);
+        }
+
+        .pm-application-body {
+            padding: var(--pm-space-5);
+        }
+
+        .pm-application-title {
+            font-size: var(--pm-text-lg);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+            margin: 0 0 var(--pm-space-2);
+        }
+
+        .pm-application-location {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-2);
+            margin: 0 0 var(--pm-space-4);
+        }
+
+        .pm-application-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-3);
+            padding: var(--pm-space-4) 0;
+            border-top: 1px solid var(--pm-border-light);
+            border-bottom: 1px solid var(--pm-border-light);
+            margin-bottom: var(--pm-space-4);
+        }
+
+        .pm-application-detail {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-1);
+        }
+
+        .pm-application-rent {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--pm-space-3);
+            background: var(--pm-primary-50);
+            border-radius: var(--pm-radius-lg);
+        }
+
+        .pm-rent-label {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-rent-value {
+            font-size: var(--pm-text-lg);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-primary);
+        }
+
+        .pm-application-footer {
+            padding: var(--pm-space-4) var(--pm-space-5);
+            background: var(--pm-slate-50);
+            border-top: 1px solid var(--pm-border);
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-w-full {
+            width: 100%;
+        }
+
+        @@media (max-width: 1200px) {
+            .pm-applications-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .pm-page-header {
+                flex-direction: column;
+                gap: var(--pm-space-4);
+            }
+
+            .pm-applications-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .pm-tab {
+                white-space: nowrap;
+            }
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
         $(document).ready(function() {
-            $('.nav-tabs button').click(function() {
-                $('.nav-tabs button').removeClass('active');
+            $('.pm-tab').click(function() {
+                $('.pm-tab').removeClass('active');
                 $(this).addClass('active');
 
                 var filter = $(this).data('filter');
 
                 if (filter === 'all') {
-                    $('.application-card').fadeIn();
+                    $('.pm-application-card').fadeIn();
                 } else {
-                    $('.application-card').hide();
-                    $('.application-card[data-status="' + filter + '"]').fadeIn();
+                    $('.pm-application-card').hide();
+                    $('.pm-application-card[data-status="' + filter + '"]').fadeIn();
                 }
             });
         });

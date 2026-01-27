@@ -229,15 +229,16 @@ a:hover {
 
 /* Button Variants */
 .pm-btn-primary {
-    background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-dark) 100%);
+    background: var(--pm-primary);
     color: var(--pm-text-inverse);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    border-color: var(--pm-primary);
 }
 
 .pm-btn-primary:hover {
-    background: linear-gradient(135deg, var(--pm-primary-dark) 0%, var(--pm-primary-800) 100%);
+    background: var(--pm-primary-dark);
+    border-color: var(--pm-primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     color: var(--pm-text-inverse);
 }
 
@@ -254,40 +255,44 @@ a:hover {
 }
 
 .pm-btn-success {
-    background: linear-gradient(135deg, var(--pm-success) 0%, var(--pm-success-dark) 100%);
+    background: var(--pm-success);
     color: var(--pm-text-inverse);
-    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+    border-color: var(--pm-success);
 }
 
 .pm-btn-success:hover {
-    background: linear-gradient(135deg, var(--pm-success-dark) 0%, #166534 100%);
+    background: var(--pm-success-dark);
+    border-color: var(--pm-success-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
     color: var(--pm-text-inverse);
 }
 
 .pm-btn-danger {
-    background: linear-gradient(135deg, var(--pm-danger) 0%, var(--pm-danger-dark) 100%);
+    background: var(--pm-danger);
     color: var(--pm-text-inverse);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    border-color: var(--pm-danger);
 }
 
 .pm-btn-danger:hover {
-    background: linear-gradient(135deg, var(--pm-danger-dark) 0%, #b91c1c 100%);
+    background: var(--pm-danger-dark);
+    border-color: var(--pm-danger-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
     color: var(--pm-text-inverse);
 }
 
 .pm-btn-warning {
-    background: linear-gradient(135deg, var(--pm-warning) 0%, var(--pm-warning-dark) 100%);
+    background: var(--pm-warning);
     color: var(--pm-text-inverse);
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    border-color: var(--pm-warning);
 }
 
 .pm-btn-warning:hover {
-    background: linear-gradient(135deg, var(--pm-warning-dark) 0%, #b45309 100%);
+    background: var(--pm-warning-dark);
+    border-color: var(--pm-warning-dark);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
     color: var(--pm-text-inverse);
 }
 
@@ -349,9 +354,10 @@ a:hover {
 .pm-card {
     background: var(--pm-surface);
     border: 1px solid var(--pm-border);
-    border-radius: var(--pm-radius-xl);
+    border-radius: var(--pm-radius-lg);
     overflow: hidden;
     transition: box-shadow var(--pm-transition), transform var(--pm-transition);
+    box-shadow: var(--pm-shadow-sm);
 }
 
 .pm-card:hover {
@@ -364,8 +370,8 @@ a:hover {
 }
 
 .pm-card-header {
-    padding: var(--pm-space-5) var(--pm-space-6);
-    background: var(--pm-slate-50);
+    padding: 16px 20px;
+    background: transparent;
     border-bottom: 1px solid var(--pm-border);
     display: flex;
     align-items: center;
@@ -376,24 +382,26 @@ a:hover {
 .pm-card-header h3,
 .pm-card-header h4 {
     margin: 0;
-    font-size: var(--pm-text-lg);
+    font-size: var(--pm-text-base);
     font-weight: var(--pm-font-semibold);
     display: flex;
     align-items: center;
     gap: var(--pm-space-2);
+    color: var(--pm-text);
 }
 
 .pm-card-header i {
-    color: var(--pm-primary);
+    color: var(--pm-text-muted);
+    font-size: 18px;
 }
 
 .pm-card-body {
-    padding: var(--pm-space-6);
+    padding: 20px;
 }
 
 .pm-card-footer {
-    padding: var(--pm-space-4) var(--pm-space-6);
-    background: var(--pm-slate-50);
+    padding: 16px 20px;
+    background: transparent;
     border-top: 1px solid var(--pm-border);
     display: flex;
     align-items: center;
@@ -616,49 +624,63 @@ a:hover {
     display: inline-flex;
     align-items: center;
     gap: var(--pm-space-1);
-    padding: var(--pm-space-1) var(--pm-space-3);
+    padding: 4px 12px;
     font-size: var(--pm-text-xs);
     font-weight: var(--pm-font-semibold);
-    border-radius: var(--pm-radius);
+    border-radius: 9999px;
     white-space: nowrap;
+    border: 1px solid transparent;
 }
 
 .pm-badge-primary {
-    background: var(--pm-primary-100);
-    color: var(--pm-primary-dark);
+    background: var(--pm-primary-50);
+    color: var(--pm-primary-700);
+    border-color: var(--pm-primary-200);
 }
 
 .pm-badge-success {
-    background: var(--pm-success-100);
-    color: var(--pm-success-dark);
+    background: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
 }
 
 .pm-badge-warning {
-    background: var(--pm-warning-100);
-    color: var(--pm-warning-dark);
+    background: #fffbeb;
+    color: #d97706;
+    border-color: #fde68a;
 }
 
 .pm-badge-danger {
-    background: var(--pm-danger-100);
-    color: var(--pm-danger-dark);
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
 }
 
 .pm-badge-info {
-    background: var(--pm-info-100);
-    color: var(--pm-info-dark);
+    background: var(--pm-info-50);
+    color: var(--pm-info-700);
+    border-color: var(--pm-info-200);
 }
 
 .pm-badge-secondary {
-    background: var(--pm-slate-200);
+    background: var(--pm-slate-100);
     color: var(--pm-slate-700);
+    border-color: var(--pm-slate-300);
+}
+
+.pm-badge-outline {
+    background: transparent;
+    border-color: var(--pm-border);
+    color: var(--pm-text-secondary);
 }
 
 /* ========== TABLES ========== */
 .pm-table-wrapper {
     overflow-x: auto;
     border: 1px solid var(--pm-border);
-    border-radius: var(--pm-radius-xl);
+    border-radius: var(--pm-radius-lg);
     background: var(--pm-surface);
+    box-shadow: var(--pm-shadow-sm);
 }
 
 .pm-table {
@@ -668,17 +690,20 @@ a:hover {
 }
 
 .pm-table th {
-    padding: var(--pm-space-4) var(--pm-space-5);
+    padding: 12px 16px;
     text-align: left;
     font-weight: var(--pm-font-semibold);
     color: var(--pm-text);
     background: var(--pm-slate-50);
     border-bottom: 1px solid var(--pm-border);
     white-space: nowrap;
+    font-size: var(--pm-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .pm-table td {
-    padding: var(--pm-space-4) var(--pm-space-5);
+    padding: 12px 16px;
     border-bottom: 1px solid var(--pm-border-light);
     color: var(--pm-text-secondary);
 }
@@ -687,8 +712,16 @@ a:hover {
     border-bottom: none;
 }
 
-.pm-table tr:hover td {
+.pm-table tbody tr {
+    transition: background var(--pm-transition-fast);
+}
+
+.pm-table tbody tr:hover {
     background: var(--pm-slate-50);
+}
+
+.pm-table tbody tr:hover td {
+    background: transparent;
 }
 
 /* ========== ALERTS ========== */
@@ -737,7 +770,7 @@ a:hover {
     width: 40px;
     height: 40px;
     border-radius: var(--pm-radius-full);
-    background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-dark) 100%);
+    background: var(--pm-primary);
     color: var(--pm-text-inverse);
     display: flex;
     align-items: center;
@@ -1522,6 +1555,28 @@ a:hover {
 @media (max-width: 768px) {
     .pm-hidden-mobile { display: none !important; }
     .pm-grid-2, .pm-grid-3, .pm-grid-4 { grid-template-columns: 1fr; }
+    
+    /* Mobile spacing adjustments */
+    .pm-card-header,
+    .pm-card-body,
+    .pm-card-footer {
+        padding: 12px 16px;
+    }
+    
+    .pm-table th,
+    .pm-table td {
+        padding: 8px 12px;
+        font-size: var(--pm-text-xs);
+    }
+    
+    .pm-btn {
+        padding: var(--pm-space-2) var(--pm-space-4);
+        font-size: var(--pm-text-xs);
+    }
+    
+    .pm-stat-card-modern {
+        padding: var(--pm-space-4);
+    }
 }
 
 @media (min-width: 769px) {
@@ -1530,6 +1585,20 @@ a:hover {
 
 @media (min-width: 769px) and (max-width: 1024px) {
     .pm-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .pm-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+    /* Extra small devices */
+    .pm-card-header h3,
+    .pm-card-header h4 {
+        font-size: var(--pm-text-sm);
+    }
+    
+    .pm-badge {
+        padding: 2px 8px;
+        font-size: 10px;
+    }
 }
 
 /* ========== ANIMATIONS ========== */

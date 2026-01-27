@@ -22,9 +22,46 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 
         public async Task<List<InvoiceDto>> GetAvailableInvoicesByTenantAsync(int tenantId)
         {
+            // ✅ Tự động tạo invoices cho các lease Active nhưng chưa có invoice
+            await EnsureInvoicesForActiveLeasesAsync(tenantId);
+
             var invoices = await _invoiceRepository.GetAvailableInvoicesByTenantAsync(tenantId);
 
             return invoices.Select(MapToDto).ToList();
+        }
+
+        // ✅ Tự động tạo invoices cho các lease Active nhưng chưa có invoice
+        private async Task EnsureInvoicesForActiveLeasesAsync(int tenantId)
+        {
+            var activeLeases = await _leaseRepository.GetActiveLeasesForTenantAsync(tenantId);
+            var today = DateTime.UtcNow.Date;
+
+            foreach (var lease in activeLeases)
+            {
+                // Kiểm tra xem đã có invoice nào cho lease này chưa
+                var existingInvoices = await _invoiceRepository.GetInvoicesByLeaseIdAsync(lease.LeaseId);
+                
+                if (!existingInvoices.Any())
+                {
+                    // Tạo invoice đầu tiên cho tháng hiện tại hoặc tháng bắt đầu của lease
+                    var periodStart = lease.StartDate.Date;
+                    var periodEnd = periodStart.AddMonths(1);
+                    
+                    // Chỉ tạo invoice nếu lease đã bắt đầu hoặc sắp bắt đầu trong tháng này
+                    if (periodStart <= today && lease.EndDate >= today)
+                    {
+                        try
+                        {
+                            await CreateInvoiceFromLeaseAsync(lease.LeaseId, periodStart, periodEnd);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log error nhưng không fail
+                            System.Diagnostics.Debug.WriteLine($"Error creating invoice for lease {lease.LeaseId}: {ex.Message}");
+                        }
+                    }
+                }
+            }
         }
 
         public async Task<InvoiceDto?> GetInvoiceByIdAsync(int invoiceId)

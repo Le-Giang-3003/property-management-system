@@ -5,23 +5,19 @@
     ViewData["PortalMode"] = "Landlord";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <!-- Breadcrumb -->
-            <nav aria-label="breadcrumb" class="mb-3">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li class="breadcrumb-item"><a asp-action="Index">Leases</a></li>
-                    <li class="breadcrumb-item active">Create New</li>
-                </ol>
-            </nav>
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-file-earmark-plus"></i>
+                Create New Lease
+            </h1>
+            <p class="pm-page-subtitle">Create a lease contract from approved application</p>
+        </div>
+    </div>
 
-            <div class="card shadow-lg">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0"><i class="fas fa-file-contract"></i> Create New Lease</h3>
-                </div>
-                <div class="card-body">
+    <div class="pm-card">
+        <div class="pm-card-body">
                     <form asp-action="Create" method="post" id="createLeaseForm">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="ApplicationId" />
@@ -29,214 +25,352 @@
                         <input type="hidden" asp-for="OriginalStartDay" />
                         <input type="hidden" asp-for="PaymentDueDay" />
 
-                        <!-- Rental Application Info -->
-                        <div class="alert alert-info mb-4">
-                            <h5 class="alert-heading">
-                                <i class="fas fa-info-circle"></i> Rental Application Information
-                            </h5>
-                            <hr>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p class="mb-2"><strong>Application ID:</strong> @Model.ApplicationNumber</p>
-                                    <p class="mb-2"><strong>Property:</strong> @Model.PropertyName</p>
-                                    <p class="mb-0"><strong>Address:</strong> @Model.PropertyAddress</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p class="mb-2"><strong>Tenant:</strong> @Model.TenantName</p>
-                                    <p class="mb-2"><strong>Email:</strong> @Model.TenantEmail</p>
-                                    <p class="mb-0"><strong>Phone:</strong> @Model.TenantPhone</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 1: Lease Duration -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Lease Duration</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label fw-bold">
-                                            <i class="fas fa-calendar-check text-success"></i> Start Date
-                                        </label>
-                                        <input type="text" class="form-control form-control-lg"
-                                               value="@Model.StartDate.ToString("dd/MM/yyyy")" readonly />
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label asp-for="LeaseDurationMonths" class="form-label fw-bold">
-                                            <i class="fas fa-hourglass-half text-primary"></i> Lease Term
-                                        </label>
-                                        <select asp-for="LeaseDurationMonths" asp-items="Model.DurationOptions"
-                                                class="form-select form-select-lg" id="LeaseDurationMonths">
-                                        </select>
-                                        <span asp-validation-for="LeaseDurationMonths" class="text-danger"></span>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">
-                                        <i class="fas fa-calendar-times text-danger"></i> End Date (Expected)
-                                    </label>
-                                    <input type="text" class="form-control form-control-lg bg-light"
-                                           id="endDateDisplay" value="@Model.EndDate.ToString("dd/MM/yyyy")" readonly />
-                                </div>
-
-                                <!-- Payment date warning -->
-                                @if (Model.OriginalStartDay >= 29)
-                                {
-                                    <div class="alert alert-warning border-warning">
-                                        <h6 class="alert-heading">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            Payment Date Adjustment Notice
-                                        </h6>
-                                        <hr>
-                                        <p class="mb-2">
-                                            The lease start date is <strong>@Model.StartDate.ToString("dd/MM/yyyy")</strong>
-                                            (day <strong class="text-danger">@Model.OriginalStartDay</strong> of the month).
-                                        </p>
-                                        <p class="mb-2">
-                                            Since not all months have day @Model.OriginalStartDay
-                                            (e.g., February only has 28-29 days, some months only have 30 days),
-                                            to ensure consistency and avoid confusion:
-                                        </p>
-                                        <div class="bg-white p-3 rounded">
-                                            <p class="mb-0">
-                                                <i class="fas fa-check-circle text-success"></i>
-                                                <strong>Monthly payment date</strong> will be adjusted to
-                                                <strong class="text-danger fs-5">day 28</strong>
-                                                (fixed for all months).
-                                            </p>
-                                        </div>
-                                    </div>
-                                }
-
-                                <div class="alert alert-light border">
-                                    <div class="row align-items-center">
-                                        <div class="col-auto">
-                                            <i class="fas fa-calendar-day fa-3x text-primary"></i>
-                                        </div>
-                                        <div class="col">
-                                            <small class="text-muted">Monthly Payment Due Date</small>
-                                            <h4 class="mb-0 text-primary">
-                                                Day @(Model.PaymentDueDay > 0 ? Model.PaymentDueDay : Model.StartDate.Day)
-                                            </h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 2: Financial Information -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Financial Information</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label asp-for="MonthlyRent" class="form-label fw-bold">
-                                            <i class="fas fa-hand-holding-usd text-success"></i> Monthly Rent
-                                        </label>
-                                        <div class="input-group input-group-lg">
-                                            <input asp-for="MonthlyRent" type="number" step="1000"
-                                                   class="form-control" placeholder="5000000" id="MonthlyRent" />
-                                            <span class="input-group-text bg-success text-white fw-bold">$</span>
-                                        </div>
-                                        <span asp-validation-for="MonthlyRent" class="text-danger"></span>
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label asp-for="SecurityDeposit" class="form-label fw-bold">
-                                            <i class="fas fa-shield-alt text-warning"></i> Security Deposit
-                                        </label>
-                                        <div class="input-group input-group-lg">
-                                            <input asp-for="SecurityDeposit" type="number" step="1000"
-                                                   class="form-control" placeholder="10000000" id="SecurityDeposit" />
-                                            <span class="input-group-text bg-warning text-dark fw-bold">$</span>
-                                        </div>
-                                        <span asp-validation-for="SecurityDeposit" class="text-danger"></span>
-                                    </div>
-                                </div>
-
-                                <!-- Total preview -->
-                                <div class="alert alert-success" id="financialSummary">
-                                    <div class="row text-center">
-                                        <div class="col-md-6">
-                                            <small class="text-muted">Total Due at Signing</small>
-                                            <h4 class="mb-0" id="totalInitial">$0</h4>
-                                            <small>(First month rent + Deposit)</small>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <small class="text-muted">Total Contract Value</small>
-                                            <h4 class="mb-0" id="totalContract">$0</h4>
-                                            <small>(Rent × <span id="monthsDisplay">12</span> months)</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 3: Contract Terms -->
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0"><i class="fas fa-file-signature"></i> Contract Terms</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label asp-for="Terms" class="form-label fw-bold">
-                                        <i class="fas fa-file-alt"></i> Detailed Terms
-                                        <span class="badge bg-secondary ms-2">Optional</span>
-                                    </label>
-                                    <textarea asp-for="Terms" class="form-control font-monospace" rows="10"
-                                              placeholder="Leave blank to use system default terms..."></textarea>
-                                    <div class="form-text">
-                                        <i class="fas fa-magic text-primary"></i>
-                                        If left blank, the system will automatically generate standard terms based on contract info
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="SpecialConditions" class="form-label fw-bold">
-                                        <i class="fas fa-star text-warning"></i> Special Conditions
-                                        <span class="badge bg-secondary ms-2">Optional</span>
-                                    </label>
-                                    <textarea asp-for="SpecialConditions" class="form-control" rows="3"
-                                              placeholder="E.g.: Pets allowed, Private parking, Room can be repainted..."></textarea>
-                                    <div class="form-text">
-                                        <i class="fas fa-info-circle"></i>
-                                        Only fill in if there are special conditions beyond standard terms
-                                    </div>
-                                </div>
-
-                                <div class="form-check form-switch">
-                                    <input asp-for="AutoRenew" class="form-check-input" type="checkbox"
-                                           role="switch" id="autoRenewSwitch" />
-                                    <label asp-for="AutoRenew" class="form-check-label fw-bold" for="autoRenewSwitch">
-                                        <i class="fas fa-sync-alt"></i> Auto-renew on expiration
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a asp-controller="RentalApplication" asp-action="Details"
-                               asp-route-id="@Model.ApplicationId"
-                               class="btn btn-lg btn-outline-secondary">
-                                <i class="fas fa-times"></i> Cancel
-                            </a>
-                            <button type="submit" class="btn btn-lg btn-primary">
-                                <i class="fas fa-check-circle"></i> Create Lease
-                            </button>
-                        </div>
-                    </form>
+            <!-- Application Info -->
+            <div class="pm-card-modern mb-4" style="border-color: var(--pm-info); background: var(--pm-info-50);">
+                <div class="pm-stat-header">
+                    <span class="pm-stat-label">
+                        <i class="bi bi-info-circle"></i> Rental Application Information
+                    </span>
+                </div>
+                <div class="pm-info-grid">
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Application ID:</span>
+                            <span class="pm-info-value">@Model.ApplicationNumber</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Property:</span>
+                            <span class="pm-info-value">@Model.PropertyName</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Address:</span>
+                            <span class="pm-info-value">@Model.PropertyAddress</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Tenant:</span>
+                            <span class="pm-info-value">@Model.TenantName</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Email:</span>
+                            <span class="pm-info-value">@Model.TenantEmail</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Phone:</span>
+                            <span class="pm-info-value">@Model.TenantPhone</span>
+                        </p>
+                    </div>
                 </div>
             </div>
+
+            <!-- Lease Duration -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-calendar-range"></i>
+                    <h3>Lease Duration</h3>
+                </div>
+                <div class="pm-form-grid">
+                    <div class="pm-form-group">
+                        <label class="pm-label">
+                            <i class="bi bi-calendar-check"></i> Start Date
+                        </label>
+                        <input type="text" class="pm-input"
+                               value="@Model.StartDate.ToString("MMM dd, yyyy")" readonly />
+                    </div>
+
+                    <div class="pm-form-group">
+                        <label asp-for="LeaseDurationMonths" class="pm-label">
+                            <i class="bi bi-hourglass-split"></i> Lease Term
+                        </label>
+                        <select asp-for="LeaseDurationMonths" asp-items="Model.DurationOptions"
+                                class="pm-select" id="LeaseDurationMonths">
+                        </select>
+                        <span asp-validation-for="LeaseDurationMonths" class="pm-error"></span>
+                    </div>
+
+                    <div class="pm-form-group">
+                        <label class="pm-label">
+                            <i class="bi bi-calendar-x"></i> End Date (Expected)
+                        </label>
+                        <input type="text" class="pm-input"
+                               id="endDateDisplay" value="@Model.EndDate.ToString("MMM dd, yyyy")" readonly />
+                    </div>
+
+                    <!-- Payment date warning -->
+                    @if (Model.OriginalStartDay >= 29)
+                    {
+                        <div class="pm-alert pm-alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <div>
+                                <strong>Payment Date Adjustment Notice</strong>
+                                <p>The lease start date is <strong>@Model.StartDate.ToString("MMM dd, yyyy")</strong>
+                                    (day <strong>@Model.OriginalStartDay</strong> of the month).</p>
+                                <p>Since not all months have day @Model.OriginalStartDay, monthly payment date will be adjusted to <strong>day 28</strong> (fixed for all months).</p>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="pm-card-modern">
+                        <div class="pm-payment-due-info">
+                            <i class="bi bi-calendar-day"></i>
+                            <div>
+                                <span class="pm-payment-due-label">Monthly Payment Due Date</span>
+                                <span class="pm-payment-due-value">Day @(Model.PaymentDueDay > 0 ? Model.PaymentDueDay : Model.StartDate.Day)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-currency-dollar"></i>
+                    <h3>Financial Information</h3>
+                </div>
+                <div class="pm-form-grid">
+                    <div class="pm-form-group">
+                        <label asp-for="MonthlyRent" class="pm-label">
+                            <i class="bi bi-cash-coin"></i> Monthly Rent
+                        </label>
+                        <div class="pm-input-group">
+                            <input asp-for="MonthlyRent" type="number" step="1000"
+                                   class="pm-input" placeholder="5000000" id="MonthlyRent" />
+                            <span class="pm-input-addon">₫</span>
+                        </div>
+                        <span asp-validation-for="MonthlyRent" class="pm-error"></span>
+                    </div>
+
+                    <div class="pm-form-group">
+                        <label asp-for="SecurityDeposit" class="pm-label">
+                            <i class="bi bi-shield-check"></i> Security Deposit
+                        </label>
+                        <div class="pm-input-group">
+                            <input asp-for="SecurityDeposit" type="number" step="1000"
+                                   class="pm-input" placeholder="10000000" id="SecurityDeposit" />
+                            <span class="pm-input-addon">₫</span>
+                        </div>
+                        <span asp-validation-for="SecurityDeposit" class="pm-error"></span>
+                    </div>
+                </div>
+
+                <!-- Total preview -->
+                <div class="pm-card-modern mt-4" style="background: var(--pm-success-50); border-color: var(--pm-success);" id="financialSummary">
+                    <div class="pm-financial-summary">
+                        <div class="pm-summary-item">
+                            <span class="pm-summary-label">Total Due at Signing</span>
+                            <span class="pm-summary-value" id="totalInitial">0 ₫</span>
+                            <span class="pm-summary-note">(First month rent + Deposit)</span>
+                        </div>
+                        <div class="pm-summary-item">
+                            <span class="pm-summary-label">Total Contract Value</span>
+                            <span class="pm-summary-value" id="totalContract">0 ₫</span>
+                            <span class="pm-summary-note">(Rent × <span id="monthsDisplay">12</span> months)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Terms -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-file-text"></i>
+                    <h3>Contract Terms</h3>
+                </div>
+                <div class="pm-form-group">
+                    <label asp-for="Terms" class="pm-label">
+                        Detailed Terms
+                        <span class="pm-badge pm-badge-secondary">Optional</span>
+                    </label>
+                    <textarea asp-for="Terms" class="pm-textarea" rows="10"
+                              placeholder="Leave blank to use system default terms..."></textarea>
+                    <span class="pm-hint">
+                        <i class="bi bi-info-circle"></i>
+                        If left blank, the system will automatically generate standard terms based on contract info
+                    </span>
+                </div>
+
+                <div class="pm-form-group">
+                    <label asp-for="SpecialConditions" class="pm-label">
+                        Special Conditions
+                        <span class="pm-badge pm-badge-secondary">Optional</span>
+                    </label>
+                    <textarea asp-for="SpecialConditions" class="pm-textarea" rows="3"
+                              placeholder="E.g.: Pets allowed, Private parking, Room can be repainted..."></textarea>
+                    <span class="pm-hint">
+                        <i class="bi bi-info-circle"></i>
+                        Only fill in if there are special conditions beyond standard terms
+                    </span>
+                </div>
+
+                <div class="pm-checkbox">
+                    <input asp-for="AutoRenew" type="checkbox" id="autoRenewSwitch" />
+                    <label asp-for="AutoRenew" for="autoRenewSwitch">
+                        <i class="bi bi-arrow-repeat"></i> Auto-renew on expiration
+                    </label>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pm-navigation-actions">
+                <a asp-controller="RentalApplication" asp-action="Details"
+                   asp-route-id="@Model.ApplicationId"
+                   class="pm-btn pm-btn-secondary">
+                    <i class="bi bi-x"></i> Cancel
+                </a>
+                <button type="submit" class="pm-btn pm-btn-primary">
+                    <i class="bi bi-check-circle"></i> Create Lease
+                </button>
+            </div>
+        </form>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .pm-page {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pm-page-header {
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-page-title {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin: 0 0 var(--pm-space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-page-title i {
+            color: var(--pm-primary);
+        }
+
+        .pm-page-subtitle {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        .pm-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-4);
+        }
+
+        .pm-input-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .pm-input-group .pm-input {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .pm-input-addon {
+            padding: var(--pm-space-3) var(--pm-space-4);
+            background: var(--pm-slate-100);
+            border: 1px solid var(--pm-border);
+            border-left: none;
+            border-top-right-radius: var(--pm-radius-lg);
+            border-bottom-right-radius: var(--pm-radius-lg);
+            color: var(--pm-text-secondary);
+            font-weight: var(--pm-font-semibold);
+        }
+
+        .pm-payment-due-info {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+            padding: var(--pm-space-4);
+        }
+
+        .pm-payment-due-info i {
+            font-size: 32px;
+            color: var(--pm-primary);
+        }
+
+        .pm-payment-due-label {
+            display: block;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin-bottom: var(--pm-space-1);
+        }
+
+        .pm-payment-due-value {
+            display: block;
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-primary);
+        }
+
+        .pm-financial-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-4);
+        }
+
+        .pm-summary-item {
+            text-align: center;
+        }
+
+        .pm-summary-label {
+            display: block;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin-bottom: var(--pm-space-2);
+        }
+
+        .pm-summary-value {
+            display: block;
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-success);
+            margin-bottom: var(--pm-space-1);
+        }
+
+        .pm-summary-note {
+            display: block;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-navigation-actions {
+            display: flex;
+            gap: var(--pm-space-3);
+            justify-content: flex-end;
+            margin-top: var(--pm-space-6);
+            padding-top: var(--pm-space-6);
+            border-top: 1px solid var(--pm-border);
+        }
+
+        @@media (max-width: 768px) {
+            .pm-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-financial-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-navigation-actions {
+                flex-direction: column;
+            }
+
+            .pm-navigation-actions .pm-btn {
+                width: 100%;
+            }
+        }
+    </style>
+}
 
 @section Scripts {
     @{
@@ -271,8 +405,8 @@
                 const totalInitial = monthlyRent + securityDeposit;
                 const totalContract = monthlyRent * months;
 
-                totalInitialDisplay.textContent = '$' + totalInitial.toLocaleString('en-US');
-                totalContractDisplay.textContent = '$' + totalContract.toLocaleString('en-US');
+                totalInitialDisplay.textContent = totalInitial.toLocaleString('en-US') + ' ₫';
+                totalContractDisplay.textContent = totalContract.toLocaleString('en-US') + ' ₫';
                 monthsDisplay.textContent = months;
             }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementSystem.DAL.Data;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -17,6 +17,15 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .Where(i => i.Lease.TenantId == tenantId && i.RemainingAmount > 0)
                 .ToListAsync();
         }
+
+        public async Task<List<Invoice>> GetInvoicesByLeaseIdAsync(int leaseId)
+        {
+            return await _context.Invoices
+                .Include(i => i.Lease)
+                .Where(i => i.LeaseId == leaseId)
+                .ToListAsync();
+        }
+
         public async Task<Invoice?> GetByIdAsync(int invoiceId)
         {
             return await _context.Invoices

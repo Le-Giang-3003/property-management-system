@@ -12,373 +12,656 @@
     ViewData["PortalMode"] = isLandlord ? "Landlord" : "Tenant";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-10 mx-auto">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">
-                            <i class="fas fa-file-contract"></i> Lease @Model.LeaseNumber
-                        </h4>
-                        @switch (Model.Status)
-                        {
-                            case "Draft":
-                                <span class="badge bg-secondary fs-6">
-                                    <i class="fas fa-file-alt"></i> Pending Signature
-                                </span>
-                                break;
-                            case "Active":
-                                <span class="badge bg-success fs-6">
-                                    <i class="fas fa-check-circle"></i> Active
-                                </span>
-                                break;
-                            case "Expired":
-                                <span class="badge bg-danger fs-6">
-                                    <i class="fas fa-calendar-times"></i> Expired
-                                </span>
-                                break;
-                            case "Terminated":
-                                <span class="badge bg-dark fs-6">
-                                    <i class="fas fa-ban"></i> Terminated
-                                </span>
-                                break;
-                        }
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-file-earmark-check"></i>
+                Lease @Model.LeaseNumber
+            </h1>
+            <p class="pm-page-subtitle">View lease contract details and information</p>
+        </div>
+        <div>
+            @switch (Model.Status)
+            {
+                case "Draft":
+                case "PendingSignature":
+                    <span class="pm-badge pm-badge-secondary">Pending Signature</span>
+                    break;
+                case "Active":
+                    <span class="pm-badge pm-badge-success">Active</span>
+                    break;
+                case "Expired":
+                    <span class="pm-badge pm-badge-danger">Expired</span>
+                    break;
+                case "Terminated":
+                    <span class="pm-badge" style="background: var(--pm-slate-700); color: white;">Terminated</span>
+                    break;
+            }
+        </div>
+    </div>
+
+    <div class="pm-card">
+        <div class="pm-card-body">
+            <!-- Status Alert -->
+            @if (Model.Status == "Draft" || Model.Status == "PendingSignature")
+            {
+                <div class="pm-card-modern mb-4" style="border-color: var(--pm-warning); background: var(--pm-warning-50);">
+                    <div class="pm-stat-header">
+                        <span class="pm-stat-label">
+                            <i class="bi bi-pen"></i> Lease Not Completed
+                        </span>
                     </div>
-                </div>
-                <div class="card-body">
-                    <!-- ✅ THÔNG BÁO KÝ HỢP ĐỒNG - CHỈ HIỆN KHI DRAFT -->
-                    @if (Model.Status == "Draft")
-                    {
-                        <div class="alert alert-warning border-warning mb-4">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-pen-nib fa-3x text-warning"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h5 class="alert-heading mb-2">
-                                        <i class="fas fa-exclamation-triangle"></i> Lease Not Completed
-                                    </h5>
-
-                                    <!-- Trạng thái ký -->
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            @if (hasLandlordSigned)
-                                            {
-                                                <span class="badge bg-success fs-6">
-                                                    <i class="fas fa-check-circle"></i> Landlord Signed
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary fs-6">
-                                                    <i class="fas fa-clock"></i> Awaiting Landlord Signature
-                                                </span>
-                                            }
-                                        </div>
-                                        <div class="col-md-6">
-                                            @if (hasTenantSigned)
-                                            {
-                                                <span class="badge bg-success fs-6">
-                                                    <i class="fas fa-check-circle"></i> Tenant Signed
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary fs-6">
-                                                    <i class="fas fa-clock"></i> Awaiting Tenant Signature
-                                                </span>
-                                            }
-                                        </div>
-                                    </div>
-
-                                    <!-- ✅ LOGIC HIỂN THỊ NÚT KÝ HOẶC THÔNG BÁO -->
-                                    @if (canSign)
-                                    {
-                                        <a asp-action="Sign" asp-route-id="@Model.LeaseId"
-                                           class="btn btn-success btn-lg">
-                                            <i class="fas fa-pen-nib"></i> Sign Now
-                                        </a>
-                                        <p class="mb-0 mt-2 text-muted">
-                                            <i class="fas fa-info-circle"></i>
-                                            Please sign the lease to complete the process.
-                                        </p>
-                                    }
-                                    else
-                                    {
-                                        @if (isLandlord && hasLandlordSigned)
-                                        {
-                                            <div class="alert alert-info mb-0">
-                                                <i class="fas fa-check-circle"></i>
-                                                <strong>You have signed the lease.</strong> Waiting for tenant to sign for the lease to take effect.
-                                            </div>
-                                        }
-                                        else if (isTenant && hasTenantSigned)
-                                        {
-                                            <div class="alert alert-info mb-0">
-                                                <i class="fas fa-check-circle"></i>
-                                                <strong>You have signed the lease.</strong> Waiting for landlord to sign for the lease to take effect.
-                                            </div>
-                                        }
-                                        else if (!isLandlord && !isTenant)
-                                        {
-                                            <div class="alert alert-secondary mb-0">
-                                                <i class="fas fa-eye"></i>
-                                                You do not have permission to sign this lease.
-                                            </div>
-                                        }
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    else if (Model.Status == "Active")
-                    {
-                        <div class="alert alert-success border-success mb-4">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-check-circle fa-3x text-success"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h5 class="alert-heading mb-2">
-                                        <i class="fas fa-check-double"></i> Lease is Legally Effective
-                                    </h5>
-                                    @if (Model.SignedDate.HasValue)
-                                    {
-                                        <p class="mb-0">
-                                            <i class="fas fa-calendar-check"></i>
-                                            Lease was fully signed on <strong>@Model.SignedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
-                                        </p>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    @* ✅ THÊM: THÔNG BÁO KHI HỢP ĐỒNG BỊ HỦY *@
-                    else if (Model.Status == "Terminated")
-                    {
-                        <div class="alert alert-danger border-danger mb-4">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-ban fa-3x text-danger"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h5 class="alert-heading mb-2">
-                                        <i class="fas fa-times-circle"></i> Lease Has Been Terminated
-                                    </h5>
-                                    <p class="mb-0">
-                                        <i class="fas fa-info-circle"></i>
-                                        This lease has been terminated and is no longer valid.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    <!-- Thông tin tổng quan -->
-                    <div class="alert alert-light border mb-4">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <small class="text-muted">Created Date</small>
-                                <div><strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong></div>
-                            </div>
-                            <div class="col-md-4">
-                                <small class="text-muted">Lease Duration</small>
-                                <div>
-                                    <strong>
-                                        @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")
-                                    </strong>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">Payment Due Date</small>
-                                <div><strong>Day @Model.PaymentDueDay monthly</strong></div>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">Auto Renew</small>
-                                <div>
-                                    @if (Model.AutoRenew)
-                                    {
-                                        <span class="badge bg-success">Yes</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">No</span>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Property Information -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-home"></i> Property Information</h5>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p><strong>Name:</strong> @Model.Property?.Name</p>
-                            <p><strong>Address:</strong> @Model.Property?.Address</p>
-                            <p><strong>Type:</strong> @Model.Property?.PropertyType</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Area:</strong> @Model.Property?.SquareFeet m²</p>
-                            <p><strong>Bedrooms/Bathrooms:</strong> @Model.Property?.Bedrooms / @Model.Property?.Bathrooms</p>
-                            <p>
-                                <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i> View Property
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Tenant Information -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-user"></i> Tenant Information</h5>
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p><strong>Full Name:</strong> @Model.Tenant?.FullName</p>
-                            <p><strong>Email:</strong> @Model.Tenant?.Email</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Phone:</strong> @Model.Tenant?.PhoneNumber</p>
-                            @if (Model.ApplicationId.HasValue)
+                    <div class="pm-signature-status">
+                        <div class="pm-signature-item">
+                            @if (hasLandlordSigned)
                             {
-                                <p>
-                                    <strong>Application:</strong>
-                                    <a asp-controller="RentalApplication" asp-action="Details" asp-route-id="@Model.ApplicationId">
-                                        @Model.RentalApplication?.ApplicationNumber
-                                    </a>
-                                </p>
+                                <span class="pm-badge pm-badge-success">
+                                    <i class="bi bi-check-circle"></i> Landlord Signed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="pm-badge pm-badge-secondary">
+                                    <i class="bi bi-clock"></i> Awaiting Landlord Signature
+                                </span>
+                            }
+                        </div>
+                        <div class="pm-signature-item">
+                            @if (hasTenantSigned)
+                            {
+                                <span class="pm-badge pm-badge-success">
+                                    <i class="bi bi-check-circle"></i> Tenant Signed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="pm-badge pm-badge-secondary">
+                                    <i class="bi bi-clock"></i> Awaiting Tenant Signature
+                                </span>
                             }
                         </div>
                     </div>
-
-                    <!-- Financial Information -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-dollar-sign"></i> Financial Information</h5>
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <small class="text-muted">Monthly Rent</small>
-                                    <h3 class="text-danger mb-0">$@Model.MonthlyRent.ToString("N0")</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <small class="text-muted">Security Deposit</small>
-                                    <h3 class="text-success mb-0">$@Model.SecurityDeposit.ToString("N0")</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <small class="text-muted">Payment Frequency</small>
-                                    <h3 class="mb-0">@Model.PaymentFrequency</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Terms -->
-                    <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-file-alt"></i> Lease Terms</h5>
-                    <div class="mb-4">
-                        <pre class="bg-light p-3 rounded" style="white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">@Model.Terms</pre>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(Model.SpecialConditions))
+                    @if (canSign)
                     {
-                        <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-star"></i> Special Conditions</h5>
-                        <div class="mb-4">
-                            <div class="alert alert-info">
-                                @Model.SpecialConditions
-                            </div>
-                        </div>
-                    }
-
-                    <!-- Buttons -->
-                    <div class="mt-4 d-flex gap-2 flex-wrap">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Back
+                        <a asp-action="Sign" asp-route-id="@Model.LeaseId" class="pm-btn pm-btn-success pm-w-full mt-4">
+                            <i class="bi bi-pen"></i> Sign Now
                         </a>
-
-                        @* ✅ SỬA: Chỉ hiện nút Edit khi chưa có ai ký *@
-                        @if (Model.Status == "Draft" && isLandlord && !hasLandlordSigned && !hasTenantSigned)
-                        {
-                            <a asp-action="Edit" asp-route-id="@Model.LeaseId" class="btn btn-warning">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                        }
-
-                        @if (canSign)
-                        {
-                            <a asp-action="Sign" asp-route-id="@Model.LeaseId" class="btn btn-success btn-lg">
-                                <i class="fas fa-pen-nib"></i> Sign Lease
-                            </a>
-                        }
-                        @* ✅ THÊM: NÚT HỦY HỢP ĐỒNG - CHỈ HIỆN KHI ACTIVE VÀ LÀ LANDLORD *@
-                        @if (Model.Status == "Active" && isLandlord)
-                        {
-                            <a asp-action="Terminate" asp-route-id="@Model.LeaseId" class="btn btn-danger">
-                                <i class="fas fa-times-circle"></i> Terminate Lease
-                            </a>
-                        }
-                        @if (Model.Status == "Active")
-                        {
-                        <div class="btn-group" role="group">
-                            <a asp-action="Renew" asp-route-id="@Model.LeaseId" class="btn btn-success">
-                                <i class="bi bi-arrow-repeat"></i> Renew Lease
-                            </a>
-                        </div>
-                        }
-                        @if (Model.Status == "Draft" || Model.Status == "Active")
-                        {
-                            <a asp-action="DownloadPdf" asp-route-id="@Model.LeaseId" class="btn btn-info">
-                                <i class="fas fa-file-pdf"></i> Download PDF
-                            </a>
-                        }
-
-                        @if (isLandlord)
-                        {
-                            <a asp-action="History" asp-route-propertyId="@Model.PropertyId" class="btn btn-outline-info">
-                                <i class="fas fa-history"></i> Lease History
-                            </a>
-                        }
-
-                    </div>
-
-
-                    <!-- ✅ CHỮ KÝ - KHÔNG HIỆN IP -->
-                    @if (signatures != null && signatures.Any())
+                        <p class="pm-sign-note">
+                            <i class="bi bi-info-circle"></i>
+                            Please sign the lease to complete the process.
+                        </p>
+                    }
+                    else
                     {
-                        <hr class="my-4">
+                        @if (isLandlord && hasLandlordSigned)
+                        {
+                            <div class="pm-alert pm-alert-info mt-4">
+                                <i class="bi bi-check-circle"></i>
+                                <div>
+                                    <strong>You have signed the lease.</strong> Waiting for tenant to sign for the lease to take effect.
+                                </div>
+                            </div>
+                        }
+                        else if (isTenant && hasTenantSigned)
+                        {
+                            <div class="pm-alert pm-alert-info mt-4">
+                                <i class="bi bi-check-circle"></i>
+                                <div>
+                                    <strong>You have signed the lease.</strong> Waiting for landlord to sign for the lease to take effect.
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            else if (Model.Status == "Active")
+            {
+                <div class="pm-card-modern mb-4" style="border-color: var(--pm-success); background: var(--pm-success-50);">
+                    <div class="pm-stat-header">
+                        <span class="pm-stat-label">
+                            <i class="bi bi-check-circle"></i> Lease is Legally Effective
+                        </span>
+                    </div>
+                    @if (Model.SignedDate.HasValue)
+                    {
+                        <p class="pm-signed-date">
+                            <i class="bi bi-calendar-check"></i>
+                            Lease was fully signed on <strong>@Model.SignedDate.Value.ToString("MMM dd, yyyy HH:mm")</strong>
+                        </p>
+                    }
+                </div>
+            }
+            else if (Model.Status == "Terminated")
+            {
+                <div class="pm-card-modern mb-4" style="border-color: var(--pm-danger); background: var(--pm-danger-50);">
+                    <div class="pm-stat-header">
+                        <span class="pm-stat-label">
+                            <i class="bi bi-x-circle"></i> Lease Has Been Terminated
+                        </span>
+                    </div>
+                    <p class="pm-terminated-note">
+                        <i class="bi bi-info-circle"></i>
+                        This lease has been terminated and is no longer valid.
+                    </p>
+                </div>
+            }
 
-                        <h5><i class="fas fa-signature"></i> Signatures</h5>
+            <!-- Overview Information -->
+            <div class="pm-card-modern mb-4">
+                <div class="pm-stat-header">
+                    <span class="pm-stat-label">Overview</span>
+                </div>
+                <div class="pm-overview-grid">
+                    <div class="pm-overview-item">
+                        <span class="pm-overview-label">Created Date</span>
+                        <span class="pm-overview-value">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                    </div>
+                    <div class="pm-overview-item">
+                        <span class="pm-overview-label">Lease Duration</span>
+                        <span class="pm-overview-value">@Model.StartDate.ToString("MMM dd, yyyy") - @Model.EndDate.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <div class="pm-overview-item">
+                        <span class="pm-overview-label">Payment Due Date</span>
+                        <span class="pm-overview-value">Day @Model.PaymentDueDay monthly</span>
+                    </div>
+                    <div class="pm-overview-item">
+                        <span class="pm-overview-label">Auto Renew</span>
+                        <span class="pm-overview-value">
+                            @if (Model.AutoRenew)
+                            {
+                                <span class="pm-badge pm-badge-success">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="pm-badge pm-badge-secondary">No</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Property Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-house-door"></i>
+                    <h3>Property Information</h3>
+                </div>
+                <div class="pm-info-grid">
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Name:</span>
+                            <span class="pm-info-value">@Model.Property?.Name</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Address:</span>
+                            <span class="pm-info-value">@Model.Property?.Address</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Type:</span>
+                            <span class="pm-info-value">@Model.Property?.PropertyType</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Area:</span>
+                            <span class="pm-info-value">@Model.Property?.SquareFeet m²</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Bedrooms/Bathrooms:</span>
+                            <span class="pm-info-value">@Model.Property?.Bedrooms / @Model.Property?.Bathrooms</span>
+                        </p>
+                        <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId"
+                           class="pm-btn pm-btn-ghost pm-btn-sm">
+                            <i class="bi bi-eye"></i> View Property
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tenant Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-person"></i>
+                    <h3>Tenant Information</h3>
+                </div>
+                <div class="pm-info-grid">
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Full Name:</span>
+                            <span class="pm-info-value">@Model.Tenant?.FullName</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Email:</span>
+                            <span class="pm-info-value">@Model.Tenant?.Email</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Phone:</span>
+                            <span class="pm-info-value">@Model.Tenant?.PhoneNumber</span>
+                        </p>
+                        @if (Model.ApplicationId.HasValue)
+                        {
+                            <p class="pm-info-item">
+                                <span class="pm-info-label">Application:</span>
+                                <a asp-controller="RentalApplication" asp-action="Details" asp-route-id="@Model.ApplicationId" class="pm-info-value">
+                                    @Model.RentalApplication?.ApplicationNumber
+                                </a>
+                            </p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-currency-dollar"></i>
+                    <h3>Financial Information</h3>
+                </div>
+                <div class="pm-financial-grid">
+                    <div class="pm-financial-card">
+                        <span class="pm-financial-label">Monthly Rent</span>
+                        <span class="pm-financial-value pm-text-primary">@Model.MonthlyRent.ToString("N0") ₫</span>
+                    </div>
+                    <div class="pm-financial-card">
+                        <span class="pm-financial-label">Security Deposit</span>
+                        <span class="pm-financial-value pm-text-success">@Model.SecurityDeposit.ToString("N0") ₫</span>
+                    </div>
+                    <div class="pm-financial-card">
+                        <span class="pm-financial-label">Payment Frequency</span>
+                        <span class="pm-financial-value">@Model.PaymentFrequency</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-file-text"></i>
+                    <h3>Lease Terms</h3>
+                </div>
+                <div class="pm-card-modern">
+                    <pre class="pm-terms-text">@Model.Terms</pre>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.SpecialConditions))
+            {
+                <div class="pm-info-section mb-4">
+                    <div class="pm-section-header">
+                        <i class="bi bi-star"></i>
+                        <h3>Special Conditions</h3>
+                    </div>
+                    <div class="pm-card-modern">
+                        <p class="pm-notes-text">@Model.SpecialConditions</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Signatures -->
+            @if (signatures != null && signatures.Any())
+            {
+                <div class="pm-info-section mb-4">
+                    <div class="pm-section-header">
+                        <i class="bi bi-pen"></i>
+                        <h3>Signatures</h3>
+                    </div>
+                    <div class="pm-signatures-grid">
                         @foreach (var sig in signatures.OrderBy(s => s.SignedAt))
                         {
-                            <div class="mb-3 p-3 border rounded">
-                                <p class="mb-1">
-                                    <strong>@(sig.SignerRole == "Landlord" ? "Landlord" : "Tenant"):</strong>
-                                    @sig.UserName
-                                </p>
-                                <p class="mb-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock"></i> @sig.SignedAt.ToString("dd/MM/yyyy HH:mm")
-                                    </small>
-                                </p>
-
+                            <div class="pm-signature-card">
+                                <div class="pm-signature-header">
+                                    <strong>@(sig.SignerRole == "Landlord" ? "Landlord" : "Tenant")</strong>
+                                    <span class="pm-signature-date">
+                                        <i class="bi bi-clock"></i> @sig.SignedAt.ToString("MMM dd, yyyy HH:mm")
+                                    </span>
+                                </div>
+                                <p class="pm-signature-name">@sig.UserName</p>
                                 @if (!string.IsNullOrEmpty(sig.SignatureData))
                                 {
-                                    <img src="@sig.SignatureData"
-                                         alt="Signature"
-                                         style="max-width: 200px; border: 1px solid #ddd; padding: 5px; background: white;" />
+                                    <div class="pm-signature-image">
+                                        <img src="@sig.SignatureData" alt="Signature" />
+                                    </div>
                                 }
                             </div>
                         }
-                    }
-
+                    </div>
                 </div>
+            }
+
+            <!-- Actions -->
+            <div class="pm-navigation-actions">
+                <a asp-action="Index" class="pm-btn pm-btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+
+                @if (Model.Status == "Draft" && isLandlord && !hasLandlordSigned && !hasTenantSigned)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.LeaseId" class="pm-btn pm-btn-warning">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                }
+
+                @if (canSign)
+                {
+                    <a asp-action="Sign" asp-route-id="@Model.LeaseId" class="pm-btn pm-btn-success">
+                        <i class="bi bi-pen"></i> Sign Lease
+                    </a>
+                }
+
+                @if (Model.Status == "Active" && isLandlord)
+                {
+                    <a asp-action="Terminate" asp-route-id="@Model.LeaseId" class="pm-btn pm-btn-danger">
+                        <i class="bi bi-x-circle"></i> Terminate Lease
+                    </a>
+                }
+
+                @if (Model.Status == "Active")
+                {
+                    <a asp-action="Renew" asp-route-id="@Model.LeaseId" class="pm-btn pm-btn-success">
+                        <i class="bi bi-arrow-repeat"></i> Renew Lease
+                    </a>
+                }
+
+                @if (Model.Status == "Draft" || Model.Status == "Active")
+                {
+                    <a asp-action="DownloadPdf" asp-route-id="@Model.LeaseId" class="pm-btn pm-btn-info">
+                        <i class="bi bi-file-pdf"></i> Download PDF
+                    </a>
+                }
+
+                @if (isLandlord)
+                {
+                    <a asp-action="History" asp-route-propertyId="@Model.PropertyId" class="pm-btn pm-btn-ghost">
+                        <i class="bi bi-clock-history"></i> Lease History
+                    </a>
+                }
             </div>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .pm-page {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pm-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-page-title {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin: 0 0 var(--pm-space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-page-title i {
+            color: var(--pm-primary);
+        }
+
+        .pm-page-subtitle {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        .pm-card-modern {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+            margin-bottom: var(--pm-space-4);
+        }
+
+        .pm-signature-status {
+            display: flex;
+            gap: var(--pm-space-4);
+            margin-top: var(--pm-space-3);
+        }
+
+        .pm-signature-item {
+            flex: 1;
+        }
+
+        .pm-sign-note {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            margin: var(--pm-space-3) 0 0 0;
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-signed-date {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text);
+            margin: var(--pm-space-3) 0 0 0;
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-terminated-note {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text);
+            margin: var(--pm-space-3) 0 0 0;
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-overview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--pm-space-4);
+            margin-top: var(--pm-space-3);
+        }
+
+        .pm-overview-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-1);
+        }
+
+        .pm-overview-label {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-overview-value {
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-info-section {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+            margin-bottom: var(--pm-space-4);
+        }
+
+        .pm-section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+            margin-bottom: var(--pm-space-4);
+            padding-bottom: var(--pm-space-3);
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .pm-section-header i {
+            font-size: 20px;
+            color: var(--pm-primary);
+        }
+
+        .pm-section-header h3 {
+            font-size: var(--pm-text-lg);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+            margin: 0;
+        }
+
+        .pm-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-4);
+        }
+
+        .pm-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-1);
+            margin-bottom: var(--pm-space-3);
+        }
+
+        .pm-info-label {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            font-weight: var(--pm-font-medium);
+        }
+
+        .pm-info-value {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text);
+        }
+
+        .pm-financial-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--pm-space-4);
+            margin-top: var(--pm-space-3);
+        }
+
+        .pm-financial-card {
+            background: var(--pm-slate-50);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+            text-align: center;
+        }
+
+        .pm-financial-label {
+            display: block;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin-bottom: var(--pm-space-2);
+        }
+
+        .pm-financial-value {
+            display: block;
+            font-size: var(--pm-text-xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+        }
+
+        .pm-terms-text {
+            font-family: var(--pm-font-family);
+            font-size: var(--pm-text-sm);
+            line-height: 1.8;
+            color: var(--pm-text-secondary);
+            white-space: pre-wrap;
+            margin: 0;
+        }
+
+        .pm-signatures-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-4);
+            margin-top: var(--pm-space-3);
+        }
+
+        .pm-signature-card {
+            background: var(--pm-slate-50);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-4);
+        }
+
+        .pm-signature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--pm-space-2);
+        }
+
+        .pm-signature-date {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-1);
+        }
+
+        .pm-signature-name {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text);
+            margin: 0 0 var(--pm-space-3) 0;
+        }
+
+        .pm-signature-image {
+            margin-top: var(--pm-space-3);
+            padding: var(--pm-space-3);
+            background: white;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius);
+            text-align: center;
+        }
+
+        .pm-signature-image img {
+            max-width: 200px;
+            max-height: 100px;
+            object-fit: contain;
+        }
+
+        .pm-navigation-actions {
+            display: flex;
+            gap: var(--pm-space-3);
+            flex-wrap: wrap;
+            margin-top: var(--pm-space-6);
+            padding-top: var(--pm-space-6);
+            border-top: 1px solid var(--pm-border);
+        }
+
+        @@media (max-width: 768px) {
+            .pm-page-header {
+                flex-direction: column;
+                gap: var(--pm-space-4);
+            }
+
+            .pm-overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pm-info-grid,
+            .pm-financial-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-signatures-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-navigation-actions {
+                flex-direction: column;
+            }
+
+            .pm-navigation-actions .pm-btn {
+                width: 100%;
+            }
+        }
+    </style>
+}

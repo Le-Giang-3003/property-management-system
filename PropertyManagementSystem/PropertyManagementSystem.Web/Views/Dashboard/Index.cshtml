@@ -6,64 +6,50 @@
 }
 
 <div class="pm-dashboard">
-    <!-- Welcome Section -->
-    <div class="pm-welcome-banner">
-        <div class="pm-welcome-content">
-            <h1>Welcome back, @userName!</h1>
-            <p>Here's what's happening with your rentals today</p>
-        </div>
-        <div class="pm-welcome-actions">
-            <a asp-controller="Property" asp-action="SearchProperties" class="pm-btn pm-btn-primary">
-                <i class="bi bi-search"></i>
-                Browse Properties
-            </a>
+    <!-- Header -->
+    <div class="pm-dashboard-header">
+        <div>
+            <h1>Tenant Dashboard</h1>
+            <p class="pm-page-subtitle">Welcome back! Here's your property overview</p>
         </div>
     </div>
 
-    <!-- Quick Stats -->
+    <!-- Stats Cards -->
     <div class="pm-stats-grid">
-        <div class="pm-stat-card">
-            <div class="pm-stat-icon primary">
-                <i class="bi bi-file-earmark-text"></i>
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Current Lease</span>
+                <i class="bi bi-house-door pm-stat-icon-small"></i>
             </div>
-            <div class="pm-stat-content">
-                <span class="pm-stat-label">Active Leases</span>
-                <span class="pm-stat-value">@Model.ActiveLeasesCount</span>
-                <span class="pm-stat-change">Currently renting</span>
-            </div>
+            <div class="pm-stat-value-large">Active</div>
+            <p class="pm-stat-description">@(Model.ActiveLeases.Any() ? $"Ends " + Model.ActiveLeases.First().EndDate.ToString("MMM dd, yyyy") : "No active lease")</p>
         </div>
 
-        <div class="pm-stat-card">
-            <div class="pm-stat-icon warning">
-                <i class="bi bi-credit-card"></i>
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Next Payment</span>
+                <i class="bi bi-currency-dollar pm-stat-icon-small"></i>
             </div>
-            <div class="pm-stat-content">
-                <span class="pm-stat-label">Pending Payments</span>
-                <span class="pm-stat-value">@Model.PendingPaymentsCount</span>
-                <span class="pm-stat-change">Due this month</span>
-            </div>
+            <div class="pm-stat-value-large">@(Model.UpcomingPayments.Any() ? "$" + Model.UpcomingPayments.First().Amount.ToString("N0") : "$0")</div>
+            <p class="pm-stat-description">@(Model.UpcomingPayments.Any() ? "Due in " + (Model.UpcomingPayments.First().DueDate - DateTime.Now).Days + " days" : "No upcoming payments")</p>
         </div>
 
-        <div class="pm-stat-card">
-            <div class="pm-stat-icon info">
-                <i class="bi bi-tools"></i>
-            </div>
-            <div class="pm-stat-content">
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
                 <span class="pm-stat-label">Maintenance</span>
-                <span class="pm-stat-value">@Model.OpenMaintenanceCount</span>
-                <span class="pm-stat-change">Open requests</span>
+                <i class="bi bi-tools pm-stat-icon-small"></i>
             </div>
+            <div class="pm-stat-value-large">@Model.OpenMaintenanceCount</div>
+            <p class="pm-stat-description">Active request@(Model.OpenMaintenanceCount != 1 ? "s" : "")</p>
         </div>
 
-        <div class="pm-stat-card">
-            <div class="pm-stat-icon success">
-                <i class="bi bi-heart"></i>
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Documents</span>
+                <i class="bi bi-calendar pm-stat-icon-small"></i>
             </div>
-            <div class="pm-stat-content">
-                <span class="pm-stat-label">Saved Properties</span>
-                <span class="pm-stat-value">@Model.SavedPropertiesCount</span>
-                <span class="pm-stat-change">In favorites</span>
-            </div>
+            <div class="pm-stat-value-large">4</div>
+            <p class="pm-stat-description">Files available</p>
         </div>
     </div>
 
@@ -270,49 +256,69 @@
             margin: 0 auto;
         }
 
-        /* Welcome Banner */
-        .pm-welcome-banner {
-            background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-dark) 100%);
-            border-radius: var(--pm-radius-xl);
-            padding: var(--pm-space-8);
+        /* Dashboard Header */
+        .pm-dashboard-header {
             margin-bottom: var(--pm-space-6);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: white;
         }
 
-        .pm-welcome-content h1 {
+        .pm-dashboard-header h1 {
             font-size: var(--pm-text-2xl);
             font-weight: var(--pm-font-bold);
             margin: 0 0 var(--pm-space-2);
-            color: white;
+            color: var(--pm-text);
         }
 
-        .pm-welcome-content p {
+        .pm-page-subtitle {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
             margin: 0;
-            opacity: 0.9;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .pm-welcome-actions .pm-btn {
-            background: white;
-            color: var(--pm-primary);
-            box-shadow: none;
-        }
-
-        .pm-welcome-actions .pm-btn:hover {
-            background: rgba(255, 255, 255, 0.9);
-            transform: translateY(-2px);
-            color: var(--pm-primary);
         }
 
         /* Stats Grid */
         .pm-stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: var(--pm-space-5);
+            gap: var(--pm-space-4);
             margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-stat-card-modern {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+        }
+
+        .pm-stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--pm-space-3);
+        }
+
+        .pm-stat-label {
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-stat-icon-small {
+            width: 16px;
+            height: 16px;
+            color: var(--pm-text-muted);
+        }
+
+        .pm-stat-value-large {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin-bottom: var(--pm-space-1);
+        }
+
+        .pm-stat-description {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin: 0;
         }
 
         /* Dashboard Grid */

@@ -38,7 +38,7 @@
             "PropertyViewing/PendingRequest",
             "Invoice/Index",
             "Payment/LandlordIndex",
-            "Document/MyDocuments"
+            "Document/LandlordDocuments"
         };
 
         // Tenant pages detection
@@ -114,13 +114,14 @@
             left: 0;
             right: 0;
             height: var(--pm-header-height);
-            background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-dark) 100%);
+            background: white;
+            border-bottom: 1px solid var(--pm-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 var(--pm-space-6);
             z-index: var(--pm-z-fixed);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .pm-header-left {
@@ -134,9 +135,9 @@
             width: 40px;
             height: 40px;
             border-radius: var(--pm-radius-lg);
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--pm-slate-100);
             border: none;
-            color: white;
+            color: var(--pm-text);
             font-size: 20px;
             cursor: pointer;
             align-items: center;
@@ -145,7 +146,7 @@
         }
 
         .pm-mobile-toggle:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: var(--pm-slate-200);
         }
 
         .pm-brand {
@@ -156,28 +157,28 @@
         }
 
         .pm-brand-icon {
-            width: 42px;
-            height: 42px;
-            background: rgba(255, 255, 255, 0.2);
+            width: 32px;
+            height: 32px;
+            background: var(--pm-primary);
             border-radius: var(--pm-radius-lg);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 22px;
+            font-size: 20px;
         }
 
         .pm-brand-text h1 {
-            font-size: var(--pm-text-lg);
-            font-weight: var(--pm-font-bold);
-            color: white;
+            font-size: var(--pm-text-xl);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
             margin: 0;
             line-height: 1.2;
         }
 
         .pm-brand-text p {
             font-size: var(--pm-text-xs);
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--pm-text-muted);
             margin: 0;
         }
 
@@ -190,12 +191,12 @@
         /* Notification Button */
         .pm-notification-btn {
             position: relative;
-            width: 42px;
-            height: 42px;
-            border-radius: var(--pm-radius-full);
-            background: rgba(255, 255, 255, 0.15);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--pm-radius-lg);
+            background: transparent;
             border: none;
-            color: white;
+            color: var(--pm-text-secondary);
             font-size: 20px;
             cursor: pointer;
             display: flex;
@@ -205,14 +206,14 @@
         }
 
         .pm-notification-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.05);
+            background: var(--pm-slate-100);
+            color: var(--pm-text);
         }
 
         .pm-notification-badge {
             position: absolute;
-            top: 2px;
-            right: 2px;
+            top: -2px;
+            right: -2px;
             min-width: 18px;
             height: 18px;
             padding: 0 5px;
@@ -224,7 +225,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid var(--pm-primary);
+            border: 2px solid white;
         }
 
         /* User Menu */
@@ -237,27 +238,27 @@
             align-items: center;
             gap: var(--pm-space-3);
             padding: var(--pm-space-2) var(--pm-space-3);
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: var(--pm-radius-xl);
+            background: transparent;
+            border: none;
+            border-radius: var(--pm-radius-lg);
             cursor: pointer;
             transition: all var(--pm-transition-fast);
         }
 
         .pm-user-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--pm-slate-100);
         }
 
         .pm-user-avatar {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: var(--pm-radius-full);
-            background: white;
-            color: var(--pm-primary);
+            background: var(--pm-primary);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: var(--pm-font-bold);
+            font-weight: var(--pm-font-semibold);
             font-size: var(--pm-text-sm);
         }
 
@@ -269,16 +270,16 @@
             display: block;
             font-size: var(--pm-text-sm);
             font-weight: var(--pm-font-semibold);
-            color: white;
+            color: var(--pm-text);
         }
 
         .pm-user-role {
             font-size: var(--pm-text-xs);
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--pm-text-muted);
         }
 
         .pm-dropdown-icon {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--pm-text-muted);
             font-size: 12px;
             transition: transform var(--pm-transition-fast);
         }
@@ -414,7 +415,7 @@
             top: var(--pm-header-height);
             width: var(--pm-sidebar-width);
             height: calc(100vh - var(--pm-header-height));
-            background: var(--pm-surface);
+            background: var(--pm-slate-50);
             border-right: 1px solid var(--pm-border);
             padding: var(--pm-space-5) 0;
             overflow-y: auto;
@@ -463,7 +464,7 @@
             border-radius: var(--pm-radius-lg);
             font-size: var(--pm-text-sm);
             font-weight: var(--pm-font-medium);
-            color: var(--pm-text-secondary);
+            color: var(--pm-slate-700);
             text-decoration: none;
             transition: all var(--pm-transition-fast);
         }
@@ -476,7 +477,7 @@
         .pm-nav-link.active {
             background: var(--pm-primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
         }
 
         .pm-nav-link i {
@@ -592,8 +593,7 @@
                         <i class="bi bi-building"></i>
                     </div>
                     <div class="pm-brand-text">
-                        <h1>Property Manager</h1>
-                        <p>@(displayRole == "Landlord" ? "Landlord Portal" : displayRole == "Technician" ? "Technician Portal" : "Tenant Portal")</p>
+                        <h1>PropertyPMS</h1>
                     </div>
                 </a>
             </div>
@@ -801,7 +801,7 @@
                     <div class="pm-nav-title">Resources</div>
                     <ul class="pm-nav-menu">
                         <li class="pm-nav-item">
-                            <a href="@Url.Action("MyDocuments", "Document")" class="pm-nav-link">
+                            <a href="@Url.Action("LandlordDocuments", "Document")" class="pm-nav-link">
                                 <i class="bi bi-folder2-open"></i>
                                 <span>Documents</span>
                             </a>
