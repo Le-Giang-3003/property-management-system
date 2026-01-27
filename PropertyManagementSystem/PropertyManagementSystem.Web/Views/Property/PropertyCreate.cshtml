@@ -38,8 +38,9 @@
                         Property Name
                         <span class="required">*</span>
                     </label>
-                    <input asp-for="Name" class="form-input" placeholder="E.g: 2BR Premium Apartment District 7" />
-                    <span asp-validation-for="Name" class="form-error"></span>
+                    <input asp-for="Name" class="form-input" placeholder="E.g: 2BR Premium Apartment District 7" 
+                           required maxlength="200" aria-describedby="name-error" />
+                    <span asp-validation-for="Name" class="form-error" id="name-error"></span>
                 </div>
 
                 <div class="form-row">
@@ -48,20 +49,21 @@
                             Property Type
                             <span class="required">*</span>
                         </label>
-                        <select asp-for="PropertyType" class="form-select">
+                        <select asp-for="PropertyType" class="form-select" required aria-describedby="propertytype-error">
                             <option value="">-- Select type --</option>
                             @foreach (var type in Model.PropertyTypes ?? new())
                             {
                                 <option value="@type.Value">@type.Text</option>
                             }
                         </select>
-                        <span asp-validation-for="PropertyType" class="form-error"></span>
+                        <span asp-validation-for="PropertyType" class="form-error" id="propertytype-error"></span>
                     </div>
 
                     <div class="form-group">
                         <label asp-for="AvailableFrom" class="form-label">Available From</label>
-                        <input asp-for="AvailableFrom" type="date" class="form-input" />
-                        <span asp-validation-for="AvailableFrom" class="form-error"></span>
+                        <input asp-for="AvailableFrom" type="date" class="form-input" 
+                               aria-describedby="availablefrom-error" />
+                        <span asp-validation-for="AvailableFrom" class="form-error" id="availablefrom-error"></span>
                     </div>
                 </div>
             </div>
@@ -174,20 +176,22 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label asp-for="RentAmount" class="form-label">
-                            Rent/Month ($)
+                            Rent/Month (₫)
                             <span class="required">*</span>
                         </label>
                         <div class="input-with-icon">
-                            <i class="bi bi-currency-dollar"></i>
-                            <input asp-for="RentAmount" type="number" step="100000" min="100000" class="form-input" placeholder="5,000,000" />
+                            <i class="bi bi-currency-dollar" aria-label="Vietnamese Dong"></i>
+                            <input asp-for="RentAmount" type="number" step="100000" min="100000" class="form-input" 
+                                   placeholder="5,000,000" aria-describedby="rentamount-error" />
                         </div>
-                        <span asp-validation-for="RentAmount" class="form-error"></span>
+                        <span asp-validation-for="RentAmount" class="form-error" id="rentamount-error"></span>
                     </div>
                     <div class="form-group">
-                        <label asp-for="DepositAmount" class="form-label">Deposit ($)</label>
+                        <label asp-for="DepositAmount" class="form-label">Deposit (₫)</label>
                         <div class="input-with-icon">
-                            <i class="bi bi-piggy-bank"></i>
-                            <input asp-for="DepositAmount" type="number" step="100000" min="0" class="form-input" placeholder="10,000,000" />
+                            <i class="bi bi-piggy-bank" aria-hidden="true"></i>
+                            <input asp-for="DepositAmount" type="number" step="100000" min="0" class="form-input" 
+                                   placeholder="10,000,000" aria-describedby="depositamount-error" />
                         </div>
                         <span asp-validation-for="DepositAmount" class="form-error"></span>
                     </div>

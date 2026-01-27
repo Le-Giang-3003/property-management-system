@@ -433,16 +433,22 @@
                     <img src="/images/hero-property.jpg" alt="Modern apartment building" 
                          onerror="this.style.display='none'; this.parentElement.querySelector('.pm-hero-stats').style.position='relative'; this.parentElement.querySelector('.pm-hero-stats').style.left='0'; this.parentElement.querySelector('.pm-hero-stats').style.bottom='0';" />
                     <div class="pm-hero-stats">
+                        @{
+                            // TODO: Replace hardcoded values with actual data from ViewBag or Model
+                            var totalProperties = ViewBag.TotalProperties as int? ?? 500;
+                            var totalTenants = ViewBag.TotalTenants as int? ?? 1200;
+                            var satisfactionRate = ViewBag.SatisfactionRate as decimal? ?? 98m;
+                        }
                         <div class="pm-hero-stat">
-                            <div class="pm-hero-stat-value">500+</div>
+                            <div class="pm-hero-stat-value">@totalProperties.ToString("N0")+</div>
                             <div class="pm-hero-stat-label">Properties</div>
                         </div>
                         <div class="pm-hero-stat">
-                            <div class="pm-hero-stat-value">1,200+</div>
+                            <div class="pm-hero-stat-value">@totalTenants.ToString("N0")+</div>
                             <div class="pm-hero-stat-label">Happy Tenants</div>
                         </div>
                         <div class="pm-hero-stat">
-                            <div class="pm-hero-stat-value">98%</div>
+                            <div class="pm-hero-stat-value">@satisfactionRate.ToString("F0")%</div>
                             <div class="pm-hero-stat-label">Satisfaction</div>
                         </div>
                     </div>

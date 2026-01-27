@@ -1,9 +1,16 @@
+@* 
+    Property Management View
+    Displays a list of properties with filtering, search, and management capabilities
+    Supports favorite functionality, status filtering, and property actions
+*@
 @using System.Security.Claims
 @model IEnumerable<PropertyManagementSystem.DAL.Entities.Property>
 
 @{
     ViewData["Title"] = "Property Management";
     Layout = "_AuthLayout";
+    
+    // Filter parameters from query string with null safety
     var city = ViewBag.City as string ?? "";
     var propertyType = ViewBag.PropertyType as string ?? "";
     var minRent = ViewBag.MinRent as decimal?;
@@ -12,10 +19,12 @@
     var hasFilters = !string.IsNullOrEmpty(city) || !string.IsNullOrEmpty(propertyType) || minRent.HasValue || maxRent.HasValue;
     var favoritePropertyIds = ViewBag.FavoritePropertyIds as HashSet<int> ?? new HashSet<int>();
 
+    // Get current user ID safely using TryParse to avoid FormatException
     var currentUserId = 0;
     if (User.Identity?.IsAuthenticated == true)
     {
-        currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(userIdClaim, out currentUserId);
     }
 }
 
@@ -61,8 +70,8 @@
             </h3>
             @if (hasFilters)
             {
-                <a asp-action="Index" class="btn-clear-filter">
-                    <i class="bi bi-x-circle"></i>
+                <a asp-action="Index" class="btn-clear-filter" aria-label="Clear all filters">
+                    <i class="bi bi-x-circle" aria-hidden="true"></i>
                     Clear Filter
                 </a>
             }
@@ -110,8 +119,8 @@
                 </div>
             </div>
             <div class="filter-actions">
-                <button type="submit" class="btn-search">
-                    <i class="bi bi-search"></i>
+                <button type="submit" class="btn-search" aria-label="Search properties">
+                    <i class="bi bi-search" aria-hidden="true"></i>
                     Search
                 </button>
             </div>
@@ -208,25 +217,28 @@
                                     {
                                         <button type="button"
                                                 class="btn-favorite @(isFavorited ? "active" : "")"
-                                                data-property-id="@item.PropertyId">
-                                            <i class="bi @(isFavorited ? "bi-heart-fill" : "bi-heart")"></i>
+                                                data-property-id="@item.PropertyId"
+                                                aria-label="@(isFavorited ? "Remove from favorites" : "Add to favorites")"
+                                                title="@(isFavorited ? "Remove from favorites" : "Add to favorites")">
+                                            <i class="bi @(isFavorited ? "bi-heart-fill" : "bi-heart")" aria-hidden="true"></i>
                                         </button>
                                     }
                                     else
                                     {
-                                        <span class="favorite-disabled" title="Sign in to favorite">
-                                            <i class="bi bi-heart"></i>
+                                        <span class="favorite-disabled" title="Sign in to favorite" aria-label="Sign in to favorite properties">
+                                            <i class="bi bi-heart" aria-hidden="true"></i>
                                         </span>
                                     }
                                 </td>
                                 <td class="col-name">
                                     <div class="property-info">
-                                        <a asp-action="Details" asp-route-id="@item.PropertyId" class="property-link">
-                                            @item.Name
+                                        <a asp-action="Details" asp-route-id="@item.PropertyId" class="property-link"
+                                           aria-label="View details for @Html.Raw(Html.Encode(item.Name ?? "property"))">
+                                            @Html.Raw(Html.Encode(item.Name ?? "Unnamed Property"))
                                         </a>
                                         <div class="property-address">
-                                            <i class="bi bi-geo-alt"></i>
-                                            @item.Address
+                                            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                                            @Html.Raw(Html.Encode(item.Address ?? ""))
                                             @if (!string.IsNullOrEmpty(item.City))
                                             {
                                                 <span class="address-detail">
@@ -235,8 +247,8 @@
                                             }
                                         </div>
                                         <div class="property-date">
-                                            <i class="bi bi-calendar"></i>
-                                            @item.CreatedAt.ToString("dd/MM/yyyy")
+                                            <i class="bi bi-calendar" aria-hidden="true"></i>
+                                            @FormatDateShort(item.CreatedAt)
                                         </div>
                                     </div>
                                 </td>
@@ -261,12 +273,12 @@
                                 </td>
                                 <td class="col-price">
                                     <div class="price-info">
-                                        <span class="price">@item.RentAmount.ToString("N0") ₫</span>
+                                        <span class="price">@FormatVNCurrency(item.RentAmount)</span>
                                         <span class="period">/month</span>
                                         @if (item.DepositAmount.HasValue)
                                         {
                                             <span class="deposit">
-                                                Deposit: @item.DepositAmount.Value.ToString("N0") $
+                                                Deposit: @FormatVNCurrency(item.DepositAmount.Value)
                                             </span>
                                         }
                                     </div>
@@ -280,27 +292,38 @@
                                     @if (item.Landlord != null)
                                     {
                                         <div class="landlord-info">
-                                            <strong>@item.Landlord.FullName</strong>
-                                            <span>@item.Landlord.Email</span>
+                                            <strong>@Html.Raw(Html.Encode(item.Landlord.FullName ?? "N/A"))</strong>
+                                            <span>@Html.Raw(Html.Encode(item.Landlord.Email ?? ""))</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="landlord-info">
+                                            <span class="text-muted">N/A</span>
                                         </div>
                                     }
                                 </td>
                                 <td class="col-actions">
                                     <div class="action-buttons">
                                         <a asp-action="Details" asp-route-id="@item.PropertyId"
-                                           class="btn-action view" title="View Details">
-                                            <i class="bi bi-eye"></i>
+                                           class="btn-action view" title="View Details"
+                                           aria-label="View details for property">
+                                            <i class="bi bi-eye" aria-hidden="true"></i>
                                         </a>
 
                                         @if (isOwner)
                                         {
                                             <a asp-action="Edit" asp-route-id="@item.PropertyId"
-                                               class="btn-action edit" title="Edit">
-                                                <i class="bi bi-pencil"></i>
+                                               class="btn-action edit" title="Edit"
+                                               aria-label="Edit property">
+                                                <i class="bi bi-pencil" aria-hidden="true"></i>
                                             </a>
                                             <a asp-action="Delete" asp-route-id="@item.PropertyId"
-                                               class="btn-action delete" title="Delete">
-                                                <i class="bi bi-trash3"></i>
+                                               class="btn-action delete" 
+                                               title="Delete property (requires confirmation)"
+                                               aria-label="Delete property"
+                                               onclick="return confirmDeleteProperty(event, '@Html.Raw(Html.Encode(item.Name ?? "this property"))');">
+                                                <i class="bi bi-trash3" aria-hidden="true"></i>
                                             </a>
                                         }
                                         else
@@ -310,14 +333,17 @@
                                                 <button type="button"
                                                         class="btn-action rent"
                                                         data-property-id="@item.PropertyId"
-                                                        title="Rent Now">
-                                                    <i class="bi bi-key"></i>
+                                                        title="Rent Now"
+                                                        aria-label="Rent this property">
+                                                    <i class="bi bi-key" aria-hidden="true"></i>
                                                 </button>
                                             }
                                             else
                                             {
-                                                <button type="button" class="btn-action disabled" disabled title="Unavailable">
-                                                    <i class="bi bi-ban"></i>
+                                                <button type="button" class="btn-action disabled" disabled 
+                                                        title="This property is currently unavailable for rent"
+                                                        aria-label="Property unavailable for rent">
+                                                    <i class="bi bi-ban" aria-hidden="true"></i>
                                                 </button>
                                             }
                                         }
@@ -331,8 +357,8 @@
         }
         else
         {
-            <div class="empty-state">
-                <div class="empty-icon">
+            <div class="empty-state" role="status" aria-live="polite">
+                <div class="empty-icon" aria-hidden="true">
                     <i class="bi bi-house-slash"></i>
                 </div>
                 <h3>
@@ -348,20 +374,29 @@
                 <p>
                     @if (hasFilters)
                     {
-                        <span>Try adjusting the filter or </span>
-                        <a asp-action="Index">clear filter</a>
+                        <span>Try adjusting your search criteria or </span>
+                        <a asp-action="Index" aria-label="Clear all filters">clear all filters</a>
+                        <span> to see more results.</span>
                     }
                     else
                     {
-                        <span>Start by posting a rental listing</span>
+                        <span>Get started by posting your first rental listing. It only takes a few minutes!</span>
                     }
                 </p>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a asp-action="Create" class="btn-explore">
-                        <i class="bi bi-plus-lg"></i>
+                    <a asp-action="Create" class="btn-explore" aria-label="Create new property listing">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
                         Post for Rent
                     </a>
+                }
+                else
+                {
+                    <p class="mt-3">
+                        <a asp-controller="Auth" asp-action="Login" class="btn-explore" aria-label="Sign in to post property">
+                            Sign In to Post Property
+                        </a>
+                    </p>
                 }
             </div>
         }
@@ -804,6 +839,7 @@
                 color: #1e40af;
             }
 
+            /* Status badge colors - consistent across all views */
             .badge.status.available {
                 background: #dcfce7;
                 color: #166534;
@@ -1065,9 +1101,10 @@
                         propertyId: propertyId,
                         __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                     },
+                    timeout: 10000,
                     success: function(response) {
                         btn.prop('disabled', false);
-                        if (response.success) {
+                        if (response && response.success) {
                             if (response.isFavorited) {
                                 btn.addClass('active');
                                 icon.removeClass('bi-heart').addClass('bi-heart-fill');
@@ -1079,34 +1116,85 @@
                                 toast: true,
                                 position: 'top-end',
                                 icon: 'success',
-                                title: response.message,
+                                title: response.message || 'Success',
                                 showConfirmButton: false,
                                 timer: 2000,
                                 timerProgressBar: true
                             });
                         } else {
-                            Swal.fire('Error', response.message, 'error');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response?.message || 'Failed to update favorite status'
+                            });
                         }
                     },
-                    error: function() {
+                    error: function(xhr, status, error) {
                         btn.prop('disabled', false);
-                        Swal.fire('Error', 'An error occurred', 'error');
+                        let errorMessage = 'An error occurred';
+                        if (status === 'timeout') {
+                            errorMessage = 'Request timeout. Please try again.';
+                        } else if (xhr.status === 0) {
+                            errorMessage = 'Network error. Please check your connection.';
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.statusText) {
+                            errorMessage = `Error: ${xhr.statusText}`;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMessage
+                        });
                     }
                 });
             });
 
-            // Rent now button
+            // Rent now button with confirmation
             $('.btn-action.rent').on('click', function() {
                 var propertyId = $(this).data('property-id');
+                var btn = $(this);
 
                 Swal.fire({
-                    icon: 'info',
-                    title: 'Rent Now',
-                    text: 'The property rental feature is under development',
-                    footer: `Property ID: ${propertyId}`,
-                    confirmButtonText: 'OK'
+                    icon: 'question',
+                    title: 'Rent This Property?',
+                    text: 'You will be redirected to the rental application form.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Continue to Application',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#6b7280'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Redirect to rental application
+                        window.location.href = '@Url.Action("Create", "RentalApplication")?propertyId=' + propertyId;
+                    }
                 });
             });
+
+            // Delete confirmation handler
+            window.confirmDeleteProperty = function(event, propertyName) {
+                event.preventDefault();
+                const deleteUrl = event.currentTarget.href;
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Delete Property?',
+                    html: `Are you sure you want to delete <strong>${propertyName}</strong>?<br><br>This action cannot be undone.`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Delete',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = deleteUrl;
+                    }
+                });
+
+                return false;
+            };
         });
 
         // Success/Error messages
@@ -1158,6 +1246,7 @@
 }
 
 @functions {
+    // Helper function to get status CSS class
     string GetStatusClass(string status) => status switch
     {
         "Available" => "available",
@@ -1166,6 +1255,7 @@
         _ => "unavailable"
     };
 
+    // Helper function to get status display text
     string GetStatusDisplay(string status) => status switch
     {
         "Available" => "Available",
@@ -1174,4 +1264,16 @@
         "Unavailable" => "Unavailable",
         _ => status
     };
+
+    // Helper function to format date in short format (dd/MM/yyyy)
+    string FormatDateShort(DateTime? date)
+    {
+        return date?.ToString("dd/MM/yyyy") ?? "N/A";
+    }
+
+    // Helper function to format currency in Vietnamese Dong
+    string FormatVNCurrency(decimal amount)
+    {
+        return amount.ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")) + " ₫";
+    }
 }

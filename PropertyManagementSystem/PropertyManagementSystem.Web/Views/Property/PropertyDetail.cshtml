@@ -10,24 +10,29 @@
                  ?? new List<PropertyManagementSystem.DAL.Entities.PropertyImage>();
     var sortedImages = images.OrderByDescending(i => i.IsThumbnail).ThenBy(i => i.DisplayOrder).ToList();
 
-    var currentUserId = User.Identity?.IsAuthenticated == true
-        ? int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0")
-        : 0;
+    var currentUserId = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(userIdClaim, out currentUserId);
+    }
     var isOwner = Model.LandlordId == currentUserId || User.IsInRole("Admin");
 }
 
 <div class="property-details-container">
     <!-- Header -->
     <div class="details-header">
-        <a asp-controller="Property" asp-action="SearchProperties" class="btn-back">
-            <i class="bi bi-arrow-left"></i>
+        <a asp-controller="Property" asp-action="SearchProperties" class="btn-back" 
+           aria-label="Back to properties list">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
             Back to Properties
         </a>
         @if (User.Identity?.IsAuthenticated == true)
         {
             <button type="button" class="btn-favorite @(isFavorited ? "active" : "")"
-                    data-property-id="@Model.PropertyId">
-                <i class="@(isFavorited ? "bi bi-heart-fill" : "bi bi-heart")"></i>
+                    data-property-id="@Model.PropertyId"
+                    aria-label="@(isFavorited ? "Remove from favorites" : "Add to favorites")">
+                <i class="@(isFavorited ? "bi bi-heart-fill" : "bi bi-heart")" aria-hidden="true"></i>
                 <span>@(isFavorited ? "Saved" : "Save")</span>
             </button>
         }
@@ -41,8 +46,9 @@
             {
                 <div class="single-image">
                     <img src="@sortedImages[0].ImageUrl"
-                         alt="@(sortedImages[0].Caption ?? Model.Name)"
-                         onclick="showImageModal('@sortedImages[0].ImageUrl', '@(sortedImages[0].Caption ?? Model.Name)')">
+                         alt="@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))"
+                         onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
+                         onclick="showImageModal('@Html.Raw(Html.Encode(sortedImages[0].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))')">
                     @if (sortedImages[0].IsThumbnail)
                     {
                         <div class="thumbnail-badge">
@@ -57,8 +63,9 @@
                 <div class="gallery-grid">
                     <div class="gallery-main">
                         <img src="@sortedImages[0].ImageUrl"
-                             alt="@(sortedImages[0].Caption ?? Model.Name)"
-                             onclick="showImageModal('@sortedImages[0].ImageUrl', '@(sortedImages[0].Caption ?? Model.Name)')">
+                             alt="@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))"
+                             onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
+                             onclick="showImageModal('@Html.Raw(Html.Encode(sortedImages[0].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))')">
                         @if (sortedImages[0].IsThumbnail)
                         {
                             <div class="thumbnail-badge">
@@ -72,8 +79,9 @@
                         {
                             <div class="gallery-item">
                                 <img src="@sortedImages[i].ImageUrl"
-                                     alt="@(sortedImages[i].Caption ?? Model.Name)"
-                                     onclick="showImageModal('@sortedImages[i].ImageUrl', '@(sortedImages[i].Caption ?? Model.Name)')">
+                                     alt="@Html.Raw(Html.Encode(sortedImages[i].Caption ?? Model.Name))"
+                                     onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
+                                     onclick="showImageModal('@Html.Raw(Html.Encode(sortedImages[i].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[i].Caption ?? Model.Name))')">
                                 @if (i == 4 && sortedImages.Count > 5)
                                 {
                                     <div class="more-overlay" data-bs-toggle="modal" data-bs-target="#allImagesModal">
@@ -181,7 +189,7 @@
                     </div>
                     <div class="section-content">
                         <h3>Description</h3>
-                        <p class="description-text">@Model.Description</p>
+                        <p class="description-text">@Html.Raw(Html.Encode(Model.Description))</p>
                     </div>
                 </div>
             }
@@ -207,14 +215,14 @@
                     {
                         <div class="amenity-list">
                             <strong>Features:</strong>
-                            <p>@Model.Amenities</p>
+                            <p>@Html.Raw(Html.Encode(Model.Amenities))</p>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(Model.UtilitiesIncluded))
                     {
                         <div class="amenity-list">
                             <strong>Utilities Included:</strong>
-                            <p>@Model.UtilitiesIncluded</p>
+                            <p>@Html.Raw(Html.Encode(Model.UtilitiesIncluded))</p>
                         </div>
                     }
                 </div>
@@ -222,10 +230,10 @@
 
             <!-- Timestamps -->
             <div class="timestamps">
-                <span><i class="bi bi-calendar-plus"></i> Listed: @Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                <span><i class="bi bi-calendar-plus" aria-hidden="true"></i> Listed: @FormatDate(Model.CreatedAt)</span>
                 @if (Model.UpdatedAt.HasValue)
                 {
-                    <span><i class="bi bi-clock-history"></i> Updated: @Model.UpdatedAt.Value.ToString("MMM dd, yyyy")</span>
+                    <span><i class="bi bi-clock-history" aria-hidden="true"></i> Updated: @FormatDate(Model.UpdatedAt)</span>
                 }
             </div>
         </div>
@@ -247,7 +255,7 @@
                 }
                 <div class="price-item">
                     <span>Available From</span>
-                    <strong>@Model.AvailableFrom?.ToString("MMM dd, yyyy")</strong>
+                    <strong>@FormatDate(Model.AvailableFrom)</strong>
                 </div>
             </div>
 
@@ -257,9 +265,9 @@
                 <div class="sidebar-card landlord-card">
                     <h4>Property Owner</h4>
                     <div class="landlord-info">
-                        <div class="landlord-avatar">@Model.Landlord.FullName.Substring(0, 1).ToUpper()</div>
+                        <div class="landlord-avatar">@(string.IsNullOrEmpty(Model.Landlord.FullName) ? "?" : Model.Landlord.FullName.Substring(0, Math.Min(1, Model.Landlord.FullName.Length)).ToUpper())</div>
                         <div class="landlord-details">
-                            <strong>@Model.Landlord.FullName</strong>
+                            <strong>@(Model.Landlord.FullName ?? "N/A")</strong>
                             <span><i class="bi bi-envelope"></i> @Model.Landlord.Email</span>
                             @if (!string.IsNullOrEmpty(Model.Landlord.PhoneNumber))
                             {
@@ -276,17 +284,23 @@
                 <div class="sidebar-card actions-card">
                     <h4>Management</h4>
                     <div class="action-buttons">
-                        <a asp-action="Edit" asp-route-id="@Model.PropertyId" class="btn-action edit">
-                            <i class="bi bi-pencil"></i> Edit Property
+                        <a asp-action="Edit" asp-route-id="@Model.PropertyId" class="btn-action edit" 
+                           aria-label="Edit property">
+                            <i class="bi bi-pencil" aria-hidden="true"></i> Edit Property
                         </a>
-                        <a asp-action="ManageImages" asp-route-id="@Model.PropertyId" class="btn-action images">
-                            <i class="bi bi-images"></i> Manage Images
+                        <a asp-action="ManageImages" asp-route-id="@Model.PropertyId" class="btn-action images"
+                           aria-label="Manage property images">
+                            <i class="bi bi-images" aria-hidden="true"></i> Manage Images
                         </a>
-                        <button type="button" class="btn-action status" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
-                            <i class="bi bi-arrow-repeat"></i> Change Status
+                        <button type="button" class="btn-action status" 
+                                data-bs-toggle="modal" data-bs-target="#changeStatusModal"
+                                aria-label="Change property status">
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Change Status
                         </button>
-                        <a asp-action="Delete" asp-route-id="@Model.PropertyId" class="btn-action delete">
-                            <i class="bi bi-trash3"></i> Delete Property
+                        <a asp-action="Delete" asp-route-id="@Model.PropertyId" class="btn-action delete"
+                           aria-label="Delete property"
+                           onclick="return confirmDeleteProperty(event, '@Html.Raw(Html.Encode(Model.Name ?? "this property"))');">
+                            <i class="bi bi-trash3" aria-hidden="true"></i> Delete Property
                         </a>
                     </div>
                 </div>
@@ -684,6 +698,7 @@
             font-weight: 600;
         }
 
+            /* Status badge colors - consistent with PropertyManagement view */
             .status-badge.available {
                 background: #dcfce7;
                 color: #166534;
@@ -1262,20 +1277,31 @@
         $('.btn-favorite').on('click', async function() {
             const propertyId = $(this).data('property-id');
             const btn = $(this);
+            const originalText = btn.find('span').text();
 
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
                 const response = await fetch('@Url.Action("ToggleFavorite", "Property")', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                     },
-                    body: `propertyId=${propertyId}`
+                    body: `propertyId=${propertyId}`,
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
 
                 const result = await response.json();
 
-                if (result.success) {
+                if (result && result.success) {
                     if (result.isFavorited) {
                         btn.addClass('active');
                         btn.find('i').removeClass('bi-heart').addClass('bi-heart-fill');
@@ -1285,9 +1311,16 @@
                         btn.find('i').removeClass('bi-heart-fill').addClass('bi-heart');
                         btn.find('span').text('Save');
                     }
+                } else {
+                    throw new Error(result?.message || 'Failed to update favorite status');
                 }
             } catch (error) {
                 console.error('Error:', error);
+                if (error.name === 'AbortError') {
+                    alert('Request timeout. Please try again.');
+                } else {
+                    alert(error.message || 'An error occurred. Please try again.');
+                }
             }
         });
 
@@ -1312,10 +1345,52 @@
                 }
             });
         }
+
+        // Delete confirmation handler
+        window.confirmDeleteProperty = function(event, propertyName) {
+            event.preventDefault();
+            const deleteUrl = event.currentTarget.href;
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Delete Property?',
+                html: `Are you sure you want to delete <strong>${propertyName}</strong>?<br><br>This action cannot be undone. All associated data will be permanently deleted.`,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = deleteUrl;
+                }
+            });
+
+            return false;
+        };
+
+        // Keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            // ESC to close modals
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal.show');
+                modals.forEach(modal => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) bsModal.hide();
+                });
+            }
+
+            // Enter key on buttons
+            if (e.key === 'Enter' && e.target.classList.contains('btn-action')) {
+                e.target.click();
+            }
+        });
     </script>
 }
 
 @functions {
+    // Helper function to get status CSS class
     string GetStatusClass(string status) => status switch
     {
         "Available" => "available",
@@ -1324,6 +1399,7 @@
         _ => "unavailable"
     };
 
+    // Helper function to get status display text
     string GetStatusDisplay(string status) => status switch
     {
         "Available" => "Available",
@@ -1333,8 +1409,21 @@
         _ => status
     };
 
+    // Helper function to format currency in Vietnamese Dong
     string FormatVNCurrency(decimal amount)
     {
         return amount.ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")) + " ₫";
+    }
+
+    // Helper function to format date consistently (MMM dd, yyyy format)
+    string FormatDate(DateTime? date)
+    {
+        return date?.ToString("MMM dd, yyyy") ?? "Not specified";
+    }
+
+    // Helper function to format date in short format (dd/MM/yyyy)
+    string FormatDateShort(DateTime? date)
+    {
+        return date?.ToString("dd/MM/yyyy") ?? "N/A";
     }
 }

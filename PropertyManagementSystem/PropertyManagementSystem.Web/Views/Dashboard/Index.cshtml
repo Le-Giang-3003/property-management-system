@@ -185,7 +185,10 @@
                                     <div class="pm-lease-image">
                                         @if (!string.IsNullOrEmpty(lease.PropertyImageUrl))
                                         {
-                                            <img src="@lease.PropertyImageUrl" alt="@lease.PropertyName" />
+                                            <img src="@Html.Raw(Html.Encode(lease.PropertyImageUrl))" 
+                                                 alt="@Html.Raw(Html.Encode(lease.PropertyName ?? "Property"))"
+                                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                            <i class="bi bi-building" style="display: none;"></i>
                                         }
                                         else
                                         {

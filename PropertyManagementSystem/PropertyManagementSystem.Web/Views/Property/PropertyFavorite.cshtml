@@ -7,7 +7,8 @@
     var currentUserId = 0;
     if (User.Identity?.IsAuthenticated == true)
     {
-        currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(userIdClaim, out currentUserId);
     }
 }
 

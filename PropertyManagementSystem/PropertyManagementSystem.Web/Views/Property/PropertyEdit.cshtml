@@ -1,11 +1,22 @@
+@* 
+    Property Edit View
+    Allows landlords to edit property details, upload images, and manage property information
+    Includes drag-and-drop image upload, form validation, and error handling
+*@
 @model PropertyManagementSystem.DAL.Entities.Property
 
 @{
     ViewData["Title"] = "Chỉnh sửa BDS";
-    var propertyTypes = ViewBag.PropertyTypes as List<SelectListItem> ?? new();
-    var documents = ViewBag.Documents as IEnumerable<PropertyManagementSystem.DAL.Entities.Document> ?? new List<PropertyManagementSystem.DAL.Entities.Document>();
-    var images = documents.Where(d => d.FileType.ToLower() is "jpg" or "jpeg" or "png" or "webp").ToList();
     Layout = "_AuthLayout";
+    
+    // Get property types from ViewBag with null safety
+    var propertyTypes = ViewBag.PropertyTypes as List<SelectListItem> ?? new();
+    
+    // Get documents and filter for images only (with null safety check)
+    var documents = ViewBag.Documents as IEnumerable<PropertyManagementSystem.DAL.Entities.Document> 
+        ?? new List<PropertyManagementSystem.DAL.Entities.Document>();
+    var images = documents.Where(d => !string.IsNullOrEmpty(d.FileType) && 
+        d.FileType.ToLower() is "jpg" or "jpeg" or "png" or "webp").ToList();
 }
 
 <div class="container mt-4">
@@ -62,8 +73,10 @@
                         <span class="badge badge-info">@images.Count</span>
                     }
                 </h5>
-                <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('quickUploadInput').click()">
-                    <i class="fas fa-cloud-upload"></i> Upload hình ảnh
+                <button type="button" class="btn btn-sm btn-primary" 
+                        onclick="document.getElementById('quickUploadInput').click()"
+                        aria-label="Upload property images">
+                    <i class="fas fa-cloud-upload" aria-hidden="true"></i> Upload hình ảnh
                 </button>
             </div>
         </div>
@@ -75,21 +88,28 @@
                     {
                         <div class="col-md-2 col-sm-3 col-4 mb-3">
                             <div class="card h-100 shadow-sm">
-                                <img src="@doc.FileUrl" class="card-img-top" alt="@doc.FileName"
+                                <img src="@Html.Raw(Html.Encode(doc.FileUrl ?? ""))" 
+                                     class="card-img-top" 
+                                     alt="@Html.Raw(Html.Encode(doc.FileName ?? "Image"))"
                                      style="height: 150px; object-fit: cover; cursor: pointer;"
-                                     onclick="showImage('@doc.FileUrl', '@doc.FileName')">
+                                     onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
+                                     onclick="showImage('@Html.Raw(Html.Encode(doc.FileUrl ?? ""))', '@Html.Raw(Html.Encode(doc.FileName ?? "Image"))')">
                                 <div class="card-body p-2">
                                     <small class="text-muted d-block text-truncate" title="@doc.FileName">
                                         @doc.FileName
                                     </small>
                                     <div class="btn-group btn-group-sm w-100 mt-1">
                                         <a href="@Url.Action("Download", "Document", new { id = doc.DocumentId })"
-                                           class="btn btn-outline-primary btn-sm" title="Tải xuống">
-                                            <i class="fas fa-download"></i>
+                                           class="btn btn-outline-primary btn-sm" 
+                                           title="Tải xuống"
+                                           aria-label="Download @Html.Raw(Html.Encode(doc.FileName ?? "file"))">
+                                            <i class="fas fa-download" aria-hidden="true"></i>
                                         </a>
                                         <button type="button" class="btn btn-outline-danger btn-sm"
-                                                onclick="deleteImage(@doc.DocumentId, '@doc.FileName')" title="Xóa">
-                                            <i class="fas fa-trash"></i>
+                                                onclick="deleteImage(@doc.DocumentId, '@Html.Raw(Html.Encode(doc.FileName ?? "image"))')" 
+                                                title="Xóa"
+                                                aria-label="Delete @Html.Raw(Html.Encode(doc.FileName ?? "image"))">
+                                            <i class="fas fa-trash" aria-hidden="true"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -137,16 +157,25 @@
                 <div class="row">
                     <div class="col-lg-8">
                         <div class="form-group">
-                            <label asp-for="Name">Tên BDS <span class="text-danger">*</span></label>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger"></span>
+                            <label asp-for="Name">
+                                Tên BDS <span class="text-danger">*</span>
+                                <i class="bi bi-info-circle text-muted" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="Enter a descriptive name for your property (e.g., '2BR Premium Apartment District 7')"
+                                   aria-label="Property name help"></i>
+                            </label>
+                            <input asp-for="Name" class="form-control" required maxlength="200" 
+                                   aria-describedby="name-error" aria-required="true" />
+                            <span asp-validation-for="Name" class="text-danger" id="name-error"></span>
                         </div>
                     </div>
                     <div class="col-lg-4">
                         <div class="form-group">
                             <label asp-for="PropertyType">Loại BDS <span class="text-danger">*</span></label>
-                            <select asp-for="PropertyType" class="form-control" asp-items="propertyTypes"></select>
-                            <span asp-validation-for="PropertyType" class="text-danger"></span>
+                            <select asp-for="PropertyType" class="form-control" asp-items="propertyTypes" 
+                                    required aria-describedby="propertytype-error" aria-required="true"></select>
+                            <span asp-validation-for="PropertyType" class="text-danger" id="propertytype-error"></span>
                         </div>
                     </div>
                 </div>
@@ -359,7 +388,7 @@
             input.value = '';
         }
 
-        // Upload files
+        // Upload files with improved error handling
         async function uploadFiles(files) {
             const formData = new FormData();
 
@@ -370,6 +399,27 @@
             formData.append('entityId', '@Model.PropertyId');
             formData.append('documentType', 'Image');
 
+            const uploadWithTimeout = async (url, formData, timeout = 60000) => {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    return response;
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        throw new Error('Upload timeout. Please try again.');
+                    }
+                    throw error;
+                }
+            };
+
             try {
                 Swal.fire({
                     title: 'Đang upload...',
@@ -378,64 +428,133 @@
                     didOpen: () => { Swal.showLoading(); }
                 });
 
-                const response = await fetch('@Url.Action("UploadAjax", "Document")', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await uploadWithTimeout('@Url.Action("UploadAjax", "Document")', formData);
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    let errorMessage = 'Upload failed';
+                    try {
+                        const errorData = JSON.parse(text);
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch {
+                        errorMessage = text || `Server returned ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
 
                 const text = await response.text();
-
-                if (response.ok) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công!',
-                        text: 'Upload hình ảnh thành công',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    location.reload();
-                } else {
-                    throw new Error(text);
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch {
+                    result = { success: true, message: 'Upload thành công' };
                 }
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: result.message || 'Upload hình ảnh thành công',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                location.reload();
             } catch (error) {
                 console.error('Upload error:', error);
+                let errorMessage = 'Đã xảy ra lỗi khi upload. Vui lòng thử lại.';
+                
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (error instanceof TypeError && error.message.includes('fetch')) {
+                    errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.';
+                }
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi!',
-                    text: error.message
+                    text: errorMessage,
+                    confirmButtonText: 'Đóng'
                 });
             }
         }
 
-        // Drag and drop
-        const dropZone = document.getElementById('dropZone');
-        if (dropZone) {
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }, false);
-            });
+        // Drag and drop with proper cleanup
+        let dropZone = null;
+        let eventHandlers = {};
 
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => {
-                    dropZone.classList.add('border-primary', 'bg-light');
-                }, false);
-            });
+        function setupDragAndDrop() {
+            dropZone = document.getElementById('dropZone');
+            if (!dropZone) return;
 
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => {
-                    dropZone.classList.remove('border-primary', 'bg-light');
-                }, false);
-            });
+            const preventDefaults = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            };
 
-            dropZone.addEventListener('drop', (e) => {
+            const handleDragEnter = () => {
+                dropZone.classList.add('border-primary', 'bg-light');
+            };
+
+            const handleDragLeave = () => {
+                dropZone.classList.remove('border-primary', 'bg-light');
+            };
+
+            const handleDrop = (e) => {
+                dropZone.classList.remove('border-primary', 'bg-light');
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
                     uploadFiles(files);
                 }
+            };
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                const handler = preventDefaults;
+                dropZone.addEventListener(eventName, handler, false);
+                if (!eventHandlers[eventName]) eventHandlers[eventName] = [];
+                eventHandlers[eventName].push({ element: dropZone, handler: handler });
             });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                const handler = handleDragEnter;
+                dropZone.addEventListener(eventName, handler, false);
+                if (!eventHandlers[eventName]) eventHandlers[eventName] = [];
+                eventHandlers[eventName].push({ element: dropZone, handler: handler });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                const handler = handleDragLeave;
+                dropZone.addEventListener(eventName, handler, false);
+                if (!eventHandlers[eventName]) eventHandlers[eventName] = [];
+                eventHandlers[eventName].push({ element: dropZone, handler: handler });
+            });
+
+            const dropHandler = handleDrop;
+            dropZone.addEventListener('drop', dropHandler, false);
+            if (!eventHandlers['drop']) eventHandlers['drop'] = [];
+            eventHandlers['drop'].push({ element: dropZone, handler: dropHandler });
         }
+
+        function cleanupDragAndDrop() {
+            if (eventHandlers) {
+                Object.keys(eventHandlers).forEach(eventName => {
+                    eventHandlers[eventName].forEach(({ element, handler }) => {
+                        if (element && handler) {
+                            element.removeEventListener(eventName, handler, false);
+                        }
+                    });
+                });
+                eventHandlers = {};
+            }
+        }
+
+        // Setup on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupDragAndDrop);
+        } else {
+            setupDragAndDrop();
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', cleanupDragAndDrop);
 
         // Show image
         function showImage(url, filename) {
@@ -489,6 +608,31 @@
         // Money input
         $('.money-input').on('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            // ESC to close modals
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal.show');
+                modals.forEach(modal => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) bsModal.hide();
+                });
+            }
+
+            // Ctrl+S to save form
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                const submitBtn = document.querySelector('form button[type="submit"]');
+                if (submitBtn) submitBtn.click();
+            }
         });
     </script>
 }

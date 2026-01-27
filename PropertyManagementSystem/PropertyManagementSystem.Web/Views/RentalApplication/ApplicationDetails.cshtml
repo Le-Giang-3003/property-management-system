@@ -4,7 +4,9 @@
     Layout = "_AuthLayout";
     
     // ✅ VALIDATE: Chỉ cho approve/reject nếu Property thuộc về user này
-    var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+    var userId = 0;
+    var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    int.TryParse(userIdClaim, out userId);
     var isPropertyOwner = Model.Property?.LandlordId == userId;
     var canUpdate = isPropertyOwner && Model.Status == "Pending";
 

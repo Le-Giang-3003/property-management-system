@@ -3,7 +3,9 @@
 @{
     ViewData["Title"] = "Request Details";
     Layout = "_AuthLayout";
-    var currentUserId = int.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier));
+    var currentUserId = 0;
+    var userIdClaim = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+    int.TryParse(userIdClaim, out currentUserId);
     var isTenant = Model.RequestedBy == currentUserId;
     var isLandlord = User.IsInRole("Landlord") || User.IsInRole("Member");
     var isTechnician = User.IsInRole("Technician");
