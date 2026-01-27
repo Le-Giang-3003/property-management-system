@@ -8,4 +8,6 @@ public interface IPaymentService
     Task<List<InvoiceDto>> GetAvailableInvoicesAsync(int tenantId);
     Task<List<PaymentDto>> GetPaymentHistoryAsync(int tenantId);
     Task<PaymentDto?> GetPaymentByIdAsync(int paymentId);
+    Task<List<LandlordPaymentDto>> GetPaymentsByLandlordIdAsync(int landlordId);
+    Task<bool> ConfirmPaymentAsync(int paymentId, int landlordId);
 }

@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.BLL.DTOs.Invoice;
+using PropertyManagementSystem.BLL.DTOs.Invoice;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -46,6 +46,12 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             existing.RemainingAmount = dto.RemainingAmount;
             existing.Status = dto.Status;
             existing.UpdatedAt = DateTime.UtcNow;
+            
+            // Tự động set PaidDate khi invoice được thanh toán đầy đủ
+            if (dto.Status == "Paid" && dto.RemainingAmount <= 0 && !existing.PaidDate.HasValue)
+            {
+                existing.PaidDate = DateTime.UtcNow;
+            }
 
             var updated = await _invoiceRepository.UpdateInvoiceAsync(existing);
             return updated == null ? null : MapToDto(updated);

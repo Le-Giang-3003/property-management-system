@@ -108,6 +108,95 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return MapToDto(payment, null);
         }
 
+        public async Task<List<LandlordPaymentDto>> GetPaymentsByLandlordIdAsync(int landlordId)
+        {
+            var payments = await _paymentRepository.GetByLandlordIdAsync(landlordId);
+            if (payments == null || !payments.Any())
+                return new List<LandlordPaymentDto>();
+
+            return payments.Select(p => MapToLandlordDto(p)).ToList();
+        }
+
+        public async Task<bool> ConfirmPaymentAsync(int paymentId, int landlordId)
+        {
+            var payment = await _paymentRepository.GetPaymentByIdAsync(paymentId);
+            if (payment == null)
+                throw new Exception("Payment not found.");
+
+            // Verify that this payment belongs to landlord's property
+            if (payment.Invoice?.Lease?.Property?.LandlordId != landlordId)
+                throw new Exception("You don't have permission to confirm this payment.");
+
+            if (payment.Status == "Confirmed")
+                throw new Exception("Payment is already confirmed.");
+
+            payment.Status = "Confirmed";
+            payment.ConfirmedAt = DateTime.UtcNow;
+            payment.ProcessedBy = landlordId;
+
+            var updateResult = await _paymentRepository.UpdateAsync(payment);
+            if (!updateResult)
+                throw new Exception("Failed to update payment.");
+
+            // Update invoice status if needed
+            if (payment.Invoice != null)
+            {
+                var invoice = await _invoiceService.GetInvoiceByIdAsync(payment.InvoiceId);
+                if (invoice != null)
+                {
+                    // Recalculate paid amount
+                    var allPayments = await _paymentRepository.GetPaymentsByInvoiceIdAsync(payment.InvoiceId);
+                    var totalPaid = allPayments.Where(p => p.Status == "Confirmed").Sum(p => p.Amount);
+                    
+                    invoice.PaidAmount = totalPaid;
+                    invoice.RemainingAmount = invoice.TotalAmount - invoice.PaidAmount;
+
+                    if (invoice.RemainingAmount <= 0)
+                    {
+                        invoice.Status = "Paid";
+                    }
+                    else if (invoice.PaidAmount > 0)
+                    {
+                        invoice.Status = "PartiallyPaid";
+                    }
+
+                    await _invoiceService.UpdateInvoiceAsync(invoice);
+                }
+            }
+
+            return true;
+        }
+
+        private static LandlordPaymentDto MapToLandlordDto(Payment payment)
+        {
+            var invoice = payment.Invoice;
+            var lease = invoice?.Lease;
+            var property = lease?.Property;
+            var tenant = lease?.Tenant;
+
+            return new LandlordPaymentDto
+            {
+                PaymentId = payment.PaymentId,
+                PaymentNumber = payment.PaymentNumber,
+                InvoiceId = payment.InvoiceId,
+                InvoiceNumber = invoice?.InvoiceNumber ?? $"INV-{payment.InvoiceId}",
+                TenantId = tenant?.UserId ?? 0,
+                TenantName = tenant?.FullName ?? "Unknown",
+                PropertyId = property?.PropertyId ?? 0,
+                PropertyName = property?.Name ?? "Unknown Property",
+                PropertyAddress = property?.Address ?? "",
+                Amount = payment.Amount,
+                PaymentMethod = payment.PaymentMethod ?? "Unknown",
+                PaymentDate = payment.PaymentDate,
+                PaidDate = payment.ConfirmedAt,
+                DueDate = invoice?.DueDate ?? DateTime.MinValue,
+                Status = payment.Status ?? "Unknown",
+                InvoiceTotalAmount = invoice?.TotalAmount ?? 0,
+                InvoicePaidAmount = invoice?.PaidAmount ?? 0,
+                InvoiceRemainingAmount = invoice?.RemainingAmount ?? 0
+            };
+        }
+
         private static PaymentDto MapToDto(Payment payment, InvoiceDto? invoiceDto)
         {
             return new PaymentDto

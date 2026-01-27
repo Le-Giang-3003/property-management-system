@@ -51,5 +51,29 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .ToListAsync();
         }
 
+        public async Task<List<Payment>> GetByLandlordIdAsync(int landlordId)
+        {
+            return await _context.Payments
+                .Include(p => p.Invoice)
+                    .ThenInclude(i => i.Lease)
+                        .ThenInclude(l => l.Property)
+                .Include(p => p.Invoice)
+                    .ThenInclude(i => i.Lease)
+                        .ThenInclude(l => l.Tenant)
+                .Where(p => p.Invoice != null && 
+                           p.Invoice.Lease != null && 
+                           p.Invoice.Lease.Property != null &&
+                           p.Invoice.Lease.Property.LandlordId == landlordId)
+                .OrderByDescending(p => p.PaymentDate)
+                .ToListAsync();
+        }
+
+        public async Task<bool> UpdateAsync(Payment payment)
+        {
+            _context.Payments.Update(payment);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
+
     }
 }

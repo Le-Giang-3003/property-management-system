@@ -31,6 +31,15 @@ namespace PropertyManagementSystem.Web.Controllers
 
         public async Task<IActionResult> Index([FromQuery] PropertySearchDto searchDto)
         {
+            // If user is landlord, redirect to MyProperties
+            if (User.IsInRole("Landlord") || (User.IsInRole("Member") && !User.IsInRole("Tenant")))
+            {
+                return RedirectToAction(nameof(MyProperties));
+            }
+
+            // Set PortalMode for tenant view
+            ViewData["PortalMode"] = "Tenant";
+
             IEnumerable<Property> properties;
 
             try
@@ -229,6 +238,12 @@ namespace PropertyManagementSystem.Web.Controllers
 
                     await _propertyService.AddPropertyAsync(property);
                     TempData["Success"] = $"Property '{property.Name}' created successfully!";
+                    
+                    // Redirect to MyProperties if user is landlord, otherwise Index
+                    if (User.IsInRole("Landlord") || User.IsInRole("Member"))
+                    {
+                        return RedirectToAction(nameof(MyProperties));
+                    }
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -741,6 +756,9 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> MyProperties()
         {
+            // Set PortalMode for landlord
+            ViewData["PortalMode"] = "Landlord";
+
             try
             {
                 var userId = GetCurrentUserId();

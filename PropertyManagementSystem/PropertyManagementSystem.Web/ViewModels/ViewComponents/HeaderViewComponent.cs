@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace PropertyManagementSystem.Web.ViewComponents
+namespace PropertyManagementSystem.Web.ViewModels.ViewComponents
 {
     public class HeaderViewComponent : ViewComponent
     {

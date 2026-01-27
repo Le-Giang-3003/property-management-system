@@ -29,6 +29,13 @@ namespace PropertyManagementSystem.Web.Controllers
             return null;
         }
 
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst("UserId")?.Value ??
+                         User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.Parse(userIdClaim ?? "0");
+        }
+
         private async Task<MakePaymentViewModel> PrepareViewModelAsync(MakePaymentViewModel? existingVm = null)
         {
             var tenantId = GetTenantId();
@@ -212,6 +219,135 @@ namespace PropertyManagementSystem.Web.Controllers
 
             var bytes = System.Text.Encoding.UTF8.GetBytes(receiptContent);
             return File(bytes, "text/plain", $"receipt-{payment.PaymentId}.txt");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LandlordIndex()
+        {
+            ViewData["PortalMode"] = "Landlord";
+            var landlordId = GetCurrentUserId();
+            if (landlordId <= 0)
+            {
+                TempData["ErrorMessage"] = "Please log in";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var payments = await _paymentService.GetPaymentsByLandlordIdAsync(landlordId);
+            
+            var viewModel = new LandlordPaymentManagementViewModel
+            {
+                Payments = payments
+            };
+
+            // Calculate summary statistics
+            var now = DateTime.Now;
+            var currentMonth = now.Month;
+            var currentYear = now.Year;
+            var lastMonth = now.AddMonths(-1);
+
+            // Total Collected (all confirmed payments)
+            viewModel.TotalCollected = payments
+                .Where(p => p.Status == "Confirmed")
+                .Sum(p => p.Amount);
+
+            // Pending Payments (pending status)
+            viewModel.PendingPayments = payments
+                .Where(p => p.Status == "Pending")
+                .Sum(p => p.Amount);
+
+            // Overdue (invoices with due date passed and not paid)
+            viewModel.Overdue = payments
+                .Where(p => p.DueDate < now && p.Status != "Confirmed")
+                .Sum(p => p.Amount);
+
+            // This Month (confirmed payments in current month)
+            viewModel.ThisMonth = payments
+                .Where(p => p.Status == "Confirmed" && 
+                           p.PaidDate.HasValue &&
+                           p.PaidDate.Value.Year == currentYear &&
+                           p.PaidDate.Value.Month == currentMonth)
+                .Sum(p => p.Amount);
+
+            // Calculate change percentages (simplified - compare with last month)
+            var lastMonthTotal = payments
+                .Where(p => p.Status == "Confirmed" && 
+                           p.PaidDate.HasValue &&
+                           p.PaidDate.Value.Year == lastMonth.Year &&
+                           p.PaidDate.Value.Month == lastMonth.Month)
+                .Sum(p => p.Amount);
+
+            var lastMonthThisMonth = payments
+                .Where(p => p.Status == "Confirmed" && 
+                           p.PaidDate.HasValue &&
+                           p.PaidDate.Value.Year == lastMonth.Year &&
+                           p.PaidDate.Value.Month == lastMonth.Month)
+                .Sum(p => p.Amount);
+
+            if (lastMonthTotal > 0)
+            {
+                viewModel.TotalCollectedChangePercent = ((viewModel.TotalCollected - lastMonthTotal) / lastMonthTotal) * 100;
+            }
+
+            if (lastMonthThisMonth > 0)
+            {
+                viewModel.ThisMonthChangePercent = ((viewModel.ThisMonth - lastMonthThisMonth) / lastMonthThisMonth) * 100;
+            }
+
+            // Calculate monthly revenue for last 6 months
+            var months = new[] { "Aug", "Sep", "Oct", "Nov", "Dec", "Jan" };
+            var monthNames = new[] { "August", "September", "October", "November", "December", "January" };
+            var currentMonthIndex = now.Month - 1; // 0-based
+
+            for (int i = 0; i < 6; i++)
+            {
+                var targetDate = now.AddMonths(-(5 - i));
+                var monthRevenue = payments
+                    .Where(p => p.Status == "Confirmed" &&
+                               p.PaidDate.HasValue &&
+                               p.PaidDate.Value.Year == targetDate.Year &&
+                               p.PaidDate.Value.Month == targetDate.Month)
+                    .Sum(p => p.Amount);
+
+                viewModel.MonthlyRevenue.Add(new MonthlyRevenueData
+                {
+                    Month = months[i],
+                    Amount = monthRevenue
+                });
+            }
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ConfirmPayment([FromBody] ConfirmPaymentRequest request)
+        {
+            ViewData["PortalMode"] = "Landlord";
+            var landlordId = GetCurrentUserId();
+            if (landlordId <= 0)
+            {
+                return Json(new { success = false, message = "Please log in" });
+            }
+
+            try
+            {
+                var result = await _paymentService.ConfirmPaymentAsync(request.PaymentId, landlordId);
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "Payment confirmed successfully.";
+                    return Json(new { success = true, message = "Payment confirmed successfully." });
+                }
+                return Json(new { success = false, message = "Failed to confirm payment." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class ConfirmPaymentRequest
+        {
+            public int PaymentId { get; set; }
         }
 
         [HttpGet]

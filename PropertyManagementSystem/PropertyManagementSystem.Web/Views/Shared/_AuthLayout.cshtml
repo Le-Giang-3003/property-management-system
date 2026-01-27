@@ -37,7 +37,7 @@
             "PropertyViewing/ManageViewings",
             "PropertyViewing/PendingRequest",
             "Invoice/Index",
-            "Payment/History",
+            "Payment/LandlordIndex",
             "Document/MyDocuments"
         };
 
@@ -777,7 +777,7 @@
                     <div class="pm-nav-title">Finance & Operations</div>
                     <ul class="pm-nav-menu">
                         <li class="pm-nav-item">
-                            <a href="@Url.Action("History", "Payment")" class="pm-nav-link">
+                            <a href="@Url.Action("LandlordIndex", "Payment")" class="pm-nav-link">
                                 <i class="bi bi-cash-stack"></i>
                                 <span>Payments</span>
                             </a>
@@ -893,12 +893,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             const currentPath = window.location.pathname.toLowerCase();
             const navLinks = document.querySelectorAll('.pm-nav-link');
+            const isLandlord = '@displayRole' === 'Landlord';
 
             navLinks.forEach(link => {
                 const linkPath = link.getAttribute('href')?.toLowerCase();
                 if (linkPath && currentPath === linkPath) {
                     link.classList.add('active');
                 } else if (linkPath && currentPath.startsWith(linkPath) && linkPath !== '/') {
+                    link.classList.add('active');
+                }
+                // Special case: Property/Index should highlight MyProperties for landlord
+                else if (isLandlord && linkPath && linkPath.includes('/property/myproperties') && 
+                         (currentPath.includes('/property/index') || currentPath.includes('/property/myproperties'))) {
                     link.classList.add('active');
                 }
             });
