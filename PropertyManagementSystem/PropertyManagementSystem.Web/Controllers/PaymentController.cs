@@ -5,6 +5,7 @@ using PropertyManagementSystem.BLL.DTOs.Invoice;
 using PropertyManagementSystem.Web.ViewModels.Payment;
 using QRCoder;
 using System.Drawing.Imaging;
+using System.Security.Claims;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
@@ -102,15 +103,49 @@ namespace PropertyManagementSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> History()
         {
-            ViewData["PortalMode"] = "Tenant";
+            // Since system only has Admin, Member, Technician roles (no Landlord role),
+            // detect portal mode based on context/referer or route
+            var referer = Request.Headers["Referer"].ToString();
+            var isFromLandlordContext = !string.IsNullOrEmpty(referer) && (
+                referer.Contains("LandlordIndex") || 
+                referer.Contains("MyProperties") ||
+                referer.Contains("ManageViewings") ||
+                referer.Contains("Invoice/Index") ||
+                referer.Contains("Dashboard/LandlordIndex") ||
+                referer.Contains("Property/MyProperties") ||
+                referer.Contains("PropertyViewing/ManageViewings")
+            );
+            
+            // Also check if current route is typically accessed from landlord portal
+            // Payment/History is in landlordPages, so if accessed directly, assume landlord context
+            // But we need to distinguish: if user has tenantId, they might be accessing as tenant
             var tenantId = GetTenantId();
-            if (!tenantId.HasValue)
+            var hasTenantId = tenantId.HasValue;
+            
+            // If coming from landlord context OR (no referer and has tenantId means likely tenant access)
+            // Actually, better: if has tenantId and NOT from landlord context, treat as tenant
+            if (isFromLandlordContext)
             {
-                return RedirectToAction("Login", "Auth");
+                ViewData["PortalMode"] = "Landlord";
+                // For landlord, return empty list for now
+                // TODO: Implement landlord payment view to show payments from their properties
+                return View(new List<PaymentDto>());
             }
-
-            var history = await _paymentService.GetPaymentHistoryAsync(tenantId.Value);
-            return View(history);
+            else if (hasTenantId)
+            {
+                // Has tenantId and not from landlord context = tenant access
+                ViewData["PortalMode"] = "Tenant";
+                var history = await _paymentService.GetPaymentHistoryAsync(tenantId.Value);
+                return View(history);
+            }
+            else
+            {
+                // No referer and no tenantId - could be landlord accessing directly
+                // Let _AuthLayout detect from route (Payment/History is in landlordPages)
+                // But return empty for now
+                ViewData["PortalMode"] = "Landlord";
+                return View(new List<PaymentDto>());
+            }
         }
 
         [HttpGet]

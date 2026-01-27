@@ -34,9 +34,11 @@
             "Lease/Terminate",
             "Lease/Renew",
             "Maintenance/LandlordIndex",
-            "PropertyViewing/ManageViewing",
+            "PropertyViewing/ManageViewings",
             "PropertyViewing/PendingRequest",
-            "Invoice/Index"
+            "Invoice/Index",
+            "Payment/History",
+            "Document/MyDocuments"
         };
 
         // Tenant pages detection
@@ -49,13 +51,13 @@
             "RentalApplication/MyApplications",
             "RentalApplication/Create",
             "Lease/MyLeases",
-            "Payment/History",
             "Payment/MakePayment",
             "Maintenance/TenantIndex",
             "Maintenance/CreateRequest",
             "PropertyViewing/MyViewings",
-            "PropertyViewing/Request",
-            "Document/MyDocuments"
+            "PropertyViewing/Request"
+            // Note: Payment/History and Document/MyDocuments are shared between Tenant and Landlord
+            // PortalMode is set by controller based on role
         };
 
         var currentPage = $"{currentController}/{currentAction}";
@@ -763,7 +765,7 @@
                             </a>
                         </li>
                         <li class="pm-nav-item">
-                            <a href="@Url.Action("ManageViewing", "PropertyViewing")" class="pm-nav-link">
+                            <a href="@Url.Action("ManageViewings", "PropertyViewing")" class="pm-nav-link">
                                 <i class="bi bi-calendar-event"></i>
                                 <span>Viewing Schedule</span>
                             </a>

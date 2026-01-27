@@ -70,7 +70,7 @@ app.MapControllerRoute(
     pattern: "{controller=Auth}/{action=Login}/{id?}");
 
 
-//Thiên Start Route
+//Thiï¿½n Start Route
 //app.MapControllerRoute(
 //    name: "default",
 //    pattern: "{controller=Maintenance}/{action=TenantIndex}");

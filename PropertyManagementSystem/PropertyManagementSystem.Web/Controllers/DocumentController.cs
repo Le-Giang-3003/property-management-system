@@ -304,6 +304,31 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             try
             {
+                // Since system only has Admin, Member, Technician roles (no Landlord role),
+                // detect portal mode based on context/referer
+                var referer = Request.Headers["Referer"].ToString();
+                var isFromLandlordContext = !string.IsNullOrEmpty(referer) && (
+                    referer.Contains("LandlordIndex") || 
+                    referer.Contains("MyProperties") ||
+                    referer.Contains("ManageViewings") ||
+                    referer.Contains("Invoice/Index") ||
+                    referer.Contains("Dashboard/LandlordIndex") ||
+                    referer.Contains("Property/MyProperties") ||
+                    referer.Contains("PropertyViewing/ManageViewings")
+                );
+                
+                if (isFromLandlordContext)
+                {
+                    ViewData["PortalMode"] = "Landlord";
+                }
+                else
+                {
+                    // If not from landlord context, default to Tenant
+                    // But if accessed from landlord navigation, _AuthLayout will detect from route
+                    // (Document/MyDocuments is in landlordPages)
+                    ViewData["PortalMode"] = "Tenant";
+                }
+
                 var userId = GetCurrentUserId();
                 var documents = await _documentService.GetDocumentsByUserAsync(userId);
 

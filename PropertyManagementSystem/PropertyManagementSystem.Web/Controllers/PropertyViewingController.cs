@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Schedule;
 using PropertyManagementSystem.BLL.Services.Interface;
@@ -152,7 +152,7 @@ namespace PropertyManagementSystem.Web.Controllers
         #region Landlord Actions
 
         // GET: Danh sách tất cả viewing requests cho landlord
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpGet]
         public async Task<IActionResult> ManageViewings()
         {
@@ -165,7 +165,7 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: Danh sách pending requests
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpGet]
         public async Task<IActionResult> PendingRequests()
         {
@@ -178,7 +178,7 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: Chi tiết viewing
-        [Authorize(Roles = "Member,Admin")]
+        [Authorize(Roles = "Member,Landlord,Admin")]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -190,7 +190,7 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: Form confirm viewing
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpGet]
         public async Task<IActionResult> Confirm(int id)
         {
@@ -208,7 +208,7 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // POST: Confirm viewing
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Confirm(ConfirmViewingRequestDto model)
@@ -235,7 +235,7 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // POST: Reject viewing
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int id, string? reason)
@@ -255,7 +255,7 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // POST: Mark as completed
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Complete(int id)
@@ -312,7 +312,7 @@ namespace PropertyManagementSystem.Web.Controllers
         #region Shared Actions
 
         // GET: Upcoming viewings (cả Tenant và Landlord)
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpGet]
         public async Task<IActionResult> Upcoming()
         {
@@ -327,7 +327,7 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // GET: Reschedule form
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpGet]
         public async Task<IActionResult> Reschedule(int id)
         {
@@ -345,7 +345,7 @@ namespace PropertyManagementSystem.Web.Controllers
         }
 
         // POST: Reschedule
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Landlord")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reschedule(RescheduleViewingRequestDto model)
@@ -370,7 +370,7 @@ namespace PropertyManagementSystem.Web.Controllers
             else
                 TempData["ErrorMessage"] = message;
 
-            if (role == "Member")
+            if (role == "Member" || role == "Landlord")
                 return RedirectToAction(nameof(ManageViewings));
             else
                 return RedirectToAction(nameof(MyViewings));
