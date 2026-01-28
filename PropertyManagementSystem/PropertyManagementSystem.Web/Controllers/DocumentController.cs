@@ -20,12 +20,18 @@ namespace PropertyManagementSystem.Web.Controllers
         #region Upload
 
         [HttpGet]
-        public IActionResult Upload(string? entityType, int? entityId)
+        public IActionResult Upload(string? entityType, int? entityId, string? portalMode)
         {
             ViewBag.EntityType = entityType ?? "";
             ViewBag.EntityId = entityId ?? 0;
             ViewBag.DocumentTypes = GetDocumentTypesSelectList();
             ViewBag.EntityTypes = GetEntityTypesSelectList();
+            
+            // Set portal mode for proper sidebar display
+            if (!string.IsNullOrEmpty(portalMode))
+            {
+                ViewData["PortalMode"] = portalMode;
+            }
 
             return View();
         }

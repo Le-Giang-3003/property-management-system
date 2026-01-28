@@ -23,7 +23,7 @@
             </p>
         </div>
         <div class="pm-page-actions">
-            <a asp-action="Upload" class="pm-btn pm-btn-primary">
+            <a asp-action="Upload" asp-route-portalMode="@ViewData["PortalMode"]" class="pm-btn pm-btn-primary">
                 <i class="bi bi-cloud-upload"></i>
                 Upload Document
             </a>
@@ -177,7 +177,7 @@
                     </div>
                     <h4>No Documents Yet</h4>
                     <p>Start by uploading your first document</p>
-                    <a asp-action="Upload" class="pm-btn pm-btn-primary">
+                    <a asp-action="Upload" asp-route-portalMode="@ViewData["PortalMode"]" class="pm-btn pm-btn-primary">
                         <i class="bi bi-cloud-upload"></i>
                         Upload Now
                     </a>
