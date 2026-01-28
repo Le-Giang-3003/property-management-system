@@ -135,7 +135,7 @@
                             <i class="bi bi-cash-coin"></i> Monthly Rent
                         </label>
                         <div class="pm-input-group">
-                            <input asp-for="MonthlyRent" type="number" step="1000"
+                            <input asp-for="MonthlyRent" type="number" step="0.01" min="0"
                                    class="pm-input" placeholder="5000000" id="MonthlyRent" />
                             <span class="pm-input-addon">₫</span>
                         </div>
@@ -147,7 +147,7 @@
                             <i class="bi bi-shield-check"></i> Security Deposit
                         </label>
                         <div class="pm-input-group">
-                            <input asp-for="SecurityDeposit" type="number" step="1000"
+                            <input asp-for="SecurityDeposit" type="number" step="0.01" min="0"
                                    class="pm-input" placeholder="10000000" id="SecurityDeposit" />
                             <span class="pm-input-addon">₫</span>
                         </div>
@@ -388,6 +388,39 @@
 
             const startDate = new Date('@Model.StartDate.ToString("yyyy-MM-dd")');
 
+            // Format number to remove .00 if it's a whole number
+            function formatNumber(value) {
+                if (!value && value !== 0) return '';
+                const num = parseFloat(value);
+                if (isNaN(num)) return value;
+                // If it's a whole number, return without decimals
+                if (num % 1 === 0) {
+                    return num.toString();
+                }
+                return num.toString();
+            }
+
+            // Format inputs on page load
+            if (monthlyRentInput.value) {
+                monthlyRentInput.value = formatNumber(monthlyRentInput.value);
+            }
+            if (securityDepositInput.value) {
+                securityDepositInput.value = formatNumber(securityDepositInput.value);
+            }
+
+            // Format on blur (when user leaves the field)
+            monthlyRentInput.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = formatNumber(this.value);
+                }
+            });
+
+            securityDepositInput.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = formatNumber(this.value);
+                }
+            });
+
             function updateCalculations() {
                 const months = parseInt(leaseDurationSelect.value) || 12;
                 const monthlyRent = parseFloat(monthlyRentInput.value) || 0;
@@ -416,6 +449,51 @@
 
             updateCalculations();
 
+            // Validate multiple of 1000 on input
+            function validateMultipleOf1000(input, fieldName) {
+                const value = parseFloat(input.value);
+                if (isNaN(value) || value <= 0) {
+                    return true; // Let other validations handle this
+                }
+                
+                // Check if value is a multiple of 1000
+                if (value % 1000 !== 0) {
+                    input.setCustomValidity('Please enter a multiple of 1000');
+                    return false;
+                } else {
+                    input.setCustomValidity('');
+                    return true;
+                }
+            }
+
+            monthlyRentInput.addEventListener('blur', function() {
+                // Format number first
+                if (this.value) {
+                    this.value = formatNumber(this.value);
+                }
+                validateMultipleOf1000(this, 'Monthly Rent');
+            });
+
+            monthlyRentInput.addEventListener('input', function() {
+                if (this.validity.customError) {
+                    validateMultipleOf1000(this, 'Monthly Rent');
+                }
+            });
+
+            securityDepositInput.addEventListener('blur', function() {
+                // Format number first
+                if (this.value) {
+                    this.value = formatNumber(this.value);
+                }
+                validateMultipleOf1000(this, 'Security Deposit');
+            });
+
+            securityDepositInput.addEventListener('input', function() {
+                if (this.validity.customError) {
+                    validateMultipleOf1000(this, 'Security Deposit');
+                }
+            });
+
             const form = document.getElementById('createLeaseForm');
             form.addEventListener('submit', function(e) {
                 const monthlyRent = parseFloat(monthlyRentInput.value);
@@ -431,6 +509,19 @@
                 if (securityDeposit < 0) {
                     e.preventDefault();
                     alert('Deposit cannot be negative!');
+                    securityDepositInput.focus();
+                    return false;
+                }
+
+                // Validate multiple of 1000
+                if (!validateMultipleOf1000(monthlyRentInput, 'Monthly Rent')) {
+                    e.preventDefault();
+                    monthlyRentInput.focus();
+                    return false;
+                }
+
+                if (!validateMultipleOf1000(securityDepositInput, 'Security Deposit')) {
+                    e.preventDefault();
                     securityDepositInput.focus();
                     return false;
                 }

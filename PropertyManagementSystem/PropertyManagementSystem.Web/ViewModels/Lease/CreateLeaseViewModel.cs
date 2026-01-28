@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using PropertyManagementSystem.Web.Attributes;
 
 namespace PropertyManagementSystem.Web.ViewModels.Lease
 {
@@ -43,11 +44,13 @@ namespace PropertyManagementSystem.Web.ViewModels.Lease
 
         [Required(ErrorMessage = "Please enter the rent amount")]
         [Range(0, double.MaxValue, ErrorMessage = "Rent must be a positive number")]
+        [MultipleOf1000(ErrorMessage = "Please enter a multiple of 1000")]
         [Display(Name = "Monthly Rent (VND)")]
         public decimal MonthlyRent { get; set; }
 
         [Required(ErrorMessage = "Please enter the security deposit")]
         [Range(0, double.MaxValue, ErrorMessage = "Security deposit must be a positive number")]
+        [MultipleOf1000(ErrorMessage = "Please enter a multiple of 1000")]
         [Display(Name = "Security Deposit (VND)")]
         public decimal SecurityDeposit { get; set; }
 

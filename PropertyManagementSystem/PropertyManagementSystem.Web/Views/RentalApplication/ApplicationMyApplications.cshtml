@@ -65,21 +65,55 @@
                 <div class="pm-application-card" data-status="@app.Status">
                     <div class="pm-application-header">
                         <div class="pm-application-number">@app.ApplicationNumber</div>
-                        @switch (app.Status)
-                        {
-                            case "Pending":
-                                <span class="pm-badge pm-badge-warning">Pending</span>
-                                break;
-                            case "Approved":
-                                <span class="pm-badge pm-badge-success">Approved</span>
-                                break;
-                            case "Rejected":
-                                <span class="pm-badge pm-badge-danger">Rejected</span>
-                                break;
-                            case "Withdrawn":
-                                <span class="pm-badge pm-badge-secondary">Withdrawn</span>
-                                break;
-                        }
+                        <div class="pm-application-status-group">
+                            @switch (app.Status)
+                            {
+                                case "Pending":
+                                    <span class="pm-badge pm-badge-warning">Pending</span>
+                                    break;
+                                case "Approved":
+                                    <span class="pm-badge pm-badge-success">Approved</span>
+                                    break;
+                                case "Rejected":
+                                    <span class="pm-badge pm-badge-danger">Rejected</span>
+                                    break;
+                                case "Withdrawn":
+                                    <span class="pm-badge pm-badge-secondary">Withdrawn</span>
+                                    break;
+                            }
+
+                            @* Lease status indicator for tenant *@
+                            @if (app.Status == "Approved")
+                            {
+                                if (app.Lease == null)
+                                {
+                                    <span class="pm-badge pm-badge-soft pm-badge-secondary pm-lease-indicator">
+                                        Lease not created
+                                    </span>
+                                }
+                                else
+                                {
+                                    if (app.Lease.Status == "Draft" || app.Lease.Status == "PendingSignature")
+                                    {
+                                        <span class="pm-badge pm-badge-soft pm-badge-info pm-lease-indicator">
+                                            Lease awaiting signatures
+                                        </span>
+                                    }
+                                    else if (app.Lease.Status == "Active")
+                                    {
+                                        <span class="pm-badge pm-badge-soft pm-badge-primary pm-lease-indicator">
+                                            Lease signed
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="pm-badge pm-badge-soft pm-badge-secondary pm-lease-indicator">
+                                            Lease @app.Lease.Status
+                                        </span>
+                                    }
+                                }
+                            }
+                        </div>
                     </div>
                     <div class="pm-application-body">
                         <h3 class="pm-application-title">@app.Property?.Name</h3>
@@ -230,6 +264,16 @@
             font-size: var(--pm-text-sm);
             font-weight: var(--pm-font-semibold);
             color: var(--pm-text-secondary);
+        }
+
+        .pm-application-status-group {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-lease-indicator {
+            font-size: var(--pm-text-xs);
         }
 
         .pm-application-body {

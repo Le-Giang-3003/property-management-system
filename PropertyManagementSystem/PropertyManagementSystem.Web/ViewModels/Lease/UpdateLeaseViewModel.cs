@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using PropertyManagementSystem.Web.Attributes;
 
 namespace PropertyManagementSystem.Web.ViewModels.Lease
 {
@@ -26,11 +27,13 @@ namespace PropertyManagementSystem.Web.ViewModels.Lease
 
         [Required]
         [Range(0, double.MaxValue)]
+        [MultipleOf1000(ErrorMessage = "Please enter a multiple of 1000")]
         [Display(Name = "Monthly Rent (VND)")]
         public decimal MonthlyRent { get; set; }
 
         [Required]
         [Range(0, double.MaxValue)]
+        [MultipleOf1000(ErrorMessage = "Please enter a multiple of 1000")]
         [Display(Name = "Security Deposit (VND)")]
         public decimal SecurityDeposit { get; set; }
 

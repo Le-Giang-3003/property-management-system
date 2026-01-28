@@ -106,19 +106,18 @@
                                 <span asp-validation-for="EmploymentStatus" class="apply-error"></span>
                             </div>
                             <div class="apply-form-group">
-                                <label class="apply-label">Employer / Company</label>
+                                <label class="apply-label">Employer / Company <span class="apply-optional">(Optional)</span></label>
                                 <input asp-for="Employer" class="apply-input" placeholder="e.g., ABC Corporation" />
                                 <span asp-validation-for="Employer" class="apply-error"></span>
                             </div>
                         </div>
                         <div class="apply-form-group">
-                            <label class="apply-label">Monthly Income</label>
-                            <div class="apply-input-group">
-                                <input asp-for="MonthlyIncome" type="number" class="apply-input" placeholder="e.g., 15000000" />
-                                <span class="apply-input-suffix">VND</span>
-                            </div>
+                            <label class="apply-label">Monthly Income <span class="apply-optional">(Optional)</span></label>
+                            <select asp-for="MonthlyIncomeRange" asp-items="Model.MonthlyIncomeRanges" class="apply-select">
+                                <option value="">-- Select income range --</option>
+                            </select>
                             <span class="apply-hint">Your monthly income helps landlords assess your ability to pay rent</span>
-                            <span asp-validation-for="MonthlyIncome" class="apply-error"></span>
+                            <span asp-validation-for="MonthlyIncomeRange" class="apply-error"></span>
                         </div>
                     </div>
                 </div>
@@ -129,22 +128,22 @@
                         <div class="apply-card-icon">
                             <i class="bi bi-house-door"></i>
                         </div>
-                        <h3>Previous Residence</h3>
+                        <h3>Previous Residence <span class="apply-optional">(Optional reference to strengthen your application)</span></h3>
                     </div>
                     <div class="apply-card-body">
                         <div class="apply-form-group">
-                            <label class="apply-label">Previous Address</label>
+                            <label class="apply-label">Previous Address <span class="apply-optional">(Optional)</span></label>
                             <input asp-for="PreviousAddress" class="apply-input" placeholder="e.g., 123 Main St, District 1, HCMC" />
                             <span asp-validation-for="PreviousAddress" class="apply-error"></span>
                         </div>
                         <div class="apply-form-row">
                             <div class="apply-form-group">
-                                <label class="apply-label">Previous Landlord Name</label>
+                                <label class="apply-label">Previous Landlord Name <span class="apply-optional">(Optional)</span></label>
                                 <input asp-for="PreviousLandlord" class="apply-input" placeholder="e.g., John Smith" />
                                 <span asp-validation-for="PreviousLandlord" class="apply-error"></span>
                             </div>
                             <div class="apply-form-group">
-                                <label class="apply-label">Previous Landlord Phone</label>
+                                <label class="apply-label">Previous Landlord Phone <span class="apply-optional">(Optional)</span></label>
                                 <input asp-for="PreviousLandlordPhone" class="apply-input" placeholder="e.g., 0901234567" />
                                 <span class="apply-hint">Format: 0xxx xxx xxx</span>
                                 <span asp-validation-for="PreviousLandlordPhone" class="apply-error"></span>
@@ -204,11 +203,11 @@
                         <div class="apply-card-icon">
                             <i class="bi bi-chat-text"></i>
                         </div>
-                        <h3>Additional Information</h3>
+                        <h3>Additional Information <span class="apply-optional">(Optional)</span></h3>
                     </div>
                     <div class="apply-card-body">
                         <div class="apply-form-group">
-                            <label class="apply-label">Additional Notes</label>
+                            <label class="apply-label">Additional Notes <span class="apply-optional">(Optional)</span></label>
                             <textarea asp-for="AdditionalNotes" class="apply-textarea" rows="4"
                                       placeholder="e.g., I work night shifts, need parking space, looking for long-term lease..."></textarea>
                             <span class="apply-hint">Any additional information that might help the landlord understand your needs</span>
@@ -460,6 +459,12 @@
 
         .apply-label .required {
             color: #ef4444;
+        }
+
+        .apply-optional {
+            color: #64748b;
+            font-weight: 400;
+            font-size: 12px;
         }
 
         .apply-input,

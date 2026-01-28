@@ -1,226 +1,362 @@
 @model PropertyManagementSystem.DAL.Entities.Lease
 @{
     ViewData["Title"] = "Sign Lease";
+    Layout = "_AuthLayout";
     var signatures = ViewBag.Signatures as IEnumerable<PropertyManagementSystem.DAL.Entities.LeaseSignature>;
     var userEmail = ViewBag.UserEmail as string;
+    var isLandlord = ViewBag.IsLandlord ?? false;
+    var isTenant = ViewBag.IsTenant ?? false;
+    ViewData["PortalMode"] = isLandlord ? "Landlord" : "Tenant";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <div class="card shadow-lg">
-                <div class="card-header bg-success text-white">
-                    <h3 class="mb-0">
-                        <i class="fas fa-pen-nib"></i> Sign Lease @Model.LeaseNumber
-                    </h3>
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-pen"></i>
+                Sign Lease @Model.LeaseNumber
+            </h1>
+            <p class="pm-page-subtitle">Review and sign the lease agreement</p>
+        </div>
+    </div>
+
+    <div class="pm-card">
+        <div class="pm-card-body">
+            <!-- Lease Information -->
+            <div class="pm-card-modern mb-4" style="border-color: var(--pm-info); background: var(--pm-info-50);">
+                <div class="pm-stat-header">
+                    <span class="pm-stat-label">
+                        Lease Information
+                    </span>
                 </div>
-                <div class="card-body">
-                    <!-- Lease Information -->
-                    <div class="alert alert-info mb-4">
-                        <h5><i class="fas fa-info-circle"></i> Lease Information</h5>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Property:</strong> @Model.Property?.Name</p>
-                                <p><strong>Address:</strong> @Model.Property?.Address</p>
-                                <p><strong>Tenant:</strong> @Model.Tenant?.FullName</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Duration:</strong> @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
-                                <p><strong>Rent:</strong> $@Model.MonthlyRent.ToString("N0")/month</p>
-                                <p><strong>Deposit:</strong> $@Model.SecurityDeposit.ToString("N0")</p>
-                            </div>
-                        </div>
+                <div class="pm-info-grid">
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Property:</span>
+                            <span class="pm-info-value">@Model.Property?.Name</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Address:</span>
+                            <span class="pm-info-value">@Model.Property?.Address</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Tenant:</span>
+                            <span class="pm-info-value">@Model.Tenant?.FullName</span>
+                        </p>
                     </div>
-
-                    <!-- Signature Status -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h5><i class="fas fa-signature"></i> Signature Status</h5>
-                        </div>
-                        <div class="card-body">
-                            @if (signatures != null && signatures.Any())
-                            {
-                                foreach (var sig in signatures)
-                                {
-                                    <div class="alert alert-success">
-                                        <i class="fas fa-check-circle"></i>
-                                        <strong>@sig.SignerRole</strong> (@sig.User?.FullName)
-                                        signed at @sig.SignedAt.ToString("dd/MM/yyyy HH:mm")
-                                    </div>
-                                }
-                            }
-                            else
-                            {
-                                <p class="text-muted">No signatures yet</p>
-                            }
-                        </div>
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Duration:</span>
+                            <span class="pm-info-value">@Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Monthly Rent:</span>
+                            <span class="pm-info-value">@Model.MonthlyRent.ToString("N0") ₫/month</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Security Deposit:</span>
+                            <span class="pm-info-value">@Model.SecurityDeposit.ToString("N0") ₫</span>
+                        </p>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Lease Terms -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h5><i class="fas fa-file-alt"></i> Lease Terms</h5>
-                        </div>
-                        <div class="card-body">
-                            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; background: #f8f9fa;">
-                                <pre style="white-space: pre-wrap; font-family: 'Segoe UI', sans-serif; margin: 0;">@Model.Terms</pre>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Signature Canvas -->
-                    <div class="card mb-4 border-primary">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">
-                                <i class="fas fa-pen-fancy"></i> Draw Your Signature
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-muted">
-                                <i class="fas fa-hand-pointer"></i>
-                                Use your mouse or finger to draw your signature in the box below
-                            </p>
-
-                            <div class="text-center mb-3">
-                                <canvas id="signatureCanvas"
-                                        style="border: 2px solid #007bff; border-radius: 8px; background: white; cursor: crosshair;"
-                                        width="400"
-                                        height="150">
-                                </canvas>
-                            </div>
-
-                            <div class="d-flex justify-content-between">
-                                <button type="button" id="clearBtn" class="btn btn-warning">
-                                    <i class="fas fa-eraser"></i> Clear & Redraw
-                                </button>
-                                <small class="text-muted align-self-center">
-                                    <i class="fas fa-info-circle"></i> This signature will be saved to the lease
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Confirmation Checkbox -->
-                    <div class="card mb-4 border-warning">
-                        <div class="card-header bg-warning">
-                            <h5 class="mb-0">
-                                <i class="fas fa-check-square"></i> Confirmation
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-                                <label class="form-check-label fw-bold" for="agreeTerms">
-                                    <i class="fas fa-file-contract"></i>
-                                    I have read and agree to all terms in this lease
-                                </label>
-                            </div>
-
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="agreeInfo" required>
-                                <label class="form-check-label fw-bold" for="agreeInfo">
-                                    <i class="fas fa-user-check"></i>
-                                    I confirm that the personal and financial information in this lease is accurate
-                                </label>
-                            </div>
-
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="agreeSign" required>
-                                <label class="form-check-label fw-bold" for="agreeSign">
-                                    <i class="fas fa-signature"></i>
-                                    I understand that this electronic signature has the same legal value as a handwritten signature
-                                </label>
-                            </div>
-
-                            <div class="alert alert-danger mb-0">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <strong>Warning:</strong>
-                                After signing, you cannot unilaterally modify or cancel this lease.
-                                This action cannot be undone.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- OTP Verification -->
-                    <div class="card mb-4 border-danger">
-                        <div class="card-header bg-danger text-white">
-                            <h5 class="mb-0">
-                                <i class="fas fa-shield-alt"></i> Two-Factor Authentication (OTP)
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                For security, we will send an OTP code (6 digits) to your email:
-                                <strong>@userEmail</strong>
-                            </div>
-
-                            <!-- Send OTP Button -->
-                            <div class="mb-3">
-                                <button type="button" id="sendOtpBtn" class="btn btn-primary btn-lg" disabled>
-                                    <i class="fas fa-paper-plane"></i> Send OTP Code
-                                </button>
-                                <small class="text-muted ms-2" id="otpStatus"></small>
-                            </div>
-
-                            <!-- OTP Input Form -->
-                            <form asp-action="Sign" method="post" id="signForm">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="signatureData" id="signatureData" />
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label for="otpInput" class="form-label fw-bold">
-                                            <i class="fas fa-key"></i> Enter OTP Code (6 digits)
-                                        </label>
-                                        <input type="text"
-                                               class="form-control form-control-lg text-center"
-                                               id="otpInput"
-                                               name="otp"
-                                               maxlength="6"
-                                               placeholder="000000"
-                                               pattern="[0-9]{6}"
-                                               required
-                                               disabled>
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock"></i> Code is valid for 5 minutes
-                                        </small>
-                                    </div>
+            <!-- Signature Status -->
+            <div class="pm-card-modern mb-4">
+                <div class="pm-section-header">
+                    <h3>Signature Status</h3>
+                </div>
+                <div class="pm-card-body">
+                    @if (signatures != null && signatures.Any())
+                    {
+                        foreach (var sig in signatures)
+                        {
+                            <div class="pm-alert pm-alert-success">
+                                <i class="bi bi-check-circle"></i>
+                                <div>
+                                    <strong>@sig.SignerRole</strong> (@sig.User?.FullName)
+                                    <br />
+                                    <small>Signed at @sig.SignedAt.ToString("dd/MM/yyyy HH:mm")</small>
                                 </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="pm-text-muted">No signatures yet</p>
+                    }
+                </div>
+            </div>
 
-                                <!-- Buttons -->
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                                    <a asp-action="Details" asp-route-id="@Model.LeaseId" class="btn btn-lg btn-outline-secondary">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </a>
-                                    <button type="submit" id="submitBtn" class="btn btn-lg btn-success" disabled>
-                                        <i class="fas fa-pen-nib"></i> Confirm & Sign Lease
-                                    </button>
-                                </div>
-                            </form>
+            <!-- Lease Terms -->
+            <div class="pm-card-modern mb-4">
+                <div class="pm-section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>Lease Terms</h3>
+                    <button type="button" id="toggleTermsBtn" class="pm-btn pm-btn-outline pm-btn-sm">
+                        <i class="bi bi-chevron-up" id="toggleTermsIcon"></i>
+                        <span id="toggleTermsText">Collapse</span>
+                    </button>
+                </div>
+                <div class="pm-card-body">
+                    <div class="pm-terms-container" id="termsContainer">
+                        <pre class="pm-terms-text">@Model.Terms</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signature Canvas -->
+            <div class="pm-card-modern mb-4" style="border-color: var(--pm-primary);">
+                <div class="pm-section-header">
+                    <h3>Draw Your Signature</h3>
+                </div>
+                <div class="pm-card-body">
+                    <p class="pm-hint">
+                        Use your mouse or finger to draw your signature in the box below
+                    </p>
+
+                    <div class="pm-signature-wrapper">
+                        <canvas id="signatureCanvas" class="pm-signature-canvas"></canvas>
+                    </div>
+
+                    <div class="pm-signature-actions">
+                        <button type="button" id="clearBtn" class="pm-btn pm-btn-warning">
+                            <i class="bi bi-eraser"></i> Clear & Redraw
+                        </button>
+                        <small class="pm-text-muted">
+                            This signature will be saved to the lease
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmation Checkbox -->
+            <div class="pm-card-modern mb-4" style="border-color: var(--pm-warning);">
+                <div class="pm-section-header">
+                    <h3>Confirmation</h3>
+                </div>
+                <div class="pm-card-body">
+                    <div class="pm-checkbox mb-3">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <label for="agreeTerms">
+                            I have read and agree to all terms in this lease
+                        </label>
+                    </div>
+
+                    <div class="pm-checkbox mb-3">
+                        <input type="checkbox" id="agreeInfo" required>
+                        <label for="agreeInfo">
+                            I confirm that the personal and financial information in this lease is accurate
+                        </label>
+                    </div>
+
+                    <div class="pm-checkbox mb-3">
+                        <input type="checkbox" id="agreeSign" required>
+                        <label for="agreeSign">
+                            I understand that this electronic signature has the same legal value as a handwritten signature
+                        </label>
+                    </div>
+
+                    <div class="pm-alert pm-alert-danger">
+                        <div>
+                            <strong>Warning:</strong>
+                            After signing, you cannot unilaterally modify or cancel this lease.
+                            This action cannot be undone.
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- OTP Verification -->
+            <div class="pm-card-modern mb-4" style="border-color: var(--pm-danger);">
+                <div class="pm-section-header">
+                    <h3>Two-Factor Authentication (OTP)</h3>
+                </div>
+                <div class="pm-card-body">
+                    <div class="pm-alert pm-alert-info">
+                        <div>
+                            For security, we will send an OTP code (6 digits) to your email:
+                            <strong>@userEmail</strong>
+                        </div>
+                    </div>
+
+                    <!-- Send OTP Button -->
+                    <div class="mb-4">
+                        <button type="button" id="sendOtpBtn" class="pm-btn pm-btn-primary" disabled>
+                            <i class="bi bi-send"></i> Send OTP Code
+                        </button>
+                        <small class="pm-text-muted ms-2" id="otpStatus"></small>
+                    </div>
+
+                    <!-- OTP Input Form -->
+                    <form asp-action="Sign" method="post" id="signForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="signatureData" id="signatureData" />
+
+                        <div class="pm-form-group">
+                            <label for="otpInput" class="pm-label">
+                                Enter OTP Code (6 digits)
+                            </label>
+                            <input type="text"
+                                   class="pm-input pm-input-lg pm-text-center"
+                                   id="otpInput"
+                                   name="otp"
+                                   maxlength="6"
+                                   placeholder="000000"
+                                   pattern="[0-9]{6}"
+                                   required
+                                   disabled>
+                            <small class="pm-hint">
+                                Code is valid for 5 minutes
+                            </small>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="pm-navigation-actions">
+                            <a asp-action="Details" asp-route-id="@Model.LeaseId" class="pm-btn pm-btn-secondary">
+                                <i class="bi bi-x"></i> Cancel
+                            </a>
+                            <button type="submit" id="submitBtn" class="pm-btn pm-btn-success" disabled>
+                                <i class="bi bi-pen"></i> Confirm & Sign Lease
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+@section Styles {
+    <style>
+        .pm-terms-container {
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-4);
+            background: var(--pm-slate-50);
+            transition: max-height 0.3s ease;
+        }
+
+        .pm-terms-container.collapsed {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .pm-terms-container.expanded {
+            max-height: none;
+            overflow-y: visible;
+        }
+
+        .pm-btn-sm {
+            padding: var(--pm-space-2) var(--pm-space-3);
+            font-size: var(--pm-text-sm);
+        }
+
+        .pm-terms-text {
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: var(--pm-text-sm);
+            line-height: 1.6;
+            margin: 0;
+            color: var(--pm-text);
+        }
+
+        .pm-signature-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: var(--pm-space-4) 0;
+        }
+
+        .pm-signature-canvas {
+            border: 2px solid var(--pm-primary);
+            border-radius: var(--pm-radius-lg);
+            background: white;
+            cursor: crosshair;
+            width: 100%;
+            max-width: 500px;
+            height: 200px;
+        }
+
+        .pm-signature-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-input-lg {
+            font-size: var(--pm-text-lg);
+            padding: var(--pm-space-4);
+        }
+
+        .pm-text-center {
+            text-align: center;
+        }
+
+        @@media (max-width: 768px) {
+            .pm-signature-canvas {
+                height: 150px;
+            }
+
+            .pm-signature-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
+        // Toggle Lease Terms expand/collapse
+        const toggleTermsBtn = document.getElementById('toggleTermsBtn');
+        const termsContainer = document.getElementById('termsContainer');
+        const toggleTermsIcon = document.getElementById('toggleTermsIcon');
+        const toggleTermsText = document.getElementById('toggleTermsText');
+        let termsExpanded = true; // Start expanded
+
+        toggleTermsBtn.addEventListener('click', function() {
+            termsExpanded = !termsExpanded;
+            if (termsExpanded) {
+                termsContainer.classList.remove('collapsed');
+                termsContainer.classList.add('expanded');
+                toggleTermsIcon.classList.remove('bi-chevron-down');
+                toggleTermsIcon.classList.add('bi-chevron-up');
+                toggleTermsText.textContent = 'Collapse';
+            } else {
+                termsContainer.classList.remove('expanded');
+                termsContainer.classList.add('collapsed');
+                toggleTermsIcon.classList.remove('bi-chevron-up');
+                toggleTermsIcon.classList.add('bi-chevron-down');
+                toggleTermsText.textContent = 'Expand';
+            }
+        });
+
+        // Initialize: start expanded
+        termsContainer.classList.add('expanded');
+
         // Canvas signature
         const canvas = document.getElementById('signatureCanvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
         let hasDrawn = false;
 
+        // Set canvas size
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const maxWidth = Math.min(500, container.clientWidth - 32);
+            canvas.width = maxWidth;
+            canvas.height = 200;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
         function startDrawing(e) {
             isDrawing = true;
             hasDrawn = true;
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
             ctx.beginPath();
             ctx.moveTo(x, y);
             checkCanSendOtp();
@@ -229,12 +365,13 @@
         function draw(e) {
             if (!isDrawing) return;
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
             ctx.lineTo(x, y);
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             ctx.stroke();
         }
 
@@ -250,22 +387,12 @@
         // Touch support
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousedown', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
+            startDrawing(e);
         });
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousemove', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
+            draw(e);
         });
 
         canvas.addEventListener('touchend', (e) => {
@@ -301,7 +428,7 @@
         // Send OTP
         sendOtpBtn.addEventListener('click', async function() {
             sendOtpBtn.disabled = true;
-            sendOtpBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            sendOtpBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
 
             try {
                 const response = await fetch('@Url.Action("SendOtp", "Lease")?leaseId=@Model.LeaseId', {
@@ -321,31 +448,31 @@
                     otpInput.focus();
 
                     document.getElementById('otpStatus').innerHTML =
-                        '<span class="text-success"><i class="fas fa-check-circle"></i> ' + result.message + '</span>';
+                        '<span class="pm-text-success"><i class="bi bi-check-circle"></i> ' + result.message + '</span>';
 
-                    sendOtpBtn.innerHTML = '<i class="fas fa-check"></i> Sent';
+                    sendOtpBtn.innerHTML = '<i class="bi bi-check"></i> Sent';
 
                     // Countdown 60s
                     let countdown = 60;
                     const interval = setInterval(() => {
                         countdown--;
-                        sendOtpBtn.innerHTML = `<i class="fas fa-clock"></i> Resend (${countdown}s)`;
+                        sendOtpBtn.innerHTML = `<i class="bi bi-clock"></i> Resend (${countdown}s)`;
                         if (countdown <= 0) {
                             clearInterval(interval);
                             sendOtpBtn.disabled = false;
-                            sendOtpBtn.innerHTML = '<i class="fas fa-redo"></i> Resend OTP';
+                            sendOtpBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Resend OTP';
                         }
                     }, 1000);
                 } else {
                     alert('Error: ' + result.message);
                     sendOtpBtn.disabled = false;
-                    sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP Code';
+                    sendOtpBtn.innerHTML = '<i class="bi bi-send"></i> Send OTP Code';
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('An error occurred. Please try again!');
                 sendOtpBtn.disabled = false;
-                sendOtpBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP Code';
+                sendOtpBtn.innerHTML = '<i class="bi bi-send"></i> Send OTP Code';
             }
         });
 

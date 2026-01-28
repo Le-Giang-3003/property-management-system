@@ -130,7 +130,7 @@
                                             <i class="fas fa-hand-holding-usd"></i> Monthly Rent
                                         </label>
                                         <div class="input-group input-group-lg">
-                                            <input asp-for="MonthlyRent" type="number" step="1000"
+                                            <input asp-for="MonthlyRent" type="number" step="0.01" min="0"
                                                    class="form-control" id="monthlyRentInput" />
                                             <span class="input-group-text bg-success text-white">$</span>
                                         </div>
@@ -142,7 +142,7 @@
                                             <i class="fas fa-shield-alt"></i> Security Deposit
                                         </label>
                                         <div class="input-group input-group-lg">
-                                            <input asp-for="SecurityDeposit" type="number" step="1000" class="form-control" />
+                                            <input asp-for="SecurityDeposit" type="number" step="0.01" min="0" class="form-control" id="securityDepositInput" />
                                             <span class="input-group-text bg-warning text-dark">$</span>
                                         </div>
                                         <span asp-validation-for="SecurityDeposit" class="text-danger"></span>
@@ -221,12 +221,33 @@
             const startDateInput = document.getElementById('startDate');
             const leaseDurationSelect = document.getElementById('leaseDuration');
             const monthlyRentInput = document.getElementById('monthlyRentInput');
+            const securityDepositInput = document.getElementById('securityDepositInput');
             const endDateDisplay = document.getElementById('endDateDisplay');
             const totalContractDisplay = document.getElementById('totalContract');
             const monthsDisplaySpan = document.getElementById('monthsDisplay');
             const paymentDayDisplay = document.getElementById('paymentDayDisplay');
             const paymentNote = document.getElementById('paymentNote');
             const paymentDayInfo = document.getElementById('paymentDayInfo');
+
+            // Format number to remove .00 if it's a whole number
+            function formatNumber(value) {
+                if (!value && value !== 0) return '';
+                const num = parseFloat(value);
+                if (isNaN(num)) return value;
+                // If it's a whole number, return without decimals
+                if (num % 1 === 0) {
+                    return num.toString();
+                }
+                return num.toString();
+            }
+
+            // Format inputs on page load
+            if (monthlyRentInput && monthlyRentInput.value) {
+                monthlyRentInput.value = formatNumber(monthlyRentInput.value);
+            }
+            if (securityDepositInput && securityDepositInput.value) {
+                securityDepositInput.value = formatNumber(securityDepositInput.value);
+            }
 
             // Calculation logic
             function updateCalculations() {
@@ -269,10 +290,57 @@
                 monthsDisplaySpan.textContent = months + ' months';
             }
 
+            // Validate multiple of 1000 on input
+            function validateMultipleOf1000(input, fieldName) {
+                const value = parseFloat(input.value);
+                if (isNaN(value) || value <= 0) {
+                    return true; // Let other validations handle this
+                }
+                
+                // Check if value is a multiple of 1000
+                if (value % 1000 !== 0) {
+                    input.setCustomValidity('Please enter a multiple of 1000');
+                    return false;
+                } else {
+                    input.setCustomValidity('');
+                    return true;
+                }
+            }
+
+            monthlyRentInput.addEventListener('blur', function() {
+                // Format number first
+                if (this.value) {
+                    this.value = formatNumber(this.value);
+                }
+                validateMultipleOf1000(this, 'Monthly Rent');
+            });
+
+            monthlyRentInput.addEventListener('input', function() {
+                if (this.validity.customError) {
+                    validateMultipleOf1000(this, 'Monthly Rent');
+                }
+                updateCalculations();
+            });
+
+            if (securityDepositInput) {
+                securityDepositInput.addEventListener('blur', function() {
+                    // Format number first
+                    if (this.value) {
+                        this.value = formatNumber(this.value);
+                    }
+                    validateMultipleOf1000(this, 'Security Deposit');
+                });
+
+                securityDepositInput.addEventListener('input', function() {
+                    if (this.validity.customError) {
+                        validateMultipleOf1000(this, 'Security Deposit');
+                    }
+                });
+            }
+
             // Event listeners
             startDateInput.addEventListener('change', updateCalculations);
             leaseDurationSelect.addEventListener('change', updateCalculations);
-            monthlyRentInput.addEventListener('input', updateCalculations);
 
             // Run on load
             updateCalculations();
@@ -280,6 +348,19 @@
             // Confirm on submit
             const form = document.getElementById('editLeaseForm');
             form.addEventListener('submit', function(e) {
+                // Validate multiple of 1000
+                if (!validateMultipleOf1000(monthlyRentInput, 'Monthly Rent')) {
+                    e.preventDefault();
+                    monthlyRentInput.focus();
+                    return false;
+                }
+
+                if (securityDepositInput && !validateMultipleOf1000(securityDepositInput, 'Security Deposit')) {
+                    e.preventDefault();
+                    securityDepositInput.focus();
+                    return false;
+                }
+
                 if (!confirm('Are you sure you want to save these changes?')) {
                     e.preventDefault();
                     return false;

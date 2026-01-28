@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementSystem.DAL.Data;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -32,6 +32,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .Include(r => r.Property)
                 .Include(r => r.Applicant)
                 .Include(r => r.ReviewedByUser)
+                .Include(r => r.Lease)
                 .FirstOrDefaultAsync(r => r.ApplicationId == id);
         }
 
@@ -39,6 +40,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         {
             return await _context.RentalApplications
                 .Include(r => r.Property)
+                .Include(r => r.Lease)
                 .Where(r => r.ApplicantId == applicantId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
@@ -48,6 +50,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         {
             return await _context.RentalApplications
                 .Include(r => r.Applicant)
+                .Include(r => r.Lease)
                 .Where(r => r.PropertyId == propertyId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
@@ -59,6 +62,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 .Include(r => r.Property)
                 .Include(r => r.Applicant)
                 .Include(r => r.ReviewedByUser)
+                .Include(r => r.Lease)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
         }

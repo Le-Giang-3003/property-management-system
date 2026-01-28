@@ -50,9 +50,24 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction("SearchProperties", "Property");
             }
 
+            // Monthly Income Ranges for dropdown
+            var incomeRanges = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "-- Select income range --" },
+                new SelectListItem { Value = "0-5", Text = "Dưới 5 triệu VND" },
+                new SelectListItem { Value = "5-10", Text = "5 triệu - 10 triệu VND" },
+                new SelectListItem { Value = "10-15", Text = "10 triệu - 15 triệu VND" },
+                new SelectListItem { Value = "15-20", Text = "15 triệu - 20 triệu VND" },
+                new SelectListItem { Value = "20-30", Text = "20 triệu - 30 triệu VND" },
+                new SelectListItem { Value = "30-50", Text = "30 triệu - 50 triệu VND" },
+                new SelectListItem { Value = "50-100", Text = "50 triệu - 100 triệu VND" },
+                new SelectListItem { Value = "100+", Text = "Trên 100 triệu VND" }
+            };
+
             var viewModel = new CreateRentalApplicationViewModel
             {
                 AvailableProperties = propertyList,
+                MonthlyIncomeRanges = incomeRanges,
                 DesiredMoveInDate = DateTime.Now.AddDays(30),
                 NumberOfOccupants = 1
             };
@@ -95,25 +110,47 @@ namespace PropertyManagementSystem.Web.Controllers
                         Text = $"{p.Name} - {p.Address} (${p.RentAmount:N0}/month)"
                     });
 
+                // Re-populate income ranges
+                model.MonthlyIncomeRanges = new List<SelectListItem>
+                {
+                    new SelectListItem { Value = "", Text = "-- Select income range --" },
+                    new SelectListItem { Value = "0-5", Text = "Dưới 5 triệu VND" },
+                    new SelectListItem { Value = "5-10", Text = "5 triệu - 10 triệu VND" },
+                    new SelectListItem { Value = "10-15", Text = "10 triệu - 15 triệu VND" },
+                    new SelectListItem { Value = "15-20", Text = "15 triệu - 20 triệu VND" },
+                    new SelectListItem { Value = "20-30", Text = "20 triệu - 30 triệu VND" },
+                    new SelectListItem { Value = "30-50", Text = "30 triệu - 50 triệu VND" },
+                    new SelectListItem { Value = "50-100", Text = "50 triệu - 100 triệu VND" },
+                    new SelectListItem { Value = "100+", Text = "Trên 100 triệu VND" }
+                };
+
                 return View("ApplicationCreate", model);
             }
 
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
+            // Convert MonthlyIncomeRange to MonthlyIncome (optional - store range midpoint or null)
+            decimal? monthlyIncome = null;
+            if (!string.IsNullOrWhiteSpace(model.MonthlyIncomeRange))
+            {
+                monthlyIncome = ConvertIncomeRangeToDecimal(model.MonthlyIncomeRange);
+            }
+
             var dto = new CreateRentalApplicationDto
             {
                 PropertyId = model.PropertyId,
                 EmploymentStatus = model.EmploymentStatus,
-                Employer = model.Employer,
-                MonthlyIncome = model.MonthlyIncome,
-                PreviousAddress = model.PreviousAddress,
-                PreviousLandlord = model.PreviousLandlord,
-                PreviousLandlordPhone = model.PreviousLandlordPhone,
+                // Handle optional fields: convert null to empty string to avoid database errors
+                Employer = model.Employer ?? string.Empty,
+                MonthlyIncome = monthlyIncome,
+                PreviousAddress = model.PreviousAddress ?? string.Empty,
+                PreviousLandlord = model.PreviousLandlord ?? string.Empty,
+                PreviousLandlordPhone = model.PreviousLandlordPhone ?? string.Empty,
                 NumberOfOccupants = model.NumberOfOccupants,
                 HasPets = model.HasPets,
-                PetDetails = model.PetDetails,
+                PetDetails = model.PetDetails ?? string.Empty,
                 DesiredMoveInDate = model.DesiredMoveInDate,
-                AdditionalNotes = model.AdditionalNotes
+                AdditionalNotes = model.AdditionalNotes ?? string.Empty
             };
 
             var application = await _applicationService.SubmitApplicationAsync(dto, userId);
@@ -131,11 +168,45 @@ namespace PropertyManagementSystem.Web.Controllers
                         Text = $"{p.Name} - {p.Address} (${p.RentAmount:N0}/month)"
                     });
 
+                // Re-populate income ranges
+                model.MonthlyIncomeRanges = new List<SelectListItem>
+                {
+                    new SelectListItem { Value = "", Text = "-- Select income range --" },
+                    new SelectListItem { Value = "0-5", Text = "Dưới 5 triệu VND" },
+                    new SelectListItem { Value = "5-10", Text = "5 triệu - 10 triệu VND" },
+                    new SelectListItem { Value = "10-15", Text = "10 triệu - 15 triệu VND" },
+                    new SelectListItem { Value = "15-20", Text = "15 triệu - 20 triệu VND" },
+                    new SelectListItem { Value = "20-30", Text = "20 triệu - 30 triệu VND" },
+                    new SelectListItem { Value = "30-50", Text = "30 triệu - 50 triệu VND" },
+                    new SelectListItem { Value = "50-100", Text = "50 triệu - 100 triệu VND" },
+                    new SelectListItem { Value = "100+", Text = "Trên 100 triệu VND" }
+                };
+
                 return View("ApplicationCreate", model);
             }
 
             TempData["Success"] = $"Application {application.ApplicationNumber} has been submitted successfully!";
             return RedirectToAction("MyApplications");
+        }
+
+        // Helper method to convert income range string to decimal (midpoint of range)
+        private decimal? ConvertIncomeRangeToDecimal(string range)
+        {
+            if (string.IsNullOrWhiteSpace(range))
+                return null;
+
+            return range switch
+            {
+                "0-5" => 2.5m * 1000000, // 2.5 million (midpoint)
+                "5-10" => 7.5m * 1000000, // 7.5 million
+                "10-15" => 12.5m * 1000000, // 12.5 million
+                "15-20" => 17.5m * 1000000, // 17.5 million
+                "20-30" => 25m * 1000000, // 25 million
+                "30-50" => 40m * 1000000, // 40 million
+                "50-100" => 75m * 1000000, // 75 million
+                "100+" => 150m * 1000000, // 150 million (estimate for 100+)
+                _ => null
+            };
         }
 
         // GET: /RentalApplication/MyApplications

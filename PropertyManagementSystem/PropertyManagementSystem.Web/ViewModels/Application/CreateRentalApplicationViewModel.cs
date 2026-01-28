@@ -20,17 +20,22 @@ namespace PropertyManagementSystem.Web.ViewModels.Application
         [Display(Name = "Employment Status")]
         public string EmploymentStatus { get; set; }
 
-        [Display(Name = "Employer/Workplace")]
+        [Display(Name = "Employer / Company")]
         [MaxLength(200)]
         public string? Employer { get; set; }
 
-        [Display(Name = "Monthly Income (VND)")]
-        [Range(0, double.MaxValue, ErrorMessage = "Income must be a positive number")]
+        [Display(Name = "Monthly Income Range")]
+        public string? MonthlyIncomeRange { get; set; }
+
+        // Keep MonthlyIncome for backward compatibility, will be calculated from range
         public decimal? MonthlyIncome { get; set; }
 
         [Display(Name = "Previous Address")]
         [MaxLength(500)]
         public string? PreviousAddress { get; set; }
+        
+        // Helper property for income range dropdown
+        public IEnumerable<SelectListItem>? MonthlyIncomeRanges { get; set; }
 
         [Display(Name = "Previous Landlord Name")]
         [MaxLength(200)]
