@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.User;
 
@@ -14,15 +15,16 @@ namespace PropertyManagementSystem.Web.Controllers
         /// The user service
         /// </summary>
         private readonly IUserService _userService;
-        private readonly IAuthService _authService;
+        private readonly IMemoryCache _cache;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UserController" /> class.
         /// </summary>
         /// <param name="userService">The user service.</param>
-        public UserController(IUserService userService, IAuthService authService)
+        public UserController(IUserService userService, IMemoryCache memoryCache)
         {
             _userService = userService;
-            _authService = authService;
+            _cache = memoryCache;
         }
         /// <summary>
         /// Registers this instance.
@@ -131,11 +133,11 @@ namespace PropertyManagementSystem.Web.Controllers
             }
 
             // Verify OTP
-            var isValid = _userService.VerifyRegistrationOtp(email, vm.Otp, otpHash);
+            var resultOtp = _userService.VerifyRegistrationOtp(email, vm.Otp, otpHash);
 
-            if (!isValid)
+            if (!resultOtp.IsValid)
             {
-                ModelState.AddModelError("", "OTP is incorrect or has expired.");
+                ModelState.AddModelError("", resultOtp.Message);
                 vm.Email = email;
                 vm.OtpHash = otpHash;
 
@@ -163,34 +165,60 @@ namespace PropertyManagementSystem.Web.Controllers
         /// Resends the otp.
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResendOtp()
+        [HttpGet]
+        public async Task<IActionResult> ResendOtp(string email)
         {
-            var email = TempData["RegistrationEmail"]?.ToString();
-
             if (string.IsNullOrEmpty(email))
             {
+                TempData["ErrorMessage"] = "Email is required.";
                 return RedirectToAction("Register");
+            }
+
+            var cacheKey = $"resend_otp_{email}";
+            var lastResendTime = _cache.Get<DateTime?>(cacheKey);
+
+            if (lastResendTime.HasValue)
+            {
+                var timeSinceLastResend = DateTime.UtcNow - lastResendTime.Value;
+                if (timeSinceLastResend.TotalSeconds < 60)
+                {
+                    var waitTime = 60 - (int)timeSinceLastResend.TotalSeconds;
+                    TempData["ErrorMessage"] = $"Please wait {waitTime} seconds before requesting a new code.";
+
+                    var model = new VerifyOtpViewModel
+                    {
+                        Email = email,
+                        OtpHash = TempData["OtpHash"]?.ToString() ?? ""
+                    };
+
+                    TempData.Keep("RegistrationEmail");
+                    TempData.Keep("RegistrationUsername");
+                    TempData.Keep("RegistrationPassword");
+                    TempData.Keep("OtpHash");
+
+                    return View("VerifyOtp", model);
+                }
             }
 
             try
             {
                 var otpHash = await _userService.SendRegistrationOtpAsync(email);
 
+                _cache.Set(cacheKey, DateTime.UtcNow, TimeSpan.FromMinutes(10));
+
                 TempData["OtpHash"] = otpHash;
                 TempData.Keep("RegistrationEmail");
                 TempData.Keep("RegistrationUsername");
                 TempData.Keep("RegistrationPassword");
 
-                TempData["Success"] = "A new OTP has been sent to your email.";
+                TempData["SuccessMessage"] = "A new verification code has been sent to your email.";
 
                 return RedirectToAction("VerifyOtp");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                TempData["Error"] = "Unable to resend OTP. Please try again.";
-                return RedirectToAction("VerifyOtp");
+                TempData["ErrorMessage"] = $"Failed to resend OTP: {ex.Message}";
+                return RedirectToAction("Register");
             }
         }
     }
