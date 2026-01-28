@@ -132,7 +132,7 @@
                                     <p>Due: @payment.DueDate.ToString("MMMM d, yyyy")</p>
                                 </div>
                                 <div class="pm-payment-amount">
-                                    <span class="amount">@payment.Amount.ToString("N0") ₫</span>
+                                    <span class="amount">$@payment.Amount.ToString("N0")</span>
                                     <a asp-controller="Payment" asp-action="MakePayment" asp-route-invoiceId="@payment.InvoiceId" class="pm-btn pm-btn-primary pm-btn-sm">Pay Now</a>
                                 </div>
                             </div>

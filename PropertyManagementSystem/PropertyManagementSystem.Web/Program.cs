@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using PropertyManagementSystem.BLL;
 using PropertyManagementSystem.DAL;
+using PropertyManagementSystem.Web.BackgroundServices;
 using PropertyManagementSystem.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +44,9 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer(builder.Configuration);
+
+// Add Background Service for automatic invoice generation
+builder.Services.AddHostedService<InvoiceGenerationService>();
 
 var app = builder.Build();
 

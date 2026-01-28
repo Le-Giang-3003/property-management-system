@@ -1,0 +1,236 @@
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.Lease>
+@{
+    ViewData["Title"] = "Invoice Generation Test";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Admin";
+}
+
+<div class="container py-4">
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-gear"></i> Invoice Generation Test Tool
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Development Tool:</strong> This page is for testing the automatic invoice generation feature.
+                In production, invoices are generated automatically at midnight when the day matches the lease's StartDate day.
+            </div>
+
+            <!-- Test Form -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Trigger Invoice Generation for Date</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="triggerForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Simulated Date</label>
+                                    <input type="date" id="simulatedDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                    <small class="text-muted">
+                                        The system will create invoices for leases where StartDate.Day matches this date's day.
+                                    </small>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="sendEmail" />
+                                    <label class="form-check-label" for="sendEmail">Send email notifications</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-play-fill"></i> Trigger Generation
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Create Invoice for Specific Lease</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="createForLeaseForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Select Lease</label>
+                                    <select id="leaseSelect" class="form-select">
+                                        <option value="">-- Select a lease --</option>
+                                        @foreach (var lease in Model)
+                                        {
+                                            <option value="@lease.LeaseId"
+                                                    data-start-day="@lease.StartDate.Day"
+                                                    data-start-date="@lease.StartDate.ToString("yyyy-MM-dd")"
+                                                    data-end-date="@lease.EndDate.ToString("yyyy-MM-dd")">
+                                                @lease.LeaseNumber - @(lease.Property?.Name ?? "N/A")
+                                                (@(lease.Tenant?.FullName ?? "N/A"))
+                                                - Day @lease.StartDate.Day
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Billing Month</label>
+                                    <input type="month" id="billingMonth" class="form-control" value="@DateTime.Today.ToString("yyyy-MM")" />
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="sendEmailLease" />
+                                    <label class="form-check-label" for="sendEmailLease">Send email notifications</label>
+                                </div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-plus-circle"></i> Create Invoice
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Leases Table -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Active Leases (@Model.Count())</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Lease #</th>
+                            <th>Property</th>
+                            <th>Tenant</th>
+                            <th>Monthly Rent</th>
+                            <th>Start Date</th>
+                            <th>Invoice Day</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var lease in Model)
+                        {
+                            <tr>
+                                <td><strong>@lease.LeaseNumber</strong></td>
+                                <td>@(lease.Property?.Name ?? "N/A")</td>
+                                <td>
+                                    @(lease.Tenant?.FullName ?? "N/A")
+                                    <br/>
+                                    <small class="text-muted">@(lease.Tenant?.Email ?? "")</small>
+                                </td>
+                                <td>@lease.MonthlyRent.ToString("N0") VND</td>
+                                <td>@lease.StartDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge bg-info">Day @lease.StartDate.Day</span>
+                                </td>
+                                <td>@lease.EndDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge bg-success">@lease.Status</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card" id="resultsCard" style="display: none;">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Results</h5>
+        </div>
+        <div class="card-body">
+            <pre id="resultsContent" class="bg-light p-3" style="max-height: 500px; overflow: auto;"></pre>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('triggerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const simulatedDate = document.getElementById('simulatedDate').value;
+            const sendEmail = document.getElementById('sendEmail').checked;
+
+            try {
+                const response = await fetch('@Url.Action("TriggerForDate")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `simulatedDate=${encodeURIComponent(simulatedDate)}&sendEmail=${sendEmail}`
+                });
+
+                const result = await response.json();
+                showResults(result);
+            } catch (error) {
+                showResults({ error: error.message });
+            }
+        });
+
+        document.getElementById('createForLeaseForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const leaseId = document.getElementById('leaseSelect').value;
+            const billingMonth = document.getElementById('billingMonth').value + '-01';
+            const sendEmail = document.getElementById('sendEmailLease').checked;
+
+            if (!leaseId) {
+                alert('Please select a lease');
+                return;
+            }
+
+            try {
+                const response = await fetch('@Url.Action("CreateForLease")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `leaseId=${leaseId}&billingMonth=${encodeURIComponent(billingMonth)}&sendEmail=${sendEmail}`
+                });
+
+                const result = await response.json();
+                showResults(result);
+            } catch (error) {
+                showResults({ error: error.message });
+            }
+        });
+
+        function showResults(data) {
+            document.getElementById('resultsCard').style.display = 'block';
+            document.getElementById('resultsContent').textContent = JSON.stringify(data, null, 2);
+            document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Show lease info when selected
+        document.getElementById('leaseSelect').addEventListener('change', function() {
+            const option = this.options[this.selectedIndex];
+            if (option.value) {
+                const startDay = option.dataset.startDay;
+                const startDate = option.dataset.startDate;
+                const endDate = option.dataset.endDate;
+                console.log(`Lease Info: Start Day=${startDay}, Period: ${startDate} to ${endDate}`);
+            }
+        });
+    </script>
+}
+
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .card-header h5 {
+        margin: 0;
+    }
+
+    pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+</style>

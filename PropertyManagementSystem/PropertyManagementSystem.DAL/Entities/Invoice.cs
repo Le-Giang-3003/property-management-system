@@ -61,6 +61,9 @@ namespace PropertyManagementSystem.DAL.Entities
         public int ReminderCount { get; set; } = 0;
         public DateTime? LastReminderSent { get; set; }
 
+        // Billing period - which month this invoice is for
+        public DateTime BillingMonth { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 

@@ -68,6 +68,7 @@
                     <thead>
                         <tr>
                             <th>Invoice #</th>
+                            <th>Billing Month</th>
                             <th>Type</th>
                             <th>Issue Date</th>
                             <th>Due Date</th>
@@ -88,6 +89,9 @@
                             <tr>
                                 <td>
                                     <strong class="pm-text-primary">@invoice.InvoiceNumber</strong>
+                                </td>
+                                <td>
+                                    <span class="pm-badge pm-badge-info">@invoice.BillingMonthDisplay</span>
                                 </td>
                                 <td>
                                     <span class="pm-badge @GetTypeBadgeClass(invoice.InvoiceType)">

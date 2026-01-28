@@ -24,6 +24,10 @@
 
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        // Billing period - which month this invoice is for
+        public DateTime BillingMonth { get; set; }
+        public string BillingMonthDisplay => BillingMonth.ToString("MM/yyyy");
     }
 
     public class ActiveLeaseForInvoiceDto

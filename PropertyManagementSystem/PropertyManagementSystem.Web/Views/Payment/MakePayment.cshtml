@@ -58,11 +58,12 @@
                                     <option value="">-- Select an invoice --</option>
                                     @foreach (var invoice in Model.AvailableInvoices)
                                     {
-                                        <option value="@invoice.InvoiceId" 
+                                        <option value="@invoice.InvoiceId"
                                                 data-remaining="@invoice.RemainingAmount"
                                                 data-total="@invoice.TotalAmount"
-                                                data-paid="@invoice.PaidAmount">
-                                            @invoice.InvoiceNumber - Due: @invoice.RemainingAmount.ToString("N0") ₫ (Deadline: @invoice.DueDate.ToString("dd/MM/yyyy"))
+                                                data-paid="@invoice.PaidAmount"
+                                                data-billing-month="@invoice.BillingMonthDisplay">
+                                            @invoice.InvoiceNumber - @invoice.BillingMonthDisplay - Due: $@invoice.RemainingAmount.ToString("N0") (Deadline: @invoice.DueDate.ToString("dd/MM/yyyy"))
                                         </option>
                                     }
                                 </select>

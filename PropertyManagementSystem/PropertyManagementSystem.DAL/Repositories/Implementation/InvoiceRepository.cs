@@ -44,5 +44,28 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             await _context.SaveChangesAsync();
             return existingInvoice;
         }
+
+        public async Task<bool> HasInvoiceForMonthAsync(int leaseId, DateTime billingMonth)
+        {
+            var firstDayOfMonth = new DateTime(billingMonth.Year, billingMonth.Month, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+            return await _context.Invoices
+                .AnyAsync(i => i.LeaseId == leaseId
+                    && i.BillingMonth >= firstDayOfMonth
+                    && i.BillingMonth <= lastDayOfMonth);
+        }
+
+        public async Task<List<Invoice>> GetOverdueInvoicesAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+            return await _context.Invoices
+                .Include(i => i.Lease)
+                    .ThenInclude(l => l.Tenant)
+                .Include(i => i.Lease)
+                    .ThenInclude(l => l.Property)
+                .Where(i => i.Status == "Pending" && i.DueDate.Date < today && i.RemainingAmount > 0)
+                .ToListAsync();
+        }
     }
 }

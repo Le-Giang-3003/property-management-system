@@ -263,9 +263,8 @@ IV. TERMINATION:
 
                 try
                 {
-                    var periodStart = lease.StartDate;
-                    var periodEnd = lease.StartDate.AddMonths(1);
-                    await _invoiceService.CreateInvoiceFromLeaseAsync(lease.LeaseId, periodStart, periodEnd);
+                    // Create first invoice: first month rent + security deposit
+                    await _invoiceService.CreateFirstInvoiceWithDepositAsync(lease.LeaseId);
                 }
                 catch (Exception ex)
                 {

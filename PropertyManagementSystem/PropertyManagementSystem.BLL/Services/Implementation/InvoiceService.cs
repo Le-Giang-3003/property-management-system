@@ -101,6 +101,8 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 throw new Exception("Lease not found");
 
             var amount = lease.MonthlyRent;
+            var sercurityDeposit = lease.SecurityDeposit;
+            var totalAmount = amount + sercurityDeposit;
 
             var issueDate = DateTime.UtcNow;
             var dueDate = new DateTime(periodEnd.Year, periodEnd.Month, lease.PaymentDueDay);
@@ -115,12 +117,13 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Amount = amount,
                 TaxAmount = 0,
                 DiscountAmount = 0,
-                TotalAmount = amount,
+                TotalAmount = totalAmount,
                 PaidAmount = 0,
                 RemainingAmount = amount,
                 Description = $"Rent for {periodStart:MM/yyyy}",
                 Notes = "",
                 Status = "Pending",
+                BillingMonth = periodStart,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 InvoiceFileUrl = "",
@@ -131,6 +134,63 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
 
             await _invoiceRepository.AddAsync(invoice);
 
+            return MapToDto(invoice);
+        }
+
+        public async Task<InvoiceDto?> CreateFirstInvoiceWithDepositAsync(int leaseId)
+        {
+            var lease = await _leaseRepository.GetByIdAsync(leaseId);
+            if (lease == null)
+                throw new Exception("Lease not found");
+
+            if (lease.Status != "Active")
+                return null;
+
+            var billingMonth = new DateTime(lease.StartDate.Year, lease.StartDate.Month, 1);
+
+            // Prevent duplicate invoice for the same billing month
+            if (await HasInvoiceForMonthAsync(lease.LeaseId, billingMonth))
+                return null;
+
+            var now = DateTime.UtcNow;
+            var dueDate = now.AddDays(10); // align with monthly invoice rule
+
+            var rentAmount = lease.MonthlyRent;
+            var depositAmount = lease.SecurityDeposit;
+            var totalAmount = rentAmount + depositAmount;
+
+            var invoice = new Invoice
+            {
+                LeaseId = lease.LeaseId,
+                InvoiceNumber = $"INV-{lease.LeaseId}-{billingMonth:yyyyMM}",
+                InvoiceType = depositAmount > 0 ? "Rent+Deposit" : "Rent",
+                IssueDate = now,
+                DueDate = dueDate,
+                Amount = rentAmount,
+                TaxAmount = 0,
+                DiscountAmount = 0,
+                TotalAmount = totalAmount,
+                PaidAmount = 0,
+                RemainingAmount = totalAmount,
+                Description = depositAmount > 0
+                    ? $"First payment for {billingMonth:MM/yyyy} (Rent + Deposit)"
+                    : $"First payment for {billingMonth:MM/yyyy} (Rent)",
+                Notes = depositAmount > 0
+                    ? $"Includes: Rent={rentAmount:N0} VND, Deposit={depositAmount:N0} VND"
+                    : $"Includes: Rent={rentAmount:N0} VND",
+                Status = "Pending",
+                BillingMonth = billingMonth,
+                CreatedAt = now,
+                UpdatedAt = now,
+                InvoiceFileUrl = "",
+                InvoiceFilePath = "",
+                EmailSent = false,
+                ReminderCount = 0
+            };
+
+            await _invoiceRepository.AddAsync(invoice);
+
+            invoice.Lease = lease;
             return MapToDto(invoice);
         }
 
@@ -210,6 +270,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Description = description,
                 Notes = additionalAmount > 0 ? $"Additional services: {additionalAmount:N0} VND" : "",
                 Status = "Pending",
+                BillingMonth = periodStart,
                 CreatedAt = now,
                 UpdatedAt = now,
                 InvoiceFileUrl = "",
@@ -221,6 +282,76 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             await _invoiceRepository.AddAsync(invoice);
 
             return MapToDto(invoice);
+        }
+
+        public async Task<InvoiceDto?> CreateMonthlyInvoiceAsync(Lease lease, DateTime billingMonth)
+        {
+            if (lease == null)
+                return null;
+
+            if (lease.Status != "Active")
+                return null;
+
+            // Check if invoice already exists for this month
+            if (await HasInvoiceForMonthAsync(lease.LeaseId, billingMonth))
+                return null;
+
+            var now = DateTime.UtcNow;
+            var firstDayOfMonth = new DateTime(billingMonth.Year, billingMonth.Month, 1);
+
+            // DueDate = IssueDate + 10 days (as per requirement)
+            var dueDate = now.AddDays(10);
+
+            var invoiceNumber = $"INV-{lease.LeaseId}-{billingMonth:yyyyMM}";
+
+            var invoice = new Invoice
+            {
+                LeaseId = lease.LeaseId,
+                InvoiceNumber = invoiceNumber,
+                InvoiceType = "Rent",
+                IssueDate = now,
+                DueDate = dueDate,
+                Amount = lease.MonthlyRent,
+                TaxAmount = 0,
+                DiscountAmount = 0,
+                TotalAmount = lease.MonthlyRent,
+                PaidAmount = 0,
+                RemainingAmount = lease.MonthlyRent,
+                Description = $"Monthly rent for {billingMonth:MMMM yyyy}",
+                Notes = $"Billing period: {firstDayOfMonth:dd/MM/yyyy} - {firstDayOfMonth.AddMonths(1).AddDays(-1):dd/MM/yyyy}",
+                Status = "Pending",
+                BillingMonth = firstDayOfMonth,
+                CreatedAt = now,
+                UpdatedAt = now,
+                InvoiceFileUrl = "",
+                InvoiceFilePath = "",
+                EmailSent = false,
+                ReminderCount = 0
+            };
+
+            await _invoiceRepository.AddAsync(invoice);
+
+            // Reload invoice with Lease navigation property
+            invoice.Lease = lease;
+
+            return MapToDto(invoice);
+        }
+
+        public async Task<bool> HasInvoiceForMonthAsync(int leaseId, DateTime billingMonth)
+        {
+            return await _invoiceRepository.HasInvoiceForMonthAsync(leaseId, billingMonth);
+        }
+
+        public async Task UpdateOverdueInvoicesAsync()
+        {
+            var overdueInvoices = await _invoiceRepository.GetOverdueInvoicesAsync();
+
+            foreach (var invoice in overdueInvoices)
+            {
+                invoice.Status = "Overdue";
+                invoice.UpdatedAt = DateTime.UtcNow;
+                await _invoiceRepository.UpdateInvoiceAsync(invoice);
+            }
         }
 
         private static InvoiceDto MapToDto(Invoice i)
@@ -243,12 +374,13 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 RemainingAmount = i.RemainingAmount,
 
                 Status = i.Status,
-                IsOverdue = i.Status == "Pending"
+                IsOverdue = (i.Status == "Pending" || i.Status == "Overdue")
                             && i.RemainingAmount > 0
                             && i.DueDate.Date < DateTime.Today,
 
                 Description = i.Description,
-                CreatedAt = i.CreatedAt
+                CreatedAt = i.CreatedAt,
+                BillingMonth = i.BillingMonth
             };
         }
     }

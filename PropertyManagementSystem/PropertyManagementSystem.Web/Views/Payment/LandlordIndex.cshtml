@@ -15,10 +15,6 @@
             <p class="page-subtitle">Track and manage all rental payments</p>
         </div>
         <div class="header-actions">
-            <button class="btn btn-success btn-create-invoice" onclick="openCreateInvoiceModal()">
-                <i class="bi bi-plus-circle"></i>
-                Create Invoice
-            </button>
             <button class="btn btn-primary btn-export" onclick="exportReport()">
                 <i class="bi bi-download"></i>
                 Export Report
@@ -130,6 +126,7 @@
                     <th>Payment ID</th>
                     <th>Tenant</th>
                     <th>Property</th>
+                    <th>Billing Month</th>
                     <th>Amount</th>
                     <th>Due Date</th>
                     <th>Paid Date</th>
@@ -149,6 +146,9 @@
                             </td>
                             <td>@payment.TenantName</td>
                             <td>@payment.PropertyName</td>
+                            <td>
+                                <span class="billing-month">@payment.BillingMonthDisplay</span>
+                            </td>
                             <td>
                                 <span class="amount-value">$@payment.Amount.ToString("N0")</span>
                             </td>
@@ -206,7 +206,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="8" class="empty-state">
+                        <td colspan="9" class="empty-state">
                             <div class="empty-content">
                                 <i class="bi bi-inbox"></i>
                                 <p>No payments found</p>
@@ -216,105 +216,6 @@
                 }
             </tbody>
         </table>
-    </div>
-</div>
-
-<!-- Create Invoice Modal -->
-<div class="modal-overlay" id="createInvoiceModal">
-    <div class="modal-container">
-        <div class="modal-header">
-            <h2 class="modal-title">
-                <i class="bi bi-receipt"></i>
-                Create New Invoice
-            </h2>
-            <button class="modal-close" onclick="closeCreateInvoiceModal()">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <!-- Step 1: Select Lease -->
-            <div class="form-section">
-                <label class="form-label">Select Lease Contract</label>
-                <select class="form-select" id="leaseSelect" onchange="onLeaseSelected()">
-                    <option value="">-- Select a lease --</option>
-                </select>
-                <div class="loading-spinner" id="leaseLoading" style="display: none;">
-                    <i class="bi bi-arrow-repeat spinning"></i> Loading leases...
-                </div>
-            </div>
-
-            <!-- Lease Info Display -->
-            <div class="lease-info-card" id="leaseInfoCard" style="display: none;">
-                <h4 class="info-card-title">Lease Information</h4>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Property</span>
-                        <span class="info-value" id="infoPropertyName">-</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Address</span>
-                        <span class="info-value" id="infoPropertyAddress">-</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Tenant</span>
-                        <span class="info-value" id="infoTenantName">-</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Email</span>
-                        <span class="info-value" id="infoTenantEmail">-</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Monthly Rent</span>
-                        <span class="info-value highlight" id="infoMonthlyRent">-</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Payment Due Day</span>
-                        <span class="info-value" id="infoPaymentDueDay">-</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Lease Period</span>
-                        <span class="info-value" id="infoLeasePeriod">-</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Additional Services -->
-            <div class="form-section" id="additionalSection" style="display: none;">
-                <label class="form-label">Additional Services Amount (VND)</label>
-                <input type="number" class="form-input" id="additionalAmount"
-                       placeholder="Enter additional amount (optional)" min="0" value="0"
-                       onchange="updateTotalAmount()" oninput="updateTotalAmount()">
-                <small class="form-hint">Enter amount for utilities, maintenance, or other services</small>
-
-                <label class="form-label mt-3">Description for Additional Services</label>
-                <input type="text" class="form-input" id="additionalDescription"
-                       placeholder="e.g., Electricity, Water, Internet...">
-            </div>
-
-            <!-- Invoice Summary -->
-            <div class="invoice-summary" id="invoiceSummary" style="display: none;">
-                <h4 class="summary-title">Invoice Summary</h4>
-                <div class="summary-row">
-                    <span>Monthly Rent:</span>
-                    <span id="summaryRent">$0</span>
-                </div>
-                <div class="summary-row">
-                    <span>Additional Services:</span>
-                    <span id="summaryAdditional">$0</span>
-                </div>
-                <div class="summary-row total">
-                    <span>Total Amount:</span>
-                    <span id="summaryTotal">$0</span>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeCreateInvoiceModal()">Cancel</button>
-            <button class="btn btn-primary" id="createInvoiceBtn" onclick="createInvoice()" disabled>
-                <i class="bi bi-check-circle"></i>
-                Create Invoice
-            </button>
-        </div>
     </div>
 </div>
 
@@ -420,172 +321,6 @@
         function exportReport() {
             alert('Export report functionality will be implemented');
         }
-
-        // ===== Create Invoice Modal Functions =====
-        let activeLeasesData = [];
-        let selectedLease = null;
-
-        function openCreateInvoiceModal() {
-            document.getElementById('createInvoiceModal').classList.add('active');
-            loadActiveLeases();
-        }
-
-        function closeCreateInvoiceModal() {
-            document.getElementById('createInvoiceModal').classList.remove('active');
-            resetCreateInvoiceForm();
-        }
-
-        function resetCreateInvoiceForm() {
-            document.getElementById('leaseSelect').value = '';
-            document.getElementById('leaseInfoCard').style.display = 'none';
-            document.getElementById('additionalSection').style.display = 'none';
-            document.getElementById('invoiceSummary').style.display = 'none';
-            document.getElementById('additionalAmount').value = '0';
-            document.getElementById('additionalDescription').value = '';
-            document.getElementById('createInvoiceBtn').disabled = true;
-            selectedLease = null;
-        }
-
-        async function loadActiveLeases() {
-            const select = document.getElementById('leaseSelect');
-            const loading = document.getElementById('leaseLoading');
-
-            loading.style.display = 'block';
-            select.innerHTML = '<option value="">-- Select a lease --</option>';
-
-            try {
-                const response = await fetch('@Url.Action("GetActiveLeases", "Payment")');
-                const result = await response.json();
-
-                if (result.success) {
-                    activeLeasesData = result.data;
-                    result.data.forEach(lease => {
-                        const option = document.createElement('option');
-                        option.value = lease.leaseId;
-                        option.textContent = `${lease.leaseNumber} - ${lease.propertyName} (${lease.tenantName})`;
-                        select.appendChild(option);
-                    });
-                } else {
-                    alert('Failed to load leases: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error loading leases:', error);
-                alert('An error occurred while loading leases');
-            } finally {
-                loading.style.display = 'none';
-            }
-        }
-
-        function onLeaseSelected() {
-            const leaseId = parseInt(document.getElementById('leaseSelect').value);
-            selectedLease = activeLeasesData.find(l => l.leaseId === leaseId);
-
-            if (selectedLease) {
-                // Show lease info
-                document.getElementById('infoPropertyName').textContent = selectedLease.propertyName;
-                document.getElementById('infoPropertyAddress').textContent = selectedLease.propertyAddress;
-                document.getElementById('infoTenantName').textContent = selectedLease.tenantName;
-                document.getElementById('infoTenantEmail').textContent = selectedLease.tenantEmail;
-                document.getElementById('infoMonthlyRent').textContent = formatCurrency(selectedLease.monthlyRent);
-                document.getElementById('infoPaymentDueDay').textContent = `Day ${selectedLease.paymentDueDay} of each month`;
-                document.getElementById('infoLeasePeriod').textContent =
-                    `${formatDate(selectedLease.startDate)} - ${formatDate(selectedLease.endDate)}`;
-
-                document.getElementById('leaseInfoCard').style.display = 'block';
-                document.getElementById('additionalSection').style.display = 'block';
-                document.getElementById('invoiceSummary').style.display = 'block';
-                document.getElementById('createInvoiceBtn').disabled = false;
-
-                updateTotalAmount();
-            } else {
-                document.getElementById('leaseInfoCard').style.display = 'none';
-                document.getElementById('additionalSection').style.display = 'none';
-                document.getElementById('invoiceSummary').style.display = 'none';
-                document.getElementById('createInvoiceBtn').disabled = true;
-            }
-        }
-
-        function updateTotalAmount() {
-            if (!selectedLease) return;
-
-            const additionalAmount = parseFloat(document.getElementById('additionalAmount').value) || 0;
-            const monthlyRent = selectedLease.monthlyRent;
-            const total = monthlyRent + additionalAmount;
-
-            document.getElementById('summaryRent').textContent = formatCurrency(monthlyRent);
-            document.getElementById('summaryAdditional').textContent = formatCurrency(additionalAmount);
-            document.getElementById('summaryTotal').textContent = formatCurrency(total);
-        }
-
-        async function createInvoice() {
-            if (!selectedLease) {
-                alert('Please select a lease first');
-                return;
-            }
-
-            const additionalAmount = parseFloat(document.getElementById('additionalAmount').value) || 0;
-            const additionalDescription = document.getElementById('additionalDescription').value;
-
-            const btn = document.getElementById('createInvoiceBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-arrow-repeat spinning"></i> Creating...';
-
-            try {
-                const response = await fetch('@Url.Action("CreateInvoice", "Payment")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        leaseId: selectedLease.leaseId,
-                        additionalAmount: additionalAmount,
-                        additionalDescription: additionalDescription
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert('Invoice created successfully!\n\nInvoice Number: ' + result.data.invoiceNumber);
-                    closeCreateInvoiceModal();
-                    location.reload();
-                } else {
-                    alert('Failed to create invoice: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error creating invoice:', error);
-                alert('An error occurred while creating invoice');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-circle"></i> Create Invoice';
-            }
-        }
-
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('createInvoiceModal')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeCreateInvoiceModal();
-            }
-        });
     </script>
 }
 
@@ -620,7 +355,7 @@
             margin: 0;
         }
 
-        .btn-export, .btn-create-invoice {
+        .btn-export {
             color: white;
             border: none;
             padding: 12px 24px;
@@ -632,9 +367,6 @@
             align-items: center;
             gap: 8px;
             transition: background 0.2s;
-        }
-
-        .btn-export {
             background: #3b82f6;
         }
 
@@ -642,12 +374,9 @@
             background: #2563eb;
         }
 
-        .btn-create-invoice {
-            background: #22c55e;
-        }
-
-        .btn-create-invoice:hover {
-            background: #16a34a;
+        .billing-month {
+            font-weight: 500;
+            color: #6366f1;
         }
 
         .header-actions {

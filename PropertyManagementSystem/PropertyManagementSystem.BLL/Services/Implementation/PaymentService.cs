@@ -193,7 +193,8 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Status = payment.Status ?? "Unknown",
                 InvoiceTotalAmount = invoice?.TotalAmount ?? 0,
                 InvoicePaidAmount = invoice?.PaidAmount ?? 0,
-                InvoiceRemainingAmount = invoice?.RemainingAmount ?? 0
+                InvoiceRemainingAmount = invoice?.RemainingAmount ?? 0,
+                BillingMonth = invoice?.BillingMonth ?? DateTime.MinValue
             };
         }
 

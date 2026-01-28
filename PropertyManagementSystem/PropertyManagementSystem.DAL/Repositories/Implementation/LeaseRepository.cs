@@ -229,5 +229,14 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
                 l.Status == "Active");
         }
 
+        public async Task<IEnumerable<Lease>> GetAllActiveLeasesAsync()
+        {
+            return await _dbSet
+                .Include(l => l.Property)
+                    .ThenInclude(p => p.Landlord)
+                .Include(l => l.Tenant)
+                .Where(l => l.Status == "Active")
+                .ToListAsync();
+        }
     }
 }

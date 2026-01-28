@@ -7,5 +7,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<List<Invoice>> GetAvailableInvoicesByTenantAsync(int tenantId);
         Task<List<Invoice>> GetInvoicesByLeaseIdAsync(int leaseId);
         Task<Invoice?> UpdateInvoiceAsync(Invoice invoice);
+        Task<bool> HasInvoiceForMonthAsync(int leaseId, DateTime billingMonth);
+        Task<List<Invoice>> GetOverdueInvoicesAsync();
     }
 }

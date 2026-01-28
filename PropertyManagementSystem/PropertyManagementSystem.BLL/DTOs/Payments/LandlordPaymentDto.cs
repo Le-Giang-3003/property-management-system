@@ -28,5 +28,9 @@ namespace PropertyManagementSystem.BLL.DTOs.Payments
         public decimal InvoiceTotalAmount { get; set; }
         public decimal InvoicePaidAmount { get; set; }
         public decimal InvoiceRemainingAmount { get; set; }
+
+        // Billing Period Information
+        public DateTime BillingMonth { get; set; }
+        public string BillingMonthDisplay => BillingMonth.ToString("MM/yyyy");
     }
 }
