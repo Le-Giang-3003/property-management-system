@@ -38,7 +38,7 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         /// <param name="otp">The otp.</param>
         /// <param name="otpHash">The otp hash.</param>
         /// <returns></returns>
-        bool VerifyRegistrationOtp(string email, string otp, string otpHash);
+        (bool IsValid, string Message) VerifyRegistrationOtp(string email, string otp, string otpHash);
         /// <summary>
         /// Registers the with verified email.
         /// </summary>

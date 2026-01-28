@@ -124,7 +124,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         /// <param name="otp">The otp.</param>
         /// <param name="otpHash">The otp hash.</param>
         /// <returns></returns>
-        public bool VerifyRegistrationOtp(string email, string otp, string otpHash)
+        public (bool IsValid, string Message) VerifyRegistrationOtp(string email, string otp, string otpHash)
         {
             return _otpService.VerifyOtpAsync(email, otp, otpHash);
         }

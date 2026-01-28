@@ -18,6 +18,6 @@
         /// <param name="userOtp">The user otp.</param>
         /// <param name="otpHash">The otp hash.</param>
         /// <returns></returns>
-        bool VerifyOtpAsync(string email, string userOtp, string receivedHash);
+        (bool IsValid, string ErrorMessage) VerifyOtpAsync(string email, string userOtp, string receivedHash);
     }
 }

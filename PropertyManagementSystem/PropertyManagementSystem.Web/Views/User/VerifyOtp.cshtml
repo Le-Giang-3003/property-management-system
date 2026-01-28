@@ -81,7 +81,10 @@
     </div>
 
     <div class="pm-auth-footer">
-        <a asp-action="ResendOtp" asp-route-email="@Model.Email">Resend verification code</a>
+        <button id="resendBtn" class="pm-resend-btn" disabled>
+            <i class="bi bi-arrow-clockwise"></i>
+            <span id="resendText">Resend code in <strong id="resendTimer">60</strong>s</span>
+        </button>
     </div>
 </div>
 
@@ -106,12 +109,43 @@
         gap: var(--pm-space-2);
         margin-top: var(--pm-space-3);
     }
+
+    .pm-resend-btn {
+        background: none;
+        border: none;
+        color: var(--pm-primary);
+        cursor: pointer;
+        font-size: var(--pm-text-base);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-2);
+        margin: 0 auto;
+        padding: var(--pm-space-2) var(--pm-space-4);
+        transition: opacity 0.3s;
+    }
+
+        .pm-resend-btn:disabled {
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .pm-resend-btn:not(:disabled):hover {
+            opacity: 0.8;
+        }
 </style>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         const otpInput = document.getElementById('otpInput');
+        const resendBtn = document.getElementById('resendBtn');
+        const resendText = document.getElementById('resendText');
+        const resendTimerSpan = document.getElementById('resendTimer');
+
+        // Resend countdown (60 seconds)
+        let resendCountdown = 60;
+        let resendInterval;
 
         // Only allow numbers
         otpInput.addEventListener('input', function(e) {
@@ -126,7 +160,34 @@
             this.value = numbers;
         });
 
+        // Start resend countdown
+        function startResendCountdown() {
+            resendBtn.disabled = true;
+            resendCountdown = 60;
+
+            resendInterval = setInterval(() => {
+                resendCountdown--;
+                resendTimerSpan.textContent = resendCountdown;
+
+                if (resendCountdown <= 0) {
+                    clearInterval(resendInterval);
+                    resendBtn.disabled = false;
+                    resendText.innerHTML = 'Resend verification code';
+                }
+            }, 1000);
+        }
+
+        // Handle resend button click
+        resendBtn.addEventListener('click', function() {
+            if (!this.disabled) {
+                window.location.href = '@Url.Action("ResendOtp", "User", new { email = Model.Email })';
+            }
+        });
+
         // Auto focus
         otpInput.focus();
+
+        // Start countdown on page load
+        startResendCountdown();
     </script>
 }
