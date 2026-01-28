@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using PropertyManagementSystem.BLL;
 using PropertyManagementSystem.DAL;
+using PropertyManagementSystem.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,10 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Validate that authenticated users still exist in database
+// This prevents access when database is reset but cookies still exist
+app.UseValidateUser();
 
 //app.MapControllerRoute(
 //    name: "default",

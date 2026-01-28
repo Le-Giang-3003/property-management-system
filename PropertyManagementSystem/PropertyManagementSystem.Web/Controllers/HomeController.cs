@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.Web.ViewModels;
 using System.Diagnostics;
 using PropertyManagementSystem.BLL.Services.Interface;
@@ -18,6 +19,7 @@ namespace PropertyManagementSystem.Web.Controllers
             _viewingService = viewingService;
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -37,12 +39,14 @@ namespace PropertyManagementSystem.Web.Controllers
             return View(new List<PropertyViewingDto>());
         }
 
+        [AllowAnonymous]
         public IActionResult Privacy()
         {
             Console.WriteLine("Privacy page accessed.");    
             return View();
         }
 
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

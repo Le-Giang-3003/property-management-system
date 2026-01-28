@@ -626,22 +626,22 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PropertyId = table.Column<int>(type: "int", nullable: false),
                     RequestedBy = table.Column<int>(type: "int", nullable: true),
-                    GuestName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    GuestEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    GuestPhone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    GuestName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    GuestEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    GuestPhone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     RequestedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PreferredDate1 = table.Column<DateTime>(type: "datetime2", nullable: true),
                     PreferredDate2 = table.Column<DateTime>(type: "datetime2", nullable: true),
                     PreferredDate3 = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ScheduledDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    TenantNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    TenantNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    LandlordNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    MeetingLink = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    LandlordNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    MeetingLink = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     IsVirtualViewing = table.Column<bool>(type: "bit", nullable: false),
                     CompletedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Rating = table.Column<int>(type: "int", nullable: true),
-                    Feedback = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Feedback = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
@@ -1138,9 +1138,9 @@ namespace PropertyManagementSystem.DAL.Migrations
                 columns: new[] { "RoleId", "CreatedAt", "Description", "RoleName" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 1, 27, 14, 52, 35, 392, DateTimeKind.Utc).AddTicks(34), "System Administrator", "Admin" },
-                    { 2, new DateTime(2026, 1, 27, 14, 52, 35, 392, DateTimeKind.Utc).AddTicks(37), "Landlord and Tenant", "Member" },
-                    { 3, new DateTime(2026, 1, 27, 14, 52, 35, 392, DateTimeKind.Utc).AddTicks(38), "Maintenance Technician", "Technician" }
+                    { 1, new DateTime(2026, 1, 28, 6, 11, 12, 629, DateTimeKind.Utc).AddTicks(9631), "System Administrator", "Admin" },
+                    { 2, new DateTime(2026, 1, 28, 6, 11, 12, 629, DateTimeKind.Utc).AddTicks(9633), "Landlord and Tenant", "Member" },
+                    { 3, new DateTime(2026, 1, 28, 6, 11, 12, 629, DateTimeKind.Utc).AddTicks(9634), "Maintenance Technician", "Technician" }
                 });
 
             migrationBuilder.CreateIndex(

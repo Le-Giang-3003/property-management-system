@@ -1,9 +1,12 @@
 @using System.Security.Claims
+@using PropertyManagementSystem.Web.Extensions
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var title = ViewData["Title"] as string ?? "Property Management";
     var userName = User.FindFirstValue(ClaimTypes.Name) ?? "User";
     var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? "";
+    var userId = User.GetUserId();
+    string userInitial = string.IsNullOrEmpty(userName) ? "?" : userName.Substring(0, Math.Min(1, userName.Length)).ToUpper();
 
     // Detect current view mode dynamically from route
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
@@ -260,6 +263,22 @@
             justify-content: center;
             font-weight: var(--pm-font-semibold);
             font-size: var(--pm-text-sm);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pm-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pm-user-avatar-initial {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
         }
 
         .pm-user-info {
@@ -606,7 +625,9 @@
 
                 <div class="pm-user-menu" id="userMenu">
                     <button class="pm-user-btn" onclick="toggleUserMenu()" aria-label="User menu">
-                        <div class="pm-user-avatar">@(string.IsNullOrEmpty(userName) ? "?" : userName.Substring(0, Math.Min(1, userName.Length)).ToUpper())</div>
+                        <div class="pm-user-avatar" id="userAvatar" data-user-id="@(userId?.ToString() ?? "")">
+                            <span class="pm-user-avatar-initial">@userInitial</span>
+                        </div>
                         <div class="pm-user-info">
                             <span class="pm-user-name">@(userName ?? "User")</span>
                             <span class="pm-user-role">@displayRole</span>
@@ -877,8 +898,41 @@
             overlay.classList.remove('active');
         }
 
+        // Load user avatar
+        async function loadUserAvatar() {
+            const avatarContainer = document.getElementById('userAvatar');
+            if (!avatarContainer) return;
+            
+            const userId = avatarContainer.getAttribute('data-user-id');
+            if (!userId) return;
+            
+            try {
+                const response = await fetch(`/Profile/GetAvatar?userId=${userId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.avatar) {
+                        const img = document.createElement('img');
+                        img.src = data.avatar;
+                        img.alt = '@userName';
+                        img.onerror = function() {
+                            this.style.display = 'none';
+                            avatarContainer.querySelector('.pm-user-avatar-initial').style.display = 'flex';
+                        };
+                        const initial = avatarContainer.querySelector('.pm-user-avatar-initial');
+                        if (initial) initial.style.display = 'none';
+                        avatarContainer.insertBefore(img, avatarContainer.firstChild);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load avatar:', error);
+            }
+        }
+
         // Highlight active nav link
         document.addEventListener('DOMContentLoaded', function() {
+            // Load avatar
+            loadUserAvatar();
+            
             const currentPath = window.location.pathname.toLowerCase();
             const navLinks = document.querySelectorAll('.pm-nav-link');
             const isLandlord = '@displayRole' === 'Landlord';

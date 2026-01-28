@@ -12,7 +12,7 @@ using PropertyManagementSystem.DAL.Data;
 namespace PropertyManagementSystem.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260127145235_InitMigration")]
+    [Migration("20260128061116_InitMigration")]
     partial class InitMigration
     {
         /// <inheritdoc />
@@ -1579,22 +1579,18 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Feedback")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("GuestEmail")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("GuestName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("GuestPhone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -1602,12 +1598,10 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LandlordNotes")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("MeetingLink")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -1641,7 +1635,6 @@ namespace PropertyManagementSystem.DAL.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("TenantNotes")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -1840,21 +1833,21 @@ namespace PropertyManagementSystem.DAL.Migrations
                         new
                         {
                             RoleId = 1,
-                            CreatedAt = new DateTime(2026, 1, 27, 14, 52, 35, 392, DateTimeKind.Utc).AddTicks(34),
+                            CreatedAt = new DateTime(2026, 1, 28, 6, 11, 12, 629, DateTimeKind.Utc).AddTicks(9631),
                             Description = "System Administrator",
                             RoleName = "Admin"
                         },
                         new
                         {
                             RoleId = 2,
-                            CreatedAt = new DateTime(2026, 1, 27, 14, 52, 35, 392, DateTimeKind.Utc).AddTicks(37),
+                            CreatedAt = new DateTime(2026, 1, 28, 6, 11, 12, 629, DateTimeKind.Utc).AddTicks(9633),
                             Description = "Landlord and Tenant",
                             RoleName = "Member"
                         },
                         new
                         {
                             RoleId = 3,
-                            CreatedAt = new DateTime(2026, 1, 27, 14, 52, 35, 392, DateTimeKind.Utc).AddTicks(38),
+                            CreatedAt = new DateTime(2026, 1, 28, 6, 11, 12, 629, DateTimeKind.Utc).AddTicks(9634),
                             Description = "Maintenance Technician",
                             RoleName = "Technician"
                         });

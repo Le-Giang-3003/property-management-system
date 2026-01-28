@@ -22,10 +22,15 @@
 <div class="property-details-container">
     <!-- Header -->
     <div class="details-header">
-        <a asp-controller="Property" asp-action="SearchProperties" class="btn-back" 
+        @{
+            var portalMode = ViewData["PortalMode"] as string ?? "Tenant";
+            var backAction = portalMode == "Landlord" ? "MyProperties" : "SearchProperties";
+            var backText = portalMode == "Landlord" ? "Back to My Properties" : "Back to Properties";
+        }
+        <a asp-controller="Property" asp-action="@backAction" class="btn-back" 
            aria-label="Back to properties list">
             <i class="bi bi-arrow-left" aria-hidden="true"></i>
-            Back to Properties
+            @backText
         </a>
         @if (User.Identity?.IsAuthenticated == true)
         {
@@ -38,82 +43,92 @@
         }
     </div>
 
-    <!-- Gallery -->
-    @if (sortedImages.Any())
-    {
-        <div class="gallery-section">
-            @if (sortedImages.Count == 1)
+    <!-- Top Section: 70% Gallery + 30% Info -->
+    <div class="top-section">
+            <!-- Gallery (70%) -->
+            <div class="gallery-container">
+            @if (sortedImages.Any())
             {
-                <div class="single-image">
-                    <img src="@sortedImages[0].ImageUrl"
-                         alt="@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))"
-                         onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
-                         onclick="showImageModal('@Html.Raw(Html.Encode(sortedImages[0].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))')">
-                    @if (sortedImages[0].IsThumbnail)
+                <div class="gallery-section">
+                    @if (sortedImages.Count == 1)
                     {
-                        <div class="thumbnail-badge">
-                            <i class="bi bi-star-fill"></i>
-                            <span>Featured</span>
+                        <div class="single-image">
+                            <img id="mainImage" src="@sortedImages[0].ImageUrl"
+                                 alt="@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))"
+                                 onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
+                                 onclick="showImageModal('@Html.Raw(Html.Encode(sortedImages[0].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))')">
+                            @if (sortedImages[0].IsThumbnail)
+                            {
+                                <div class="thumbnail-badge">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span>Featured</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="thumbnail-gallery">
+                            <!-- Main Image -->
+                            <div class="gallery-main">
+                                <img id="mainImage" src="@sortedImages[0].ImageUrl"
+                                     alt="@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))"
+                                     onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
+                                     onclick="showImageModal('@Html.Raw(Html.Encode(sortedImages[0].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))')">
+                                @if (sortedImages[0].IsThumbnail)
+                                {
+                                    <div class="thumbnail-badge">
+                                        <i class="bi bi-star-fill"></i>
+                                        <span>Featured</span>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <!-- Thumbnail Strip -->
+                            <div class="thumbnail-strip">
+                                <div class="thumbnail-container">
+                                    @for (int i = 0; i < sortedImages.Count; i++)
+                                    {
+                                        <div class="thumbnail-item @(i == 0 ? "active" : "")" 
+                                             data-image-url="@sortedImages[i].ImageUrl"
+                                             data-image-caption="@Html.Raw(Html.Encode(sortedImages[i].Caption ?? Model.Name))"
+                                             data-is-thumbnail="@sortedImages[i].IsThumbnail.ToString().ToLower()"
+                                             onclick="changeMainImage(this, '@Html.Raw(Html.Encode(sortedImages[i].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[i].Caption ?? Model.Name))', @sortedImages[i].IsThumbnail.ToString().ToLower())">
+                                            <img src="@sortedImages[i].ImageUrl"
+                                                 alt="@Html.Raw(Html.Encode(sortedImages[i].Caption ?? Model.Name))"
+                                                 onerror="this.onerror=null; this.src='/images/placeholder-property.jpg';">
+                                            @if (sortedImages[i].IsThumbnail)
+                                            {
+                                                <div class="thumbnail-indicator">
+                                                    <i class="bi bi-star-fill"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
             }
             else
             {
-                <div class="gallery-grid">
-                    <div class="gallery-main">
-                        <img src="@sortedImages[0].ImageUrl"
-                             alt="@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))"
-                             onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
-                             onclick="showImageModal('@Html.Raw(Html.Encode(sortedImages[0].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[0].Caption ?? Model.Name))')">
-                        @if (sortedImages[0].IsThumbnail)
-                        {
-                            <div class="thumbnail-badge">
-                                <i class="bi bi-star-fill"></i>
-                                <span>Featured</span>
-                            </div>
-                        }
-                    </div>
-                    <div class="gallery-side">
-                        @for (int i = 1; i < Math.Min(sortedImages.Count, 5); i++)
-                        {
-                            <div class="gallery-item">
-                                <img src="@sortedImages[i].ImageUrl"
-                                     alt="@Html.Raw(Html.Encode(sortedImages[i].Caption ?? Model.Name))"
-                                     onerror="this.onerror=null; this.src='/images/placeholder-property.jpg'; this.alt='Image not available';"
-                                     onclick="showImageModal('@Html.Raw(Html.Encode(sortedImages[i].ImageUrl))', '@Html.Raw(Html.Encode(sortedImages[i].Caption ?? Model.Name))')">
-                                @if (i == 4 && sortedImages.Count > 5)
-                                {
-                                    <div class="more-overlay" data-bs-toggle="modal" data-bs-target="#allImagesModal">
-                                        <i class="bi bi-images"></i>
-                                        <span>+@(sortedImages.Count - 5)</span>
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
+                <div class="no-images-section">
+                    <i class="bi bi-image"></i>
+                    <p>No images available</p>
+                    @if (isOwner)
+                    {
+                        <a asp-action="ManageImages" asp-route-id="@Model.PropertyId" class="btn-upload-first">
+                            <i class="bi bi-cloud-upload"></i>
+                            Upload Images
+                        </a>
+                    }
                 </div>
             }
         </div>
-    }
-    else
-    {
-        <div class="no-images-section">
-            <i class="bi bi-image"></i>
-            <p>No images available</p>
-            @if (isOwner)
-            {
-                <a asp-action="ManageImages" asp-route-id="@Model.PropertyId" class="btn-upload-first">
-                    <i class="bi bi-cloud-upload"></i>
-                    Upload Images
-                </a>
-            }
-        </div>
-    }
 
-    <!-- Content -->
-    <div class="details-grid">
-        <div class="details-main">
+        <!-- Quick Info Sidebar (30%) -->
+        <div class="quick-info-sidebar">
             <!-- Title & Status -->
             <div class="property-header">
                 <h1>@Model.Name</h1>
@@ -125,6 +140,58 @@
                 </div>
             </div>
 
+            <!-- Pricing -->
+            <div class="quick-info-card pricing-card">
+                <div class="price-main">
+                    <span class="price-amount">@FormatVNCurrency(Model.RentAmount)</span>
+                    <span class="price-period">/month</span>
+                </div>
+                @if (Model.DepositAmount.HasValue)
+                {
+                    <div class="price-item">
+                        <span>Security Deposit</span>
+                        <strong>@FormatVNCurrency(Model.DepositAmount.Value)</strong>
+                    </div>
+                }
+                <div class="price-item">
+                    <span>Available From</span>
+                    <strong>@FormatDate(Model.AvailableFrom)</strong>
+                </div>
+            </div>
+
+            <!-- Quick Specs -->
+            <div class="quick-info-card specs-card">
+                <h4>Property Details</h4>
+                <div class="quick-specs">
+                    <div class="quick-spec-item">
+                        <i class="bi bi-door-closed"></i>
+                        <div>
+                            <strong>@Model.Bedrooms</strong>
+                            <span>Bedrooms</span>
+                        </div>
+                    </div>
+                    <div class="quick-spec-item">
+                        <i class="bi bi-droplet"></i>
+                        <div>
+                            <strong>@Model.Bathrooms</strong>
+                            <span>Bathrooms</span>
+                        </div>
+                    </div>
+                    <div class="quick-spec-item">
+                        <i class="bi bi-rulers"></i>
+                        <div>
+                            <strong>@Model.SquareFeet.ToString("N0")</strong>
+                            <span>sqft</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section: Detailed Information (70/30) -->
+    <div class="bottom-section">
+        <div class="details-main">
             <!-- Location -->
             <div class="info-section">
                 <div class="section-icon">
@@ -144,39 +211,6 @@
                             <span> - @Model.ZipCode</span>
                         }
                     </p>
-                </div>
-            </div>
-
-            <!-- Specs -->
-            <div class="info-section">
-                <div class="section-icon">
-                    <i class="bi bi-house-door"></i>
-                </div>
-                <div class="section-content">
-                    <h3>Property Details</h3>
-                    <div class="specs-grid">
-                        <div class="spec-card">
-                            <i class="bi bi-door-closed"></i>
-                            <div>
-                                <strong>@Model.Bedrooms</strong>
-                                <span>Bedrooms</span>
-                            </div>
-                        </div>
-                        <div class="spec-card">
-                            <i class="bi bi-droplet"></i>
-                            <div>
-                                <strong>@Model.Bathrooms</strong>
-                                <span>Bathrooms</span>
-                            </div>
-                        </div>
-                        <div class="spec-card">
-                            <i class="bi bi-rulers"></i>
-                            <div>
-                                <strong>@Model.SquareFeet.ToString("N0")</strong>
-                                <span>sqft</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -228,6 +262,30 @@
                 </div>
             </div>
 
+            <!-- Landlord -->
+            @if (Model.Landlord != null)
+            {
+                <div class="info-section">
+                    <div class="section-icon">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="section-content">
+                        <h3>Property Owner</h3>
+                        <div class="landlord-info">
+                            <div class="landlord-avatar">@(string.IsNullOrEmpty(Model.Landlord.FullName) ? "?" : Model.Landlord.FullName.Substring(0, Math.Min(1, Model.Landlord.FullName.Length)).ToUpper())</div>
+                            <div class="landlord-details">
+                                <strong>@(Model.Landlord.FullName ?? "N/A")</strong>
+                                <span><i class="bi bi-envelope"></i> @Model.Landlord.Email</span>
+                                @if (!string.IsNullOrEmpty(Model.Landlord.PhoneNumber))
+                                {
+                                    <span><i class="bi bi-telephone"></i> @Model.Landlord.PhoneNumber</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
             <!-- Timestamps -->
             <div class="timestamps">
                 <span><i class="bi bi-calendar-plus" aria-hidden="true"></i> Listed: @FormatDate(Model.CreatedAt)</span>
@@ -237,51 +295,12 @@
                 }
             </div>
         </div>
-
-        <!-- Sidebar -->
-        <div class="details-sidebar">
-            <!-- Pricing -->
-            <div class="sidebar-card pricing-card">
-                <div class="price-main">
-                    <span class="price-amount">@FormatVNCurrency(Model.RentAmount)</span>
-                    <span class="price-period">/month</span>
-                </div>
-                @if (Model.DepositAmount.HasValue)
-                {
-                    <div class="price-item">
-                        <span>Security Deposit</span>
-                        <strong>@FormatVNCurrency(Model.DepositAmount.Value)</strong>
-                    </div>
-                }
-                <div class="price-item">
-                    <span>Available From</span>
-                    <strong>@FormatDate(Model.AvailableFrom)</strong>
-                </div>
-            </div>
-
-            <!-- Landlord -->
-            @if (Model.Landlord != null)
-            {
-                <div class="sidebar-card landlord-card">
-                    <h4>Property Owner</h4>
-                    <div class="landlord-info">
-                        <div class="landlord-avatar">@(string.IsNullOrEmpty(Model.Landlord.FullName) ? "?" : Model.Landlord.FullName.Substring(0, Math.Min(1, Model.Landlord.FullName.Length)).ToUpper())</div>
-                        <div class="landlord-details">
-                            <strong>@(Model.Landlord.FullName ?? "N/A")</strong>
-                            <span><i class="bi bi-envelope"></i> @Model.Landlord.Email</span>
-                            @if (!string.IsNullOrEmpty(Model.Landlord.PhoneNumber))
-                            {
-                                <span><i class="bi bi-telephone"></i> @Model.Landlord.PhoneNumber</span>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Actions for Owner -->
+        <!-- Right column for bottom section (30%) -->
+        <div class="bottom-sidebar">
+            <!-- Management Actions (for Owner) -->
             @if (isOwner)
             {
-                <div class="sidebar-card actions-card">
+                <div class="quick-info-card actions-card">
                     <h4>Management</h4>
                     <div class="action-buttons">
                         <a asp-action="Edit" asp-route-id="@Model.PropertyId" class="btn-action edit" 
@@ -307,8 +326,8 @@
             }
             else if (User.Identity?.IsAuthenticated == true && Model.Status == "Available")
             {
-                <!-- Apply Now for Tenants -->
-                <div class="sidebar-card apply-card">
+                <!-- Apply Now for Tenants (in bottom section) -->
+                <div class="quick-info-card apply-card">
                     <h4>Interested in this property?</h4>
                     <p class="apply-card-text">Submit your rental application now and get a response within 24-48 hours.</p>
                     <a asp-controller="RentalApplication" asp-action="Create" asp-route-propertyId="@Model.PropertyId" class="btn-apply-now">
@@ -480,11 +499,28 @@
                 color: white;
             }
 
+        /* Top Section: 70/30 Layout */
+        .top-section {
+            display: grid;
+            grid-template-columns: 70% 30%;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .gallery-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
         /* Gallery */
         .gallery-section {
-            margin-bottom: 32px;
             border-radius: 12px;
             overflow: hidden;
+            flex: 1;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
         }
 
         .single-image, .gallery-main {
@@ -501,55 +537,120 @@
                 border-radius: 12px;
             }
 
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
+        /* Thumbnail Gallery */
+        .thumbnail-gallery {
+            display: flex;
+            flex-direction: column;
             gap: 8px;
-            height: 500px;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
         }
 
-        .gallery-main img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            object-position: center;
-            background: #f8fafc;
-            cursor: pointer;
-            border-radius: 12px 0 0 12px;
-        }
-
-        .gallery-side {
-            display: grid;
-            grid-template-rows: repeat(4, 1fr);
-            gap: 8px;
-        }
-
-        .gallery-item {
+        .gallery-main {
             position: relative;
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
             overflow: hidden;
+            background: #f8fafc;
         }
 
-            .gallery-item:first-child img {
-                border-radius: 0 12px 0 0;
-            }
-
-            .gallery-item:last-child img {
-                border-radius: 0 0 12px 0;
-            }
-
-            .gallery-item img {
+            .gallery-main img {
                 width: 100%;
                 height: 100%;
                 object-fit: contain;
                 object-position: center;
-                background: #f8fafc;
                 cursor: pointer;
-                transition: transform 0.3s;
+                transition: opacity 0.3s ease;
             }
 
-            .gallery-item:hover img {
-                transform: scale(1.05);
+        /* Thumbnail Strip */
+        .thumbnail-strip {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 4px 0 0 0 !important;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+        }
+
+            .thumbnail-strip::-webkit-scrollbar {
+                height: 8px;
             }
+
+            .thumbnail-strip::-webkit-scrollbar-track {
+                background: #f8fafc;
+                border-radius: 4px;
+            }
+
+            .thumbnail-strip::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 4px;
+            }
+
+                .thumbnail-strip::-webkit-scrollbar-thumb:hover {
+                    background: #94a3b8;
+                }
+
+        .thumbnail-container {
+            display: flex;
+            gap: 8px;
+            min-width: fit-content;
+        }
+
+        .thumbnail-item {
+            position: relative;
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+            .thumbnail-item:hover {
+                border-color: #3b82f6;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+
+            .thumbnail-item.active {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            }
+
+            .thumbnail-item img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s ease;
+            }
+
+            .thumbnail-item:hover img {
+                transform: scale(1.1);
+            }
+
+        .thumbnail-indicator {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
 
         /* Thumbnail Badge */
         .thumbnail-badge {
@@ -656,30 +757,103 @@
                 box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
             }
 
-        /* Content Grid */
-        .details-grid {
+        /* Quick Info Sidebar */
+        .quick-info-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .quick-info-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .quick-info-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 16px 0;
+        }
+
+        /* Quick Specs */
+        .quick-specs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .quick-spec-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .quick-spec-item i {
+            font-size: 20px;
+            color: #3b82f6;
+            width: 24px;
+            text-align: center;
+        }
+
+        .quick-spec-item strong {
+            display: block;
+            font-size: 18px;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .quick-spec-item span {
+            display: block;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Bottom Section: 70/30 Layout */
+        .bottom-section {
             display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 32px;
+            grid-template-columns: 70% 30%;
+            gap: 24px;
+            align-items: start;
         }
 
         .details-main {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 16px;
+            grid-column: 1;
+        }
+
+        .bottom-sidebar {
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .details-main > .info-section:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            margin-bottom: 0 !important;
         }
 
         /* Property Header */
         .property-header {
-            padding-bottom: 24px;
-            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 16px;
         }
 
             .property-header h1 {
-                font-size: 32px;
+                font-size: 24px;
                 font-weight: 700;
                 color: #1e293b;
                 margin: 0 0 12px 0;
+                line-height: 1.3;
             }
 
         .property-meta {
@@ -729,10 +903,15 @@
         .info-section {
             display: flex;
             gap: 16px;
-            padding: 24px;
+            padding: 20px;
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
+        }
+
+        .details-main > .info-section:first-child {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
         }
 
         .section-icon {
@@ -877,26 +1056,6 @@
                 margin-right: 6px;
             }
 
-        /* Sidebar */
-        .details-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .sidebar-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 24px;
-        }
-
-            .sidebar-card h4 {
-                font-size: 16px;
-                font-weight: 600;
-                color: #1e293b;
-                margin: 0 0 16px 0;
-            }
 
         /* Pricing Card */
         .pricing-card {
@@ -908,26 +1067,26 @@
             display: flex;
             align-items: baseline;
             gap: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .price-amount {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: #15803d;
         }
 
         .price-period {
-            font-size: 16px;
+            font-size: 14px;
             color: #16a34a;
         }
 
         .price-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
+            padding: 10px 0;
             border-top: 1px solid #bbf7d0;
-            font-size: 14px;
+            font-size: 13px;
         }
 
             .price-item span {
@@ -936,12 +1095,14 @@
 
             .price-item strong {
                 color: #15803d;
+                font-size: 14px;
             }
 
-        /* Landlord Card */
+        /* Landlord Info in Details */
         .landlord-info {
             display: flex;
             gap: 16px;
+            align-items: center;
         }
 
         .landlord-avatar {
@@ -1200,30 +1361,34 @@
 
         /* Responsive */
         @@media (max-width: 1024px) {
-            .details-grid {
+            .top-section {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .quick-info-sidebar {
+                order: -1;
+            }
+
+            .bottom-section {
                 grid-template-columns: 1fr;
             }
 
-            .gallery-grid {
-                grid-template-columns: 1fr;
-                height: auto;
+            .bottom-sidebar {
+                display: none;
             }
 
-            .gallery-main img {
-                border-radius: 12px 12px 0 0;
+            .gallery-main {
+                height: 400px;
             }
 
-            .gallery-side {
-                grid-template-columns: repeat(4, 1fr);
-                grid-template-rows: auto;
+            .thumbnail-item {
+                width: 80px;
+                height: 80px;
             }
 
-            .gallery-item:first-child img {
-                border-radius: 0;
-            }
-
-            .gallery-item:last-child img {
-                border-radius: 0 0 12px 0;
+            .quick-info-sidebar {
+                order: -1;
             }
 
             .specs-grid {
@@ -1246,28 +1411,37 @@
                 justify-content: center;
             }
 
-            .gallery-grid {
-                height: auto;
+            .gallery-main {
+                height: 300px;
             }
 
             .single-image img {
                 height: 300px;
             }
 
+            .thumbnail-item {
+                width: 70px;
+                height: 70px;
+            }
+
             .all-images-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .gallery-side {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
             .property-header h1 {
-                font-size: 24px;
+                font-size: 20px;
             }
 
             .price-amount {
-                font-size: 28px;
+                font-size: 24px;
+            }
+
+            .quick-spec-item {
+                padding: 10px;
+            }
+
+            .quick-spec-item strong {
+                font-size: 16px;
             }
         }
     </style>
@@ -1275,6 +1449,44 @@
 
 @section Scripts {
     <script>
+        // Thumbnail Gallery Functions
+        function changeMainImage(thumbnailElement, imageUrl, imageCaption, isThumbnail) {
+            // Update main image
+            const mainImage = document.getElementById('mainImage');
+            if (mainImage) {
+                mainImage.src = imageUrl;
+                mainImage.alt = imageCaption;
+                mainImage.setAttribute('onclick', `showImageModal('${imageUrl.replace(/'/g, "\\'")}', '${imageCaption.replace(/'/g, "\\'")}')`);
+            }
+
+            // Update active thumbnail
+            document.querySelectorAll('.thumbnail-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            thumbnailElement.classList.add('active');
+
+            // Update featured badge
+            const badge = document.querySelector('.thumbnail-badge');
+            if (isThumbnail) {
+                if (!badge) {
+                    const mainImageContainer = document.querySelector('.gallery-main');
+                    if (mainImageContainer) {
+                        const newBadge = document.createElement('div');
+                        newBadge.className = 'thumbnail-badge';
+                        newBadge.innerHTML = '<i class="bi bi-star-fill"></i><span>Featured</span>';
+                        mainImageContainer.appendChild(newBadge);
+                    }
+                }
+            } else {
+                if (badge) {
+                    badge.remove();
+                }
+            }
+
+            // Scroll thumbnail into view if needed
+            thumbnailElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+
         function showImageModal(url, title) {
             $('#imageModalTitle').text(title);
             $('#imageModalImg').attr('src', url);

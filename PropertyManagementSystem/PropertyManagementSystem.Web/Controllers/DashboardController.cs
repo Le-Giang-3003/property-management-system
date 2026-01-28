@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.Dashboard;
@@ -9,6 +10,7 @@ namespace PropertyManagementSystem.Web.Controllers
     /// Controller for routing to the dashboard views base on role.
     /// </summary>
     /// <seealso cref="Microsoft.AspNetCore.Mvc.Controller" />
+    [Authorize]
     public class DashboardController : Controller
     {
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PropertyManagementSystem.DAL.Entities
@@ -15,13 +15,13 @@ namespace PropertyManagementSystem.DAL.Entities
         public int? RequestedBy { get; set; } // Nullable cho Guest
 
         [MaxLength(100)]
-        public string GuestName { get; set; }
+        public string? GuestName { get; set; }
 
         [MaxLength(100)]
-        public string GuestEmail { get; set; }
+        public string? GuestEmail { get; set; }
 
         [MaxLength(20)]
-        public string GuestPhone { get; set; }
+        public string? GuestPhone { get; set; }
 
         public DateTime RequestedDate { get; set; }
 
@@ -32,16 +32,16 @@ namespace PropertyManagementSystem.DAL.Entities
         public DateTime? ScheduledDate { get; set; }
 
         [MaxLength(1000)]
-        public string TenantNotes { get; set; }
+        public string? TenantNotes { get; set; }
 
         [Required, MaxLength(20)]
         public string Status { get; set; } = "Requested"; // Requested, Confirmed, Completed, Cancelled, Rejected, Rescheduled
 
         [MaxLength(1000)]
-        public string LandlordNotes { get; set; }
+        public string? LandlordNotes { get; set; }
 
         [MaxLength(1000)]
-        public string MeetingLink { get; set; }
+        public string? MeetingLink { get; set; }
 
         public bool IsVirtualViewing { get; set; } = false;
 
@@ -50,7 +50,7 @@ namespace PropertyManagementSystem.DAL.Entities
         public int? Rating { get; set; }
 
         [MaxLength(1000)]
-        public string Feedback { get; set; }
+        public string? Feedback { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

@@ -57,7 +57,7 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
         public async Task<IEnumerable<Property>> GetAllPropertiesAsync()
         {
             return await _context.Properties
-                .Where(p => p.Status != "Unavailable")
+                .Where(p => p.Status == "Available")
                 .Include(p => p.Landlord)
                 .Include(p => p.Images)
                 .ToListAsync();

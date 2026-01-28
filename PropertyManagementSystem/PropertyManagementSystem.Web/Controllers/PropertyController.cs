@@ -155,9 +155,28 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Check nếu property này đã được favorite chưa
+            // Determine PortalMode based on user role and referer
             var userId = GetCurrentUserId();
-            if (userId>0)
+            var referer = Request.Headers["Referer"].ToString();
+            
+            // Check if coming from MyProperties (landlord portal)
+            if (referer.Contains("MyProperties") || referer.Contains("Property/MyProperties"))
+            {
+                ViewData["PortalMode"] = "Landlord";
+            }
+            // Check if user is the owner or admin
+            else if (userId > 0 && (property.LandlordId == userId || User.IsInRole("Admin")))
+            {
+                ViewData["PortalMode"] = "Landlord";
+            }
+            // Default to Tenant portal
+            else
+            {
+                ViewData["PortalMode"] = "Tenant";
+            }
+
+            // Check nếu property này đã được favorite chưa
+            if (userId > 0)
             {
                 ViewBag.IsFavorited = await _favoritePropertyService.IsPropertyFavoritedAsync(userId, id);
             }

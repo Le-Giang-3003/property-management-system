@@ -1,18 +1,22 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.User;
 using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.Extensions;
+using System.IO;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
     public class ProfileController : Controller
     {
         private readonly IProfileService _profileService;
+        private readonly IWebHostEnvironment _env;
 
-        public ProfileController(IProfileService profileService)
+        public ProfileController(IProfileService profileService, IWebHostEnvironment env)
         {
             _profileService = profileService;
+            _env = env;
         }
 
         // GET: /Profile
@@ -95,17 +99,102 @@ namespace PropertyManagementSystem.Web.Controllers
         // POST: /Profile/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UpdateProfileDto model)
+        public async Task<IActionResult> Edit(UpdateProfileDto model, IFormFile? avatarFile)
         {
-            if (!ModelState.IsValid) return View(model);
-
             var userId = User.GetUserId();
             if (userId == null) return RedirectToAction("Login", "Auth");
+
+            // Get current profile to check existing avatar
+            var currentProfile = await _profileService.GetProfileAsync(userId.Value);
+            var hadPreviousAvatar = currentProfile != null && !string.IsNullOrEmpty(currentProfile.Avatar);
+
+            // Handle photo removal (when Avatar is explicitly cleared and no new file uploaded)
+            if (avatarFile == null && string.IsNullOrEmpty(model.Avatar) && hadPreviousAvatar && currentProfile != null && currentProfile.Avatar.StartsWith("/uploads/profiles/"))
+            {
+                var oldFilePath = System.IO.Path.Combine(_env.WebRootPath, currentProfile.Avatar.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                    catch
+                    {
+                        // Ignore deletion errors
+                    }
+                }
+                model.Avatar = null;
+            }
+
+            // Handle file upload
+            if (avatarFile != null && avatarFile.Length > 0)
+            {
+                try
+                {
+                    // Validate file
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+                    var extension = System.IO.Path.GetExtension(avatarFile.FileName).ToLower();
+                    
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        TempData["Error"] = "Only image files (jpg, jpeg, png, webp, gif) are allowed";
+                        return View(model);
+                    }
+
+                    if (avatarFile.Length > 5 * 1024 * 1024) // 5MB
+                    {
+                        TempData["Error"] = "File size must not exceed 5MB";
+                        return View(model);
+                    }
+
+                    // Create directory
+                    var uploadPath = System.IO.Path.Combine(_env.WebRootPath, "uploads", "profiles", userId.Value.ToString());
+                    if (!System.IO.Directory.Exists(uploadPath))
+                        System.IO.Directory.CreateDirectory(uploadPath);
+
+                    // Delete old avatar if exists
+                    if (hadPreviousAvatar && currentProfile != null && currentProfile.Avatar.StartsWith("/uploads/profiles/"))
+                    {
+                        var oldFilePath = System.IO.Path.Combine(_env.WebRootPath, currentProfile.Avatar.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                            catch
+                            {
+                                // Ignore deletion errors
+                            }
+                        }
+                    }
+
+                    // Generate filename
+                    var fileName = $"{Guid.NewGuid()}{extension}";
+                    var filePath = System.IO.Path.Combine(uploadPath, fileName);
+
+                    // Save file
+                    using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                    {
+                        await avatarFile.CopyToAsync(stream);
+                    }
+
+                    // Update avatar URL
+                    model.Avatar = $"/uploads/profiles/{userId.Value}/{fileName}";
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Error uploading file: {ex.Message}";
+                    return View(model);
+                }
+            }
+
+            if (!ModelState.IsValid) return View(model);
 
             var (success, message) = await _profileService.UpdateProfileAsync(userId.Value, model);
             TempData[success ? "Success" : "Error"] = message;
 
-            return success ? RedirectToAction("Index") : View(model);
+            return success ? RedirectToAction("ManageProfile") : View(model);
         }
 
         // GET: /Profile/Search (Admin/Landlord)
@@ -133,6 +222,20 @@ namespace PropertyManagementSystem.Web.Controllers
                 return RedirectToAction("Search");
             }
             return View(profile);
+        }
+
+        // GET: /Profile/GetAvatar - API endpoint to get user avatar
+        [HttpGet]
+        public async Task<IActionResult> GetAvatar(int? userId = null)
+        {
+            var targetUserId = userId ?? User.GetUserId();
+            if (targetUserId == null)
+            {
+                return Json(new { avatar = (string?)null });
+            }
+
+            var profile = await _profileService.GetProfileAsync(targetUserId.Value);
+            return Json(new { avatar = profile?.Avatar });
         }
     }
 }
