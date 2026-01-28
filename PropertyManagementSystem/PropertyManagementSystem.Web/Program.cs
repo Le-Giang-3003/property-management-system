@@ -1,7 +1,10 @@
-
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementSystem.BLL;
+using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.DAL;
+using PropertyManagementSystem.DAL.Data;
+using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +48,46 @@ builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer(builder.Configuration);
 
 var app = builder.Build();
+
+// Ensure default Admin user exists (first run only)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var passwordService = scope.ServiceProvider.GetRequiredService<IPasswordService>();
+    var adminRole = await db.Roles.FirstOrDefaultAsync(r => r.RoleName == "Admin");
+    if (adminRole != null)
+    {
+        var hasAnyAdmin = await db.UserRoles.AnyAsync(ur => ur.RoleId == adminRole.RoleId);
+        if (!hasAnyAdmin)
+        {
+            var defaultEmail = builder.Configuration["SeedAdmin:Email"] ?? "admin@localhost";
+            var defaultPassword = builder.Configuration["SeedAdmin:Password"] ?? "Admin@123";
+            if (await db.Users.AnyAsync(u => u.Email == defaultEmail))
+            {
+                var existing = await db.Users.FirstAsync(u => u.Email == defaultEmail);
+                db.UserRoles.Add(new UserRole { UserId = existing.UserId, RoleId = adminRole.RoleId, AssignedAt = DateTime.UtcNow });
+                await db.SaveChangesAsync();
+            }
+            else
+            {
+                var adminUser = new User
+                {
+                    Email = defaultEmail,
+                    FullName = "System Administrator",
+                    PasswordHash = passwordService.HashPassword(defaultPassword),
+                    IsActive = true,
+                    EmailVerified = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                db.Users.Add(adminUser);
+                await db.SaveChangesAsync();
+                db.UserRoles.Add(new UserRole { UserId = adminUser.UserId, RoleId = adminRole.RoleId, AssignedAt = DateTime.UtcNow });
+                await db.SaveChangesAsync();
+            }
+        }
+    }
+}
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())

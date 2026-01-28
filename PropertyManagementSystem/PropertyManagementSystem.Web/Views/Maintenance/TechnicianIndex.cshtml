@@ -220,6 +220,11 @@
         color: #92400e;
     }
 
+    .request-status.onhold {
+        background-color: #e2e8f0;
+        color: #475569;
+    }
+
     .request-meta {
         display: flex;
         gap: 24px;
@@ -549,6 +554,7 @@
         <button class="filter-tab active" onclick="filterRequests(this, 'all')">All</button>
         <button class="filter-tab" onclick="filterRequests(this, 'Assigned')">Pending</button>
         <button class="filter-tab" onclick="filterRequests(this, 'InProgress')">In Progress</button>
+        <button class="filter-tab" onclick="filterRequests(this, 'OnHold')">On Hold</button>
         <button class="filter-tab" onclick="filterRequests(this, 'Completed')">Completed</button>
         <button class="filter-tab" onclick="filterRequests(this, 'Cancelled')">Cancelled</button>
         <button class="filter-tab" onclick="filterRequests(this, 'Rejected')">Rejected</button>

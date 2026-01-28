@@ -119,6 +119,17 @@ dotnet restore
 dotnet build
 dotnet run
 ```
+
+### Admin Portal Login
+
+- **Cùng trang đăng nhập**: Dùng trang **Auth/Login** (mặc định là trang chủ khi chưa đăng nhập).
+- **Tài khoản Admin mặc định (lần chạy đầu)**  
+  Nếu trong database chưa có user nào có role Admin, ứng dụng sẽ tự tạo một tài khoản Admin khi khởi động:
+  - **Email**: `admin@localhost` (hoặc cấu hình trong `appsettings.json` → `SeedAdmin:Email`)
+  - **Mật khẩu**: `Admin@123` (hoặc cấu hình trong `appsettings.json` → `SeedAdmin:Password`)
+- Sau khi đăng nhập với tài khoản Admin, hệ thống sẽ chuyển hướng đến **Admin Dashboard** (`/Admin`). Từ menu bên trái có thể vào: Manage Users, Create User, Roles & Permissions, System Settings, Audit Logs.
+- **Tạo thêm Admin**: Đăng nhập bằng một Admin hiện có → **Admin** → **Create User** → chọn Role **Admin** và tạo tài khoản mới.
+
 ## Project Structure
 ```bash
 PropertyManagementSystem

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PropertyManagementSystem.DAL.Data;
 using PropertyManagementSystem.DAL.Entities;
 using PropertyManagementSystem.DAL.Repositories.Interface;
@@ -61,6 +61,20 @@ namespace PropertyManagementSystem.DAL.Repositories.Implementation
             return await _context.Leases
                 .Include(l => l.Property)
                 .Where(l => l.TenantId == tenantId)
+                .OrderByDescending(l => l.StartDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Lease>> GetActiveLeasesByTenantIdAsync(int tenantId)
+        {
+            return await _context.Leases
+                .Include(l => l.Property)
+                .Where(l => l.TenantId == tenantId && 
+                           l.Property != null &&
+                           l.Status != null &&
+                           l.Status != "Expired" &&
+                           l.Status != "Terminated" &&
+                           l.Status != "Renewed")
                 .OrderByDescending(l => l.StartDate)
                 .ToListAsync();
         }

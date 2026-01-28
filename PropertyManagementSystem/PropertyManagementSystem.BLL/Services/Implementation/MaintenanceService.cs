@@ -171,7 +171,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (request == null || request.Property.LandlordId != landlordId)
                 return false;
 
-            if ((request.Status != "Pending" || request.Status != "InProgress") == false)
+            if (request.Status != "Pending")
                 return false;
 
             request.AssignedTo = dto.TechnicianId;
@@ -303,7 +303,31 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             if (request == null || request.AssignedTo != technicianId)
                 return false;
 
-            return await _maintenanceRepo.CompleteMaintenanceAsync(dto.RequestId, dto.ActualCost, dto.ResolutionNotes);
+            request.ActualCost = dto.ActualCost;
+            request.ResolutionNotes = dto.ResolutionNotes ?? "";
+            request.CompletedDate = DateTime.UtcNow;
+            request.TechnicianStatus = "Completed";
+            request.Status = "Completed";
+            request.ClosedBy = technicianId;
+            request.ClosedDate = DateTime.UtcNow;
+
+            await _maintenanceRepo.UpdateAsync(request);
+            return true;
+        }
+
+        public async Task<bool> UpdateRequestStatusAsync(int requestId, string status, int technicianId)
+        {
+            var request = await _maintenanceRepo.GetByIdAsync(requestId);
+            if (request == null || request.AssignedTo != technicianId)
+                return false;
+
+            var allowed = new[] { "InProgress", "OnHold" };
+            if (string.IsNullOrEmpty(status) || !allowed.Contains(status, StringComparer.OrdinalIgnoreCase))
+                return false;
+
+            request.Status = status;
+            await _maintenanceRepo.UpdateAsync(request);
+            return true;
         }
 
         public async Task<MaintenanceStatsDto> GetTechnicianStatsAsync(int technicianId)

@@ -565,6 +565,41 @@
                 </div>
             }
 
+            <div class="card">
+                <h3 class="card-title">
+                    <i class="bi bi-chat-dots"></i>
+                    Comments (@(Model.Comments?.Count ?? 0))
+                </h3>
+                @if (Model.Comments != null && Model.Comments.Any())
+                {
+                    <div class="comments-list" style="margin-bottom: 20px;">
+                        @foreach (var c in Model.Comments.OrderBy(x => x.CreatedAt))
+                        {
+                            <div class="comment-item" style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                                <div style="font-weight: 600; color: #1e293b;">@c.UserName</div>
+                                <div style="font-size: 14px; color: #475569;">@c.Comment</div>
+                                <div style="font-size: 12px; color: #94a3b8;">@c.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p style="color: #94a3b8;">No comments yet.</p>
+                }
+                @if (Model.Status != "Completed" && Model.Status != "Cancelled" && Model.Status != "Rejected" && Model.Status != "Closed")
+                {
+                    <form asp-action="AddComment" method="post" style="margin-top: 16px;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="requestId" value="@Model.RequestId" />
+                        <div class="form-group">
+                            <textarea name="comment" class="form-control" placeholder="Add a comment..." required rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Add Comment</button>
+                    </form>
+                }
+            </div>
+
             @if (Model.Rating.HasValue)
             {
                 <div class="card">
@@ -686,7 +721,7 @@
                     @* TECHNICIAN ACTIONS *@
                     @if (isTechnician && Model.AssignedTo == currentUserId)
                     {
-                        @if (Model.Status == "Assigned" && string.IsNullOrEmpty(Model.TechnicianStatus))
+                        @if ((Model.Status == "InProgress" || Model.Status == "Assigned") && (string.IsNullOrEmpty(Model.TechnicianStatus) || Model.TechnicianStatus == "Pending"))
                         {
                             <button class="btn btn-success" onclick="openAcceptModal(@Model.RequestId)">
                                 <i class="bi bi-check-circle"></i> Accept Assignment
@@ -695,11 +730,28 @@
                                 <i class="bi bi-x-circle"></i> Reject Assignment
                             </button>
                         }
-                        @if (Model.Status == "InProgress")
+                        @if (Model.Status == "InProgress" && Model.TechnicianStatus == "Accepted")
                         {
                             <button class="btn btn-success" onclick="openCompleteModal(@Model.RequestId)">
-                                <i class="bi bi-check-square"></i> Mark as Completed
+                                <i class="bi bi-check-square"></i> Mark as Completed (Close Request)
                             </button>
+                            <form method="post" asp-action="UpdateRequestStatus" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="requestId" value="@Model.RequestId" />
+                                <input type="hidden" name="status" value="OnHold" />
+                                <input type="hidden" name="returnToDetails" value="true" />
+                                <button type="submit" class="btn btn-secondary"><i class="bi bi-pause-circle"></i> Put on Hold</button>
+                            </form>
+                        }
+                        @if (Model.Status == "OnHold")
+                        {
+                            <form method="post" asp-action="UpdateRequestStatus" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="requestId" value="@Model.RequestId" />
+                                <input type="hidden" name="status" value="InProgress" />
+                                <input type="hidden" name="returnToDetails" value="true" />
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-play-circle"></i> Resume</button>
+                            </form>
                         }
                     }
 

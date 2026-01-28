@@ -13,18 +13,13 @@ namespace PropertyManagementSystem.Web.Controllers
     [Authorize]
     public class DashboardController : Controller
     {
-        /// <summary>
-        /// The dashboard service
-        /// </summary>
         private readonly IDashboardService _dashboardService;
+        private readonly IMaintenanceService _maintenanceService;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DashboardController"/> class.
-        /// </summary>
-        /// <param name="dashboardService">The dashboard service.</param>
-        public DashboardController(IDashboardService dashboardService)
+        public DashboardController(IDashboardService dashboardService, IMaintenanceService maintenanceService)
         {
             _dashboardService = dashboardService;
+            _maintenanceService = maintenanceService;
         }
         /// <summary>
         /// Landlords the index.
@@ -115,6 +110,44 @@ namespace PropertyManagementSystem.Web.Controllers
                 TempData["Error"] = "Error loading dashboard data";
                 // Return empty view model to avoid null reference
                 return View(new TenantDashboardViewModel());
+            }
+        }
+
+        /// <summary>
+        /// Technician Dashboard View.
+        /// </summary>
+        [HttpGet]
+        [Authorize(Policy = "TechnicianOnly")]
+        public async Task<IActionResult> TechnicianIndex()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int technicianId))
+            {
+                TempData["Error"] = "User information not found";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            try
+            {
+                var requests = await _maintenanceService.GetTechnicianRequestsAsync(technicianId);
+                var stats = await _maintenanceService.GetTechnicianStatsAsync(technicianId);
+
+                var viewModel = new TechnicianDashboardViewModel
+                {
+                    TotalAssignments = stats.TotalRequests,
+                    PendingResponse = stats.PendingRequests,
+                    InProgress = stats.InProgressRequests,
+                    Completed = stats.CompletedRequests,
+                    RecentRequests = requests.Take(5).ToList()
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Technician Dashboard ERROR: {ex.Message}");
+                TempData["Error"] = "Error loading dashboard data";
+                return View(new TechnicianDashboardViewModel());
             }
         }
     }

@@ -46,6 +46,16 @@ namespace PropertyManagementSystem.Web.Controllers
         {
             var userId = GetCurrentUserId();
             var properties = await GetUserPropertiesAsync(userId);
+            
+            // Debug: Log if no properties found
+            if (properties == null || !properties.Any())
+            {
+                System.Diagnostics.Debug.WriteLine($"[CreateRequest] UserId: {userId}, Properties count: 0");
+                // Try to get leases directly for debugging
+                var leases = await _leaseService.GetTenantActivePropertiesAsync(userId);
+                System.Diagnostics.Debug.WriteLine($"[CreateRequest] Direct call returned {leases?.Count ?? 0} properties");
+            }
+            
             ViewBag.Properties = properties;
             return View();
         }
@@ -336,6 +346,27 @@ namespace PropertyManagementSystem.Web.Controllers
         // POST: /Maintenance/CompleteMaintenance
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRequestStatus(int requestId, string status, bool returnToDetails = false)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _maintenanceService.UpdateRequestStatusAsync(requestId, status, userId);
+                TempData[result ? "SuccessMessage" : "ErrorMessage"] = result
+                    ? "Status updated."
+                    : "Unable to update status.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+            if (returnToDetails)
+                return RedirectToAction(nameof(Details), new { id = requestId });
+            return RedirectToAction(nameof(TechnicianIndex));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CompleteMaintenance(CompleteMaintenanceDto dto)
         {
             if (!ModelState.IsValid)
@@ -467,7 +498,30 @@ namespace PropertyManagementSystem.Web.Controllers
 
         private async Task<List<PropertySelectDto>> GetUserPropertiesAsync(int userId)
         {
-            return await _leaseService.GetTenantActivePropertiesAsync(userId);
+            var result = await _leaseService.GetTenantActivePropertiesAsync(userId);
+            Console.WriteLine($"[MaintenanceController.GetUserPropertiesAsync] UserId: {userId}, Properties returned: {result?.Count ?? 0}");
+            return result ?? new List<PropertySelectDto>();
+        }
+
+        #endregion
+
+        #region Debug Endpoint
+
+        [HttpGet]
+        public async Task<IActionResult> DebugProperties()
+        {
+            var userId = GetCurrentUserId();
+            var properties = await GetUserPropertiesAsync(userId);
+            var leases = await _leaseService.GetTenantActivePropertiesAsync(userId);
+            
+            return Json(new 
+            { 
+                userId, 
+                propertiesCount = properties?.Count ?? 0, 
+                properties,
+                leasesCount = leases?.Count ?? 0,
+                leases
+            });
         }
 
         #endregion

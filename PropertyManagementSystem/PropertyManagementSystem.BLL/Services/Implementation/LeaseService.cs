@@ -531,18 +531,35 @@ IV. TERMINATION:
         }
         public async Task<List<PropertySelectDto>> GetTenantActivePropertiesAsync(int tenantId)
         {
-            var activeLeases = await _unitOfWork.Leases.GetByTenantIdAsync(tenantId);
+            // Get all leases for tenant - use GetByTenantIdAsync to ensure Property is loaded
+            var allLeases = await _unitOfWork.Leases.GetByTenantIdAsync(tenantId);
+            var leasesList = allLeases.ToList();
 
-            // Include Active, Draft, and PendingSignature leases (tenant can create maintenance requests for properties they have leases for, even if not fully signed yet)
-            var result = activeLeases
-                .Where(l => l.Status == "Active" || l.Status == "Draft" || l.Status == "PendingSignature")
+            // Filter out ended leases (case-insensitive, handle whitespace)
+            var endedStatuses = new[] { "Expired", "Terminated", "Renewed" };
+            
+            var result = leasesList
+                .Where(l => 
+                {
+                    // Must have lease, property, and status
+                    if (l == null || l.Property == null) return false;
+                    
+                    // Status must exist and not be empty
+                    var status = l.Status?.Trim();
+                    if (string.IsNullOrEmpty(status)) return false;
+                    
+                    // Must not be an ended status (case-insensitive)
+                    return !endedStatuses.Any(ended => 
+                        string.Equals(status, ended, StringComparison.OrdinalIgnoreCase));
+                })
                 .Select(l => new PropertySelectDto
                 {
                     PropertyId = l.PropertyId,
-                    Name = l.Property?.Name ?? "N/A",
-                    Address = l.Property?.Address ?? "N/A"
+                    Name = l.Property.Name ?? "N/A",
+                    Address = l.Property.Address ?? "N/A"
                 })
-                .Distinct()
+                .GroupBy(p => p.PropertyId)
+                .Select(g => g.First())
                 .ToList();
 
             return result;

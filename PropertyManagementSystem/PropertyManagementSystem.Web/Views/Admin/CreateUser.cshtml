@@ -1,0 +1,103 @@
+@model PropertyManagementSystem.BLL.DTOs.Admin.CreateUserDto
+@{
+    ViewData["Title"] = "Create User";
+    Layout = "_AuthLayout";
+    var roles = ViewBag.Roles as List<string> ?? new List<string>();
+}
+
+<style>
+    .create-container { padding: 10px 0; max-width: 700px; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 14px; margin-bottom: 20px; }
+    .back-link:hover { color: #1d4ed8; }
+    .create-header h1 { font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 5px; }
+    .create-header p { color: #64748b; margin: 0 0 30px; font-size: 14px; }
+    .form-card { background: white; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+    .form-group label .required { color: #dc2626; }
+    .form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .form-actions { display: flex; gap: 12px; margin-top: 8px; }
+    .btn-submit { background: #2563eb; color: white; border: none; padding: 12px 28px; border-radius: 10px; font-weight: 500; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-submit:hover { background: #1d4ed8; }
+    .btn-cancel { background: #f1f5f9; color: #475569; border: none; padding: 12px 28px; border-radius: 10px; font-weight: 500; font-size: 15px; cursor: pointer; text-decoration: none; }
+    .btn-cancel:hover { background: #e2e8f0; color: #475569; }
+    .validation-summary { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; color: #dc2626; font-size: 14px; }
+    .hint { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+</style>
+
+<div class="create-container">
+    <a href="@Url.Action("Users", "Admin")" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Users
+    </a>
+
+    <div class="create-header">
+        <h1>Create User</h1>
+        <p>Add a new user account (Member, Technician, or Admin)</p>
+    </div>
+
+    <div class="form-card">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary">
+                @Html.ValidationSummary(true)
+            </div>
+        }
+
+        <form method="post" asp-action="CreateUser">
+            @Html.AntiForgeryToken()
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Full Name <span class="required">*</span></label>
+                    <input type="text" asp-for="FullName" placeholder="Enter full name" required />
+                </div>
+                <div class="form-group">
+                    <label>Email <span class="required">*</span></label>
+                    <input type="email" asp-for="Email" placeholder="user@example.com" required />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Password <span class="required">*</span></label>
+                    <input type="password" asp-for="Password" placeholder="Minimum 6 characters" required minlength="6" />
+                    <div class="hint">At least 6 characters</div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password <span class="required">*</span></label>
+                    <input type="password" asp-for="ConfirmPassword" placeholder="Re-enter password" required />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" asp-for="PhoneNumber" placeholder="e.g. 0901234567" />
+                </div>
+                <div class="form-group">
+                    <label>Role <span class="required">*</span></label>
+                    <select asp-for="Role">
+                        @foreach (var r in roles)
+                        {
+                            <option value="@r" selected="@(r == "Member")">@r</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" asp-for="Address" placeholder="Enter address" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">
+                    <i class="bi bi-person-plus"></i> Create User
+                </button>
+                <a href="@Url.Action("Users", "Admin")" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

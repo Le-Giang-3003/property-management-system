@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.DAL.Entities;
+using PropertyManagementSystem.DAL.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +35,8 @@ namespace PropertyManagementSystem.DAL.Repositories.Interface
         Task<IEnumerable<Lease>> GetByPropertyIdAsync(int propertyId);
 
         Task<IEnumerable<Lease>> GetByTenantIdAsync(int tenantId);
+        
+        Task<IEnumerable<Lease>> GetActiveLeasesByTenantIdAsync(int tenantId);
 
         Task<Lease> GetByApplicationIdAsync(int applicationId);
 

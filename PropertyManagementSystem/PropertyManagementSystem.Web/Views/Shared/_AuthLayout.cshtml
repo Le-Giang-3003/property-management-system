@@ -73,9 +73,15 @@
         {
             displayRole = "Tenant";
         }
-        else if (currentAction == "TechnicianIndex")
+        else if (currentController == "Technician" || currentAction == "TechnicianIndex" ||
+                 (currentController == "Maintenance" && currentAction == "TechnicianIndex") ||
+                 (currentController == "Dashboard" && currentAction == "TechnicianIndex"))
         {
             displayRole = "Technician";
+        }
+        else if (currentController == "Admin")
+        {
+            displayRole = "Admin";
         }
         else
         {
@@ -653,6 +659,22 @@
                         </div>
 
                         <div class="pm-dropdown-body">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a href="@Url.Action("Index", "Admin")" class="pm-dropdown-item">
+                                    <i class="bi bi-shield-lock"></i>
+                                    <span>Admin Panel</span>
+                                </a>
+                                <div class="pm-dropdown-divider"></div>
+                            }
+                            @if (User.IsInRole("Technician"))
+                            {
+                                <a href="@Url.Action("TechnicianIndex", "Dashboard")" class="pm-dropdown-item">
+                                    <i class="bi bi-tools"></i>
+                                    <span>Technician Portal</span>
+                                </a>
+                                <div class="pm-dropdown-divider"></div>
+                            }
                             <a href="@Url.Action("ManageProfile", "Profile")" class="pm-dropdown-item">
                                 <i class="bi bi-person-circle"></i>
                                 <span>My Profile</span>
@@ -830,9 +852,65 @@
                     <div class="pm-nav-title">Main Menu</div>
                     <ul class="pm-nav-menu">
                         <li class="pm-nav-item">
+                            <a href="@Url.Action("TechnicianIndex", "Dashboard")" class="pm-nav-link">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
                             <a href="@Url.Action("TechnicianIndex", "Maintenance")" class="pm-nav-link">
                                 <i class="bi bi-list-task"></i>
                                 <span>My Assignments</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+            else if (displayRole == "Admin")
+            {
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Administration</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "Admin")" class="pm-nav-link">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Users", "Admin")" class="pm-nav-link">
+                                <i class="bi bi-people"></i>
+                                <span>Manage Users</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("CreateUser", "Admin")" class="pm-nav-link">
+                                <i class="bi bi-person-plus"></i>
+                                <span>Create User</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Roles", "Admin")" class="pm-nav-link">
+                                <i class="bi bi-shield-lock"></i>
+                                <span>Roles & Permissions</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">System</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("SystemSettings", "Admin")" class="pm-nav-link">
+                                <i class="bi bi-gear"></i>
+                                <span>System Settings</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("AuditLogs", "Admin")" class="pm-nav-link">
+                                <i class="bi bi-journal-text"></i>
+                                <span>Audit Logs</span>
                             </a>
                         </li>
                     </ul>

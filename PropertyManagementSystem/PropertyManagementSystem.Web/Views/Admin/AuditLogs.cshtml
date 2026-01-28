@@ -1,0 +1,223 @@
+@model PropertyManagementSystem.BLL.DTOs.Admin.AuditLogListDto
+@{
+    ViewData["Title"] = "Audit Logs";
+    Layout = "_AuthLayout";
+}
+
+<style>
+    .logs-container { padding: 10px 0; }
+    .logs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .logs-header h1 { font-size: 28px; font-weight: 700; color: #1e293b; margin: 0; }
+    .logs-header p { color: #64748b; margin: 4px 0 0; font-size: 14px; }
+    .filter-card { background: white; border-radius: 16px; padding: 20px 24px; border: 1px solid #e2e8f0; margin-bottom: 24px; }
+    .filter-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+    .filter-group { flex: 1; min-width: 150px; }
+    .filter-group label { display: block; font-size: 13px; font-weight: 500; color: #64748b; margin-bottom: 6px; }
+    .filter-group input, .filter-group select { width: 100%; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+    .filter-group input:focus, .filter-group select:focus { outline: none; border-color: #2563eb; }
+    .btn-search { background: #1e293b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; }
+    .btn-search:hover { background: #334155; }
+    .btn-reset { background: #f1f5f9; color: #475569; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; text-decoration: none; }
+    .btn-reset:hover { background: #e2e8f0; color: #475569; }
+    .logs-table { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
+    .logs-table table { width: 100%; border-collapse: collapse; }
+    .logs-table th { padding: 14px 20px; text-align: left; font-size: 13px; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
+    .logs-table td { padding: 14px 20px; font-size: 14px; color: #1e293b; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .logs-table tr:hover { background: #f8fafc; }
+    .log-user { display: flex; align-items: center; gap: 10px; }
+    .log-avatar { width: 32px; height: 32px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; flex-shrink: 0; }
+    .log-user-info .name { font-weight: 500; }
+    .log-user-info .email { font-size: 12px; color: #64748b; }
+    .badge-action { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-create { background: #d1fae5; color: #047857; }
+    .badge-update { background: #dbeafe; color: #1d4ed8; }
+    .badge-delete { background: #fee2e2; color: #dc2626; }
+    .badge-login { background: #e0e7ff; color: #4338ca; }
+    .badge-logout { background: #fef3c7; color: #92400e; }
+    .badge-default { background: #f1f5f9; color: #475569; }
+    .log-entity { font-weight: 500; color: #1e293b; }
+    .log-entity-id { font-size: 12px; color: #64748b; }
+    .log-desc { font-size: 13px; color: #475569; max-width: 300px; }
+    .log-time { font-size: 13px; color: #64748b; white-space: nowrap; }
+    .log-ip { font-size: 12px; color: #94a3b8; font-family: monospace; }
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: white; border-top: 1px solid #e2e8f0; }
+    .pagination-info { font-size: 14px; color: #64748b; }
+    .pagination-links { display: flex; gap: 4px; }
+    .page-link { padding: 6px 12px; border-radius: 6px; font-size: 14px; color: #475569; text-decoration: none; background: #f1f5f9; border: none; cursor: pointer; }
+    .page-link:hover { background: #e2e8f0; }
+    .page-link.active { background: #2563eb; color: white; }
+    .page-link.disabled { opacity: 0.5; pointer-events: none; }
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state i { font-size: 48px; color: #cbd5e1; }
+    .empty-state p { color: #94a3b8; margin-top: 12px; }
+</style>
+
+<div class="logs-container">
+    <div class="logs-header">
+        <div>
+            <h1>Audit Logs</h1>
+            <p>Track all system activities and user actions</p>
+        </div>
+    </div>
+
+    <form method="get" asp-action="AuditLogs" class="filter-card">
+        <div class="filter-row">
+            <div class="filter-group" style="flex: 2;">
+                <label>Search</label>
+                <input type="text" name="search" value="@Model.SearchTerm" placeholder="Search by user, description..." />
+            </div>
+            <div class="filter-group">
+                <label>Action</label>
+                <select name="action">
+                    <option value="">All Actions</option>
+                    <option value="Create" selected="@(Model.ActionFilter == "Create")">Create</option>
+                    <option value="Update" selected="@(Model.ActionFilter == "Update")">Update</option>
+                    <option value="Delete" selected="@(Model.ActionFilter == "Delete")">Delete</option>
+                    <option value="Login" selected="@(Model.ActionFilter == "Login")">Login</option>
+                    <option value="Logout" selected="@(Model.ActionFilter == "Logout")">Logout</option>
+                    <option value="AssignRole" selected="@(Model.ActionFilter == "AssignRole")">Assign Role</option>
+                    <option value="RemoveRole" selected="@(Model.ActionFilter == "RemoveRole")">Remove Role</option>
+                    <option value="ResetPassword" selected="@(Model.ActionFilter == "ResetPassword")">Reset Password</option>
+                    <option value="Activate" selected="@(Model.ActionFilter == "Activate")">Activate</option>
+                    <option value="Deactivate" selected="@(Model.ActionFilter == "Deactivate")">Deactivate</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Entity Type</label>
+                <select name="entityType">
+                    <option value="">All Types</option>
+                    <option value="User" selected="@(Model.EntityTypeFilter == "User")">User</option>
+                    <option value="UserRole" selected="@(Model.EntityTypeFilter == "UserRole")">UserRole</option>
+                    <option value="Property" selected="@(Model.EntityTypeFilter == "Property")">Property</option>
+                    <option value="Lease" selected="@(Model.EntityTypeFilter == "Lease")">Lease</option>
+                    <option value="MaintenanceRequest" selected="@(Model.EntityTypeFilter == "MaintenanceRequest")">Maintenance</option>
+                    <option value="SystemSetting" selected="@(Model.EntityTypeFilter == "SystemSetting")">SystemSetting</option>
+                    <option value="Invoice" selected="@(Model.EntityTypeFilter == "Invoice")">Invoice</option>
+                    <option value="Payment" selected="@(Model.EntityTypeFilter == "Payment")">Payment</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Date From</label>
+                <input type="date" name="dateFrom" value="@Model.DateFrom?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="filter-group">
+                <label>Date To</label>
+                <input type="date" name="dateTo" value="@Model.DateTo?.ToString("yyyy-MM-dd")" />
+            </div>
+            <button type="submit" class="btn-search"><i class="bi bi-search"></i> Filter</button>
+            <a href="@Url.Action("AuditLogs", "Admin")" class="btn-reset">Reset</a>
+        </div>
+    </form>
+
+    <div class="logs-table">
+        @if (Model.Logs.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Description</th>
+                        <th>Time</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.Logs)
+                    {
+                        var initial = !string.IsNullOrEmpty(log.UserName) && log.UserName.Length > 0 ? log.UserName[0].ToString().ToUpper() : "S";
+                        var actionClass = log.Action.ToLower() switch
+                        {
+                            "create" => "badge-create",
+                            "update" => "badge-update",
+                            "delete" => "badge-delete",
+                            "login" => "badge-login",
+                            "logout" => "badge-logout",
+                            _ => "badge-default"
+                        };
+                        <tr>
+                            <td>
+                                <div class="log-user">
+                                    <div class="log-avatar">@initial</div>
+                                    <div class="log-user-info">
+                                        <div class="name">@(log.UserName ?? "System")</div>
+                                        <div class="email">@(log.UserEmail ?? "-")</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-action @actionClass">@log.Action</span>
+                            </td>
+                            <td>
+                                <div class="log-entity">@log.EntityType</div>
+                                @if (log.EntityId.HasValue)
+                                {
+                                    <div class="log-entity-id">ID: @log.EntityId</div>
+                                }
+                            </td>
+                            <td>
+                                <div class="log-desc">@(log.Description ?? "-")</div>
+                            </td>
+                            <td>
+                                <div class="log-time">@log.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                <div class="log-time">@log.CreatedAt.ToString("HH:mm:ss")</div>
+                            </td>
+                            <td>
+                                <div class="log-ip">@(log.IpAddress ?? "-")</div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="pagination-bar">
+                <div class="pagination-info">
+                    Showing @((Model.PageNumber - 1) * Model.PageSize + 1)-@Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount) of @Model.TotalCount logs
+                </div>
+                <div class="pagination-links">
+                    @if (Model.PageNumber > 1)
+                    {
+                        <a href="@Url.Action("AuditLogs", new { page = Model.PageNumber - 1, search = Model.SearchTerm, action = Model.ActionFilter, entityType = Model.EntityTypeFilter, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })" class="page-link">&laquo; Prev</a>
+                    }
+                    @{
+                        var startPage = Math.Max(1, Model.PageNumber - 2);
+                        var endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                    }
+                    @if (startPage > 1)
+                    {
+                        <a href="@Url.Action("AuditLogs", new { page = 1, search = Model.SearchTerm, action = Model.ActionFilter, entityType = Model.EntityTypeFilter, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })" class="page-link">1</a>
+                        if (startPage > 2)
+                        {
+                            <span class="page-link disabled">...</span>
+                        }
+                    }
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <a href="@Url.Action("AuditLogs", new { page = i, search = Model.SearchTerm, action = Model.ActionFilter, entityType = Model.EntityTypeFilter, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })"
+                           class="page-link @(i == Model.PageNumber ? "active" : "")">@i</a>
+                    }
+                    @if (endPage < Model.TotalPages)
+                    {
+                        if (endPage < Model.TotalPages - 1)
+                        {
+                            <span class="page-link disabled">...</span>
+                        }
+                        <a href="@Url.Action("AuditLogs", new { page = Model.TotalPages, search = Model.SearchTerm, action = Model.ActionFilter, entityType = Model.EntityTypeFilter, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })" class="page-link">@Model.TotalPages</a>
+                    }
+                    @if (Model.PageNumber < Model.TotalPages)
+                    {
+                        <a href="@Url.Action("AuditLogs", new { page = Model.PageNumber + 1, search = Model.SearchTerm, action = Model.ActionFilter, entityType = Model.EntityTypeFilter, dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"), dateTo = Model.DateTo?.ToString("yyyy-MM-dd") })" class="page-link">Next &raquo;</a>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-journal-text"></i>
+                <p>No audit logs found matching your criteria.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,4 +1,4 @@
-﻿using PropertyManagementSystem.BLL.DTOs.Maintenance;
+using PropertyManagementSystem.BLL.DTOs.Maintenance;
 
 namespace PropertyManagementSystem.BLL.Services.Interface
 {
@@ -23,6 +23,7 @@ namespace PropertyManagementSystem.BLL.Services.Interface
         // Technician Operations
         Task<List<MaintenanceRequestDto>> GetTechnicianRequestsAsync(int technicianId, string status = null);
         Task<bool> RespondToAssignmentAsync(TechnicianResponseDto dto, int technicianId);
+        Task<bool> UpdateRequestStatusAsync(int requestId, string status, int technicianId);
         Task<bool> CompleteMaintenanceAsync(CompleteMaintenanceDto dto, int technicianId);
         Task<MaintenanceStatsDto> GetTechnicianStatsAsync(int technicianId);
 

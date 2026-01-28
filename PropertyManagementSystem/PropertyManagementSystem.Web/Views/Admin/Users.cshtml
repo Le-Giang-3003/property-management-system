@@ -1,0 +1,181 @@
+@model PropertyManagementSystem.BLL.DTOs.Admin.AdminUserListDto
+@{
+    ViewData["Title"] = "Manage Users";
+    Layout = "_AuthLayout";
+    var roles = ViewBag.Roles as List<string> ?? new List<string>();
+}
+
+<style>
+    .users-container { padding: 10px 0; }
+    .users-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .users-header h1 { font-size: 28px; font-weight: 700; color: #1e293b; margin: 0; }
+    .btn-create { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+    .btn-create:hover { background: #1d4ed8; color: white; }
+    .filter-bar { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 24px; display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+    .filter-group { flex: 1; min-width: 180px; }
+    .filter-group label { display: block; font-size: 13px; font-weight: 500; color: #64748b; margin-bottom: 6px; }
+    .filter-group input, .filter-group select { width: 100%; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+    .filter-group input:focus, .filter-group select:focus { outline: none; border-color: #2563eb; }
+    .btn-filter { background: #1e293b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; }
+    .btn-filter:hover { background: #334155; }
+    .btn-reset { background: #f1f5f9; color: #475569; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; text-decoration: none; }
+    .btn-reset:hover { background: #e2e8f0; color: #475569; }
+    .users-table { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
+    .users-table table { width: 100%; border-collapse: collapse; }
+    .users-table th { padding: 14px 20px; text-align: left; font-size: 13px; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
+    .users-table td { padding: 14px 20px; font-size: 14px; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
+    .users-table tr:hover { background: #f8fafc; }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+    .user-name { font-weight: 500; }
+    .user-email { font-size: 13px; color: #64748b; }
+    .badge-role { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-admin { background: #fee2e2; color: #dc2626; }
+    .badge-member { background: #dbeafe; color: #2563eb; }
+    .badge-technician { background: #ffedd5; color: #ea580c; }
+    .badge-status { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-active { background: #d1fae5; color: #047857; }
+    .badge-inactive { background: #fee2e2; color: #dc2626; }
+    .btn-action-sm { padding: 6px 12px; border-radius: 6px; font-size: 13px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-view-sm { background: #e0f2fe; color: #0369a1; }
+    .btn-view-sm:hover { background: #bae6fd; color: #0369a1; }
+    .btn-toggle-sm { background: #fef3c7; color: #92400e; }
+    .btn-toggle-sm:hover { background: #fde68a; color: #92400e; }
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: white; border-top: 1px solid #e2e8f0; }
+    .pagination-info { font-size: 14px; color: #64748b; }
+    .pagination-links { display: flex; gap: 4px; }
+    .page-link { padding: 6px 12px; border-radius: 6px; font-size: 14px; color: #475569; text-decoration: none; background: #f1f5f9; border: none; cursor: pointer; }
+    .page-link:hover { background: #e2e8f0; }
+    .page-link.active { background: #2563eb; color: white; }
+    .page-link.disabled { opacity: 0.5; pointer-events: none; }
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state i { font-size: 48px; color: #cbd5e1; }
+    .empty-state p { color: #94a3b8; margin-top: 12px; }
+</style>
+
+<div class="users-container">
+    <div class="users-header">
+        <h1>Manage Users</h1>
+        <a href="@Url.Action("CreateUser", "Admin")" class="btn-create">
+            <i class="bi bi-person-plus"></i> Create User
+        </a>
+    </div>
+
+    <form method="get" asp-action="Users" class="filter-bar">
+        <div class="filter-group">
+            <label>Search</label>
+            <input type="text" name="search" value="@Model.SearchTerm" placeholder="Name or email..." />
+        </div>
+        <div class="filter-group" style="max-width: 160px;">
+            <label>Role</label>
+            <select name="role">
+                <option value="">All Roles</option>
+                @foreach (var r in roles)
+                {
+                    <option value="@r" selected="@(Model.RoleFilter == r)">@r</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group" style="max-width: 160px;">
+            <label>Status</label>
+            <select name="status">
+                <option value="">All</option>
+                <option value="Active" selected="@(Model.StatusFilter == "Active")">Active</option>
+                <option value="Inactive" selected="@(Model.StatusFilter == "Inactive")">Inactive</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-filter"><i class="bi bi-search"></i> Search</button>
+        <a href="@Url.Action("Users", "Admin")" class="btn-reset">Reset</a>
+    </form>
+
+    <div class="users-table">
+        @if (Model.Users.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        var initial = user.FullName.Length > 0 ? user.FullName[0].ToString().ToUpper() : "?";
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-avatar">@initial</div>
+                                    <div>
+                                        <div class="user-name">@user.FullName</div>
+                                        <div class="user-email">@user.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @foreach (var role in user.Roles)
+                                {
+                                    var badgeClass = role == "Admin" ? "badge-admin" : role == "Technician" ? "badge-technician" : "badge-member";
+                                    <span class="badge-role @badgeClass">@role</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge-status @(user.IsActive ? "badge-active" : "badge-inactive")">
+                                    @(user.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>@(user.LastLoginAt?.ToString("MMM dd, yyyy") ?? "Never")</td>
+                            <td>
+                                <a href="@Url.Action("UserDetail", "Admin", new { id = user.UserId })" class="btn-action-sm btn-view-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <form method="post" asp-action="ToggleUserStatus" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                    <button type="submit" class="btn-action-sm btn-toggle-sm"
+                                            onclick="return confirm('Are you sure you want to @(user.IsActive ? "deactivate" : "activate") this user?')">
+                                        <i class="bi bi-@(user.IsActive ? "pause-circle" : "play-circle")"></i>
+                                        @(user.IsActive ? "Deactivate" : "Activate")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="pagination-bar">
+                <div class="pagination-info">
+                    Showing @((Model.PageNumber - 1) * Model.PageSize + 1)-@Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount) of @Model.TotalCount users
+                </div>
+                <div class="pagination-links">
+                    @if (Model.PageNumber > 1)
+                    {
+                        <a href="@Url.Action("Users", new { page = Model.PageNumber - 1, search = Model.SearchTerm, role = Model.RoleFilter, status = Model.StatusFilter })" class="page-link">&laquo; Prev</a>
+                    }
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <a href="@Url.Action("Users", new { page = i, search = Model.SearchTerm, role = Model.RoleFilter, status = Model.StatusFilter })"
+                           class="page-link @(i == Model.PageNumber ? "active" : "")">@i</a>
+                    }
+                    @if (Model.PageNumber < Model.TotalPages)
+                    {
+                        <a href="@Url.Action("Users", new { page = Model.PageNumber + 1, search = Model.SearchTerm, role = Model.RoleFilter, status = Model.StatusFilter })" class="page-link">Next &raquo;</a>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-people"></i>
+                <p>No users found matching your criteria.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,9 +1,11 @@
 @model PropertyManagementSystem.BLL.DTOs.Maintenance.CreateMaintenanceRequestDto
+@using PropertyManagementSystem.BLL.DTOs.Maintenance
 @{
     ViewData["Title"] = "Create Maintenance Request";
     Layout = "_AuthLayout";
     ViewData["PortalMode"] = "Tenant";
-    var properties = ViewBag.Properties as List<PropertyManagementSystem.BLL.DTOs.Maintenance.PropertySelectDto>;
+    var propertiesRaw = ViewBag.Properties;
+    var properties = (propertiesRaw as IEnumerable<PropertySelectDto>)?.ToList() ?? new List<PropertySelectDto>();
 }
 
 <style>
@@ -275,7 +277,7 @@
             </div>
         }
 
-        @if (!properties?.Any() ?? true)
+        @if (properties == null || !properties.Any())
         {
             <div class="alert alert-danger">
                 <i class="bi bi-exclamation-triangle me-2"></i>You don't have any active leases. Please contact your landlord.

@@ -39,7 +39,7 @@ namespace PropertyManagementSystem.BLL
             services.AddScoped<IPropertyImageService, PropertyImageService>();
             services.AddScoped<ILeaseService, LeaseService>();
             services.AddScoped<IPdfService, PdfService>();
-
+            services.AddScoped<IAdminService, AdminService>();
 
             return services;
         }
