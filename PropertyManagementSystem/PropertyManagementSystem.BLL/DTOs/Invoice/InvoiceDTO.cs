@@ -25,4 +25,19 @@
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; }
     }
+
+    public class ActiveLeaseForInvoiceDto
+    {
+        public int LeaseId { get; set; }
+        public string LeaseNumber { get; set; } = null!;
+        public string PropertyName { get; set; } = null!;
+        public string PropertyAddress { get; set; } = null!;
+        public string TenantName { get; set; } = null!;
+        public string TenantEmail { get; set; } = null!;
+        public decimal MonthlyRent { get; set; }
+        public int PaymentDueDay { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Status { get; set; } = null!;
+    }
 }

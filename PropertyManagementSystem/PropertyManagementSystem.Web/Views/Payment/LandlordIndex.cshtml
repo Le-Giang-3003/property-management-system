@@ -15,6 +15,10 @@
             <p class="page-subtitle">Track and manage all rental payments</p>
         </div>
         <div class="header-actions">
+            <button class="btn btn-success btn-create-invoice" onclick="openCreateInvoiceModal()">
+                <i class="bi bi-plus-circle"></i>
+                Create Invoice
+            </button>
             <button class="btn btn-primary btn-export" onclick="exportReport()">
                 <i class="bi bi-download"></i>
                 Export Report
@@ -215,6 +219,105 @@
     </div>
 </div>
 
+<!-- Create Invoice Modal -->
+<div class="modal-overlay" id="createInvoiceModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="bi bi-receipt"></i>
+                Create New Invoice
+            </h2>
+            <button class="modal-close" onclick="closeCreateInvoiceModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <!-- Step 1: Select Lease -->
+            <div class="form-section">
+                <label class="form-label">Select Lease Contract</label>
+                <select class="form-select" id="leaseSelect" onchange="onLeaseSelected()">
+                    <option value="">-- Select a lease --</option>
+                </select>
+                <div class="loading-spinner" id="leaseLoading" style="display: none;">
+                    <i class="bi bi-arrow-repeat spinning"></i> Loading leases...
+                </div>
+            </div>
+
+            <!-- Lease Info Display -->
+            <div class="lease-info-card" id="leaseInfoCard" style="display: none;">
+                <h4 class="info-card-title">Lease Information</h4>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Property</span>
+                        <span class="info-value" id="infoPropertyName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Address</span>
+                        <span class="info-value" id="infoPropertyAddress">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tenant</span>
+                        <span class="info-value" id="infoTenantName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" id="infoTenantEmail">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Monthly Rent</span>
+                        <span class="info-value highlight" id="infoMonthlyRent">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Payment Due Day</span>
+                        <span class="info-value" id="infoPaymentDueDay">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Lease Period</span>
+                        <span class="info-value" id="infoLeasePeriod">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Services -->
+            <div class="form-section" id="additionalSection" style="display: none;">
+                <label class="form-label">Additional Services Amount (VND)</label>
+                <input type="number" class="form-input" id="additionalAmount"
+                       placeholder="Enter additional amount (optional)" min="0" value="0"
+                       onchange="updateTotalAmount()" oninput="updateTotalAmount()">
+                <small class="form-hint">Enter amount for utilities, maintenance, or other services</small>
+
+                <label class="form-label mt-3">Description for Additional Services</label>
+                <input type="text" class="form-input" id="additionalDescription"
+                       placeholder="e.g., Electricity, Water, Internet...">
+            </div>
+
+            <!-- Invoice Summary -->
+            <div class="invoice-summary" id="invoiceSummary" style="display: none;">
+                <h4 class="summary-title">Invoice Summary</h4>
+                <div class="summary-row">
+                    <span>Monthly Rent:</span>
+                    <span id="summaryRent">$0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Additional Services:</span>
+                    <span id="summaryAdditional">$0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total Amount:</span>
+                    <span id="summaryTotal">$0</span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCreateInvoiceModal()">Cancel</button>
+            <button class="btn btn-primary" id="createInvoiceBtn" onclick="createInvoice()" disabled>
+                <i class="bi bi-check-circle"></i>
+                Create Invoice
+            </button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -317,6 +420,172 @@
         function exportReport() {
             alert('Export report functionality will be implemented');
         }
+
+        // ===== Create Invoice Modal Functions =====
+        let activeLeasesData = [];
+        let selectedLease = null;
+
+        function openCreateInvoiceModal() {
+            document.getElementById('createInvoiceModal').classList.add('active');
+            loadActiveLeases();
+        }
+
+        function closeCreateInvoiceModal() {
+            document.getElementById('createInvoiceModal').classList.remove('active');
+            resetCreateInvoiceForm();
+        }
+
+        function resetCreateInvoiceForm() {
+            document.getElementById('leaseSelect').value = '';
+            document.getElementById('leaseInfoCard').style.display = 'none';
+            document.getElementById('additionalSection').style.display = 'none';
+            document.getElementById('invoiceSummary').style.display = 'none';
+            document.getElementById('additionalAmount').value = '0';
+            document.getElementById('additionalDescription').value = '';
+            document.getElementById('createInvoiceBtn').disabled = true;
+            selectedLease = null;
+        }
+
+        async function loadActiveLeases() {
+            const select = document.getElementById('leaseSelect');
+            const loading = document.getElementById('leaseLoading');
+
+            loading.style.display = 'block';
+            select.innerHTML = '<option value="">-- Select a lease --</option>';
+
+            try {
+                const response = await fetch('@Url.Action("GetActiveLeases", "Payment")');
+                const result = await response.json();
+
+                if (result.success) {
+                    activeLeasesData = result.data;
+                    result.data.forEach(lease => {
+                        const option = document.createElement('option');
+                        option.value = lease.leaseId;
+                        option.textContent = `${lease.leaseNumber} - ${lease.propertyName} (${lease.tenantName})`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    alert('Failed to load leases: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error loading leases:', error);
+                alert('An error occurred while loading leases');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function onLeaseSelected() {
+            const leaseId = parseInt(document.getElementById('leaseSelect').value);
+            selectedLease = activeLeasesData.find(l => l.leaseId === leaseId);
+
+            if (selectedLease) {
+                // Show lease info
+                document.getElementById('infoPropertyName').textContent = selectedLease.propertyName;
+                document.getElementById('infoPropertyAddress').textContent = selectedLease.propertyAddress;
+                document.getElementById('infoTenantName').textContent = selectedLease.tenantName;
+                document.getElementById('infoTenantEmail').textContent = selectedLease.tenantEmail;
+                document.getElementById('infoMonthlyRent').textContent = formatCurrency(selectedLease.monthlyRent);
+                document.getElementById('infoPaymentDueDay').textContent = `Day ${selectedLease.paymentDueDay} of each month`;
+                document.getElementById('infoLeasePeriod').textContent =
+                    `${formatDate(selectedLease.startDate)} - ${formatDate(selectedLease.endDate)}`;
+
+                document.getElementById('leaseInfoCard').style.display = 'block';
+                document.getElementById('additionalSection').style.display = 'block';
+                document.getElementById('invoiceSummary').style.display = 'block';
+                document.getElementById('createInvoiceBtn').disabled = false;
+
+                updateTotalAmount();
+            } else {
+                document.getElementById('leaseInfoCard').style.display = 'none';
+                document.getElementById('additionalSection').style.display = 'none';
+                document.getElementById('invoiceSummary').style.display = 'none';
+                document.getElementById('createInvoiceBtn').disabled = true;
+            }
+        }
+
+        function updateTotalAmount() {
+            if (!selectedLease) return;
+
+            const additionalAmount = parseFloat(document.getElementById('additionalAmount').value) || 0;
+            const monthlyRent = selectedLease.monthlyRent;
+            const total = monthlyRent + additionalAmount;
+
+            document.getElementById('summaryRent').textContent = formatCurrency(monthlyRent);
+            document.getElementById('summaryAdditional').textContent = formatCurrency(additionalAmount);
+            document.getElementById('summaryTotal').textContent = formatCurrency(total);
+        }
+
+        async function createInvoice() {
+            if (!selectedLease) {
+                alert('Please select a lease first');
+                return;
+            }
+
+            const additionalAmount = parseFloat(document.getElementById('additionalAmount').value) || 0;
+            const additionalDescription = document.getElementById('additionalDescription').value;
+
+            const btn = document.getElementById('createInvoiceBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat spinning"></i> Creating...';
+
+            try {
+                const response = await fetch('@Url.Action("CreateInvoice", "Payment")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        leaseId: selectedLease.leaseId,
+                        additionalAmount: additionalAmount,
+                        additionalDescription: additionalDescription
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Invoice created successfully!\n\nInvoice Number: ' + result.data.invoiceNumber);
+                    closeCreateInvoiceModal();
+                    location.reload();
+                } else {
+                    alert('Failed to create invoice: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error creating invoice:', error);
+                alert('An error occurred while creating invoice');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Create Invoice';
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('createInvoiceModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCreateInvoiceModal();
+            }
+        });
     </script>
 }
 
@@ -351,8 +620,7 @@
             margin: 0;
         }
 
-        .btn-export {
-            background: #3b82f6;
+        .btn-export, .btn-create-invoice {
             color: white;
             border: none;
             padding: 12px 24px;
@@ -366,8 +634,25 @@
             transition: background 0.2s;
         }
 
+        .btn-export {
+            background: #3b82f6;
+        }
+
         .btn-export:hover {
             background: #2563eb;
+        }
+
+        .btn-create-invoice {
+            background: #22c55e;
+        }
+
+        .btn-create-invoice:hover {
+            background: #16a34a;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
         }
 
         /* Summary Cards */
@@ -729,6 +1014,259 @@
         .empty-content p {
             margin: 0;
             font-size: 14px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-title i {
+            color: #3b82f6;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #f8fafc;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-select, .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-hint {
+            display: block;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        .mt-3 {
+            margin-top: 16px;
+        }
+
+        .loading-spinner {
+            padding: 12px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .lease-info-card {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0369a1;
+            margin: 0 0 16px 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .info-value.highlight {
+            color: #22c55e;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .invoice-summary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 16px 0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .summary-row.total {
+            border-top: 2px solid #e2e8f0;
+            margin-top: 8px;
+            padding-top: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2563eb;
+        }
+
+        .btn-primary:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
         }
 
         /* Responsive */

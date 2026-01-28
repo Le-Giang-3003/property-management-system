@@ -134,6 +134,95 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             return MapToDto(invoice);
         }
 
+        public async Task<List<ActiveLeaseForInvoiceDto>> GetActiveLeasesByLandlordIdAsync(int landlordId)
+        {
+            var leases = await _leaseRepository.GetByLandlordIdAsync(landlordId);
+
+            return leases
+                .Where(l => l.Status == "Active")
+                .Select(l => new ActiveLeaseForInvoiceDto
+                {
+                    LeaseId = l.LeaseId,
+                    LeaseNumber = l.LeaseNumber,
+                    PropertyName = l.Property?.Name ?? "N/A",
+                    PropertyAddress = l.Property?.Address ?? "N/A",
+                    TenantName = l.Tenant?.FullName ?? "N/A",
+                    TenantEmail = l.Tenant?.Email ?? "N/A",
+                    MonthlyRent = l.MonthlyRent,
+                    PaymentDueDay = l.PaymentDueDay,
+                    StartDate = l.StartDate,
+                    EndDate = l.EndDate,
+                    Status = l.Status
+                })
+                .ToList();
+        }
+
+        public async Task<InvoiceDto> CreateInvoiceWithAdditionalAmountAsync(int leaseId, decimal additionalAmount, string? additionalDescription)
+        {
+            var lease = await _leaseRepository.GetByIdAsync(leaseId);
+            if (lease == null)
+                throw new Exception("Lease not found");
+
+            if (lease.Status != "Active")
+                throw new Exception("Can only create invoice for active leases");
+
+            var now = DateTime.UtcNow;
+            var periodStart = new DateTime(now.Year, now.Month, 1);
+            var periodEnd = periodStart.AddMonths(1);
+
+            // Calculate due date based on payment due day
+            var dueDate = new DateTime(now.Year, now.Month, Math.Min(lease.PaymentDueDay, DateTime.DaysInMonth(now.Year, now.Month)));
+            if (dueDate < now)
+            {
+                // If due date already passed this month, set to next month
+                dueDate = dueDate.AddMonths(1);
+            }
+
+            var baseAmount = lease.MonthlyRent;
+            var totalAmount = baseAmount + additionalAmount;
+
+            var description = $"Rent for {periodStart:MM/yyyy}";
+            if (additionalAmount > 0 && !string.IsNullOrWhiteSpace(additionalDescription))
+            {
+                description += $" + {additionalDescription}";
+            }
+            else if (additionalAmount > 0)
+            {
+                description += " + Additional services";
+            }
+
+            // Generate invoice number with timestamp to avoid duplicates
+            var invoiceNumber = $"INV-{lease.LeaseId}-{now:yyyyMMddHHmmss}";
+
+            var invoice = new Invoice
+            {
+                LeaseId = lease.LeaseId,
+                InvoiceNumber = invoiceNumber,
+                InvoiceType = additionalAmount > 0 ? "Rent+Services" : "Rent",
+                IssueDate = now,
+                DueDate = dueDate,
+                Amount = baseAmount,
+                TaxAmount = 0,
+                DiscountAmount = 0,
+                TotalAmount = totalAmount,
+                PaidAmount = 0,
+                RemainingAmount = totalAmount,
+                Description = description,
+                Notes = additionalAmount > 0 ? $"Additional services: {additionalAmount:N0} VND" : "",
+                Status = "Pending",
+                CreatedAt = now,
+                UpdatedAt = now,
+                InvoiceFileUrl = "",
+                InvoiceFilePath = "",
+                EmailSent = false,
+                ReminderCount = 0
+            };
+
+            await _invoiceRepository.AddAsync(invoice);
+
+            return MapToDto(invoice);
+        }
+
         private static InvoiceDto MapToDto(Invoice i)
         {
             return new InvoiceDto

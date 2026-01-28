@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Payments;
 using PropertyManagementSystem.BLL.DTOs.Invoice;
+using PropertyManagementSystem.BLL.Services.Interface;
 using PropertyManagementSystem.Web.ViewModels.Payment;
 using QRCoder;
 using System.Drawing.Imaging;
@@ -13,10 +14,12 @@ namespace PropertyManagementSystem.Web.Controllers
     public class PaymentController : Controller
     {
         private readonly IPaymentService _paymentService;
+        private readonly IInvoiceService _invoiceService;
 
-        public PaymentController(IPaymentService paymentService)
+        public PaymentController(IPaymentService paymentService, IInvoiceService invoiceService)
         {
             _paymentService = paymentService;
+            _invoiceService = invoiceService;
         }
 
         private int? GetTenantId()
@@ -373,6 +376,63 @@ namespace PropertyManagementSystem.Web.Controllers
             using var ms = new MemoryStream();
             qrImage.Save(ms, ImageFormat.Png);
             return File(ms.ToArray(), "image/png");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetActiveLeases()
+        {
+            var landlordId = GetCurrentUserId();
+            if (landlordId <= 0)
+            {
+                return Json(new { success = false, message = "Please log in" });
+            }
+
+            try
+            {
+                var leases = await _invoiceService.GetActiveLeasesByLandlordIdAsync(landlordId);
+                return Json(new { success = true, data = leases });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> CreateInvoice([FromBody] CreateInvoiceRequest request)
+        {
+            ViewData["PortalMode"] = "Landlord";
+            var landlordId = GetCurrentUserId();
+            if (landlordId <= 0)
+            {
+                return Json(new { success = false, message = "Please log in" });
+            }
+
+            try
+            {
+                var invoice = await _invoiceService.CreateInvoiceWithAdditionalAmountAsync(
+                    request.LeaseId,
+                    request.AdditionalAmount,
+                    request.AdditionalDescription);
+
+                return Json(new {
+                    success = true,
+                    message = "Invoice created successfully!",
+                    data = invoice
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class CreateInvoiceRequest
+        {
+            public int LeaseId { get; set; }
+            public decimal AdditionalAmount { get; set; }
+            public string? AdditionalDescription { get; set; }
         }
     }
 }
