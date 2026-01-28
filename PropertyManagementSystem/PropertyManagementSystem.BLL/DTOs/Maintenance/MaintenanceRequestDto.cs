@@ -6,6 +6,7 @@ namespace PropertyManagementSystem.BLL.DTOs.Maintenance
         public int PropertyId { get; set; }
         public string PropertyName { get; set; }
         public string PropertyAddress { get; set; }
+        public int LandlordId { get; set; }
         public int RequestedBy { get; set; }
         public string TenantName { get; set; }
         public string TenantEmail { get; set; }

@@ -382,6 +382,18 @@ namespace PropertyManagementSystem.Web.Controllers
                     return RedirectToAction(nameof(TenantIndex));
                 }
 
+                // Authorization check: only the tenant who created it, the landlord of the property, or the assigned technician can view
+                var userId = GetCurrentUserId();
+                var isTenant = request.RequestedBy == userId;
+                var isLandlord = (IsInRole("Landlord") || IsInRole("Member")) && request.LandlordId == userId;
+                var isTechnician = IsInRole("Technician") && request.AssignedTo == userId;
+
+                if (!isTenant && !isLandlord && !isTechnician)
+                {
+                    TempData["ErrorMessage"] = "You do not have permission to view this request.";
+                    return RedirectToAction(nameof(TenantIndex));
+                }
+
                 // Load technicians for landlord view
                 if (IsInRole("Landlord") || IsInRole("Member"))
                 {
@@ -412,6 +424,25 @@ namespace PropertyManagementSystem.Web.Controllers
             try
             {
                 var userId = GetCurrentUserId();
+
+                // Authorization check: only related users can add comments
+                var request = await _maintenanceService.GetRequestByIdAsync(requestId);
+                if (request == null)
+                {
+                    TempData["ErrorMessage"] = "Request not found.";
+                    return RedirectToAction(nameof(TenantIndex));
+                }
+
+                var isTenant = request.RequestedBy == userId;
+                var isLandlord = (IsInRole("Landlord") || IsInRole("Member")) && request.LandlordId == userId;
+                var isTechnician = IsInRole("Technician") && request.AssignedTo == userId;
+
+                if (!isTenant && !isLandlord && !isTechnician)
+                {
+                    TempData["ErrorMessage"] = "You do not have permission to comment on this request.";
+                    return RedirectToAction(nameof(TenantIndex));
+                }
+
                 var result = await _maintenanceService.AddCommentAsync(requestId, userId, comment);
 
                 if (result)

@@ -378,6 +378,7 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 PropertyId = r.PropertyId,
                 PropertyName = r.Property?.Name,
                 PropertyAddress = r.Property?.Address,
+                LandlordId = r.Property?.LandlordId ?? 0,
                 RequestedBy = r.RequestedBy,
                 TenantName = r.Tenant?.FullName,
                 TenantEmail = r.Tenant?.Email,

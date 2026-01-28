@@ -98,7 +98,7 @@
                     </div>
 
                     <!-- Payment date warning -->
-                    @if (Model.OriginalStartDay >= 29)
+                    @* @if (Model.OriginalStartDay >= 29)
                     {
                         <div class="pm-alert pm-alert-warning">
                             <i class="bi bi-exclamation-triangle"></i>
@@ -109,9 +109,9 @@
                                 <p>Since not all months have day @Model.OriginalStartDay, monthly payment date will be adjusted to <strong>day 28</strong> (fixed for all months).</p>
                             </div>
                         </div>
-                    }
+                    } *@
 
-                    <div class="pm-card-modern">
+                    @* <div class="pm-card-modern">
                         <div class="pm-payment-due-info">
                             <i class="bi bi-calendar-day"></i>
                             <div>
@@ -119,7 +119,7 @@
                                 <span class="pm-payment-due-value">Day @(Model.PaymentDueDay > 0 ? Model.PaymentDueDay : Model.StartDate.Day)</span>
                             </div>
                         </div>
-                    </div>
+                    </div> *@
                 </div>
             </div>
 
