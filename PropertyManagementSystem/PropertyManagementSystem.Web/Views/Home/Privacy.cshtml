@@ -1,6 +1,182 @@
-﻿@{
+@{
     ViewData["Title"] = "Privacy Policy";
+    Layout = null;
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy - Property Manager</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        .pm-privacy-page {
+            min-height: 100vh;
+            background: var(--pm-bg);
+        }
+
+        .pm-privacy-nav {
+            background: white;
+            border-bottom: 1px solid var(--pm-border);
+            padding: var(--pm-space-4) 0;
+        }
+
+        .pm-privacy-nav-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 var(--pm-space-6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .pm-privacy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--pm-space-12) var(--pm-space-6);
+        }
+
+        .pm-privacy-header {
+            text-align: center;
+            margin-bottom: var(--pm-space-12);
+        }
+
+        .pm-privacy-header h1 {
+            font-size: var(--pm-text-4xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin: 0 0 var(--pm-space-4);
+        }
+
+        .pm-privacy-header p {
+            font-size: var(--pm-text-lg);
+            color: var(--pm-text-secondary);
+            margin: 0;
+        }
+
+        .pm-privacy-card {
+            background: white;
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-xl);
+            padding: var(--pm-space-8);
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-privacy-card h2 {
+            font-size: var(--pm-text-xl);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+            margin: 0 0 var(--pm-space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-privacy-card h2 i {
+            color: var(--pm-primary);
+        }
+
+        .pm-privacy-card p {
+            font-size: var(--pm-text-base);
+            color: var(--pm-text-secondary);
+            line-height: 1.7;
+            margin: 0 0 var(--pm-space-4);
+        }
+
+        .pm-privacy-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .pm-privacy-card ul {
+            margin: var(--pm-space-4) 0;
+            padding-left: var(--pm-space-6);
+        }
+
+        .pm-privacy-card li {
+            font-size: var(--pm-text-base);
+            color: var(--pm-text-secondary);
+            line-height: 1.7;
+            margin-bottom: var(--pm-space-2);
+        }
+    </style>
+</head>
+<body>
+    <div class="pm-privacy-page">
+        <nav class="pm-privacy-nav">
+            <div class="pm-privacy-nav-container">
+                <a href="/" class="pm-nav-brand" style="display: flex; align-items: center; gap: var(--pm-space-3); text-decoration: none;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--pm-primary), var(--pm-primary-dark)); border-radius: var(--pm-radius-lg); display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <span style="font-weight: 700; color: var(--pm-text);">Property Manager</span>
+                </a>
+                <a href="/" class="pm-btn pm-btn-secondary pm-btn-sm">
+                    <i class="bi bi-arrow-left"></i>
+                    Back to Home
+                </a>
+            </div>
+        </nav>
+
+        <div class="pm-privacy-content">
+            <div class="pm-privacy-header">
+                <h1>Privacy Policy</h1>
+                <p>Last updated: January 2026</p>
+            </div>
+
+            <div class="pm-privacy-card">
+                <h2><i class="bi bi-info-circle"></i> Introduction</h2>
+                <p>
+                    Property Manager ("we", "our", or "us") is committed to protecting your privacy. 
+                    This Privacy Policy explains how we collect, use, disclose, and safeguard your information 
+                    when you use our property management platform.
+                </p>
+            </div>
+
+            <div class="pm-privacy-card">
+                <h2><i class="bi bi-collection"></i> Information We Collect</h2>
+                <p>We collect information that you provide directly to us, including:</p>
+                <ul>
+                    <li>Personal identification information (name, email address, phone number)</li>
+                    <li>Property information (addresses, descriptions, images)</li>
+                    <li>Financial information (payment details, transaction history)</li>
+                    <li>Communication data (messages, support requests)</li>
+                </ul>
+            </div>
+
+            <div class="pm-privacy-card">
+                <h2><i class="bi bi-gear"></i> How We Use Your Information</h2>
+                <p>We use the information we collect to:</p>
+                <ul>
+                    <li>Provide, maintain, and improve our services</li>
+                    <li>Process transactions and send related information</li>
+                    <li>Send you technical notices and support messages</li>
+                    <li>Respond to your comments and questions</li>
+                    <li>Protect against fraudulent or illegal activity</li>
+                </ul>
+            </div>
+
+            <div class="pm-privacy-card">
+                <h2><i class="bi bi-shield-check"></i> Data Security</h2>
+                <p>
+                    We implement appropriate technical and organizational security measures designed to 
+                    protect the security of any personal information we process. However, no electronic 
+                    transmission over the Internet or information storage technology can be guaranteed 
+                    to be 100% secure.
+                </p>
+            </div>
+
+            <div class="pm-privacy-card">
+                <h2><i class="bi bi-envelope"></i> Contact Us</h2>
+                <p>
+                    If you have questions about this Privacy Policy or our privacy practices, 
+                    please contact us at: <a href="mailto:privacy@propertymanager.com">privacy@propertymanager.com</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

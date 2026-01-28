@@ -1,0 +1,60 @@
+@model PropertyManagementSystem.BLL.DTOs.User.UserProfileDto
+@{
+    ViewData["Title"] = "User Information";
+}
+
+<h2>User Information</h2>
+
+<a href="@Url.Action("Search", "Profile")">← Back to Search</a>
+
+<hr />
+
+<table border="1" cellpadding="10">
+    <tr>
+        <td><strong>ID:</strong></td>
+        <td>@Model.UserId</td>
+    </tr>
+    <tr>
+        <td><strong>Full Name:</strong></td>
+        <td>@Model.FullName</td>
+    </tr>
+    <tr>
+        <td><strong>Email:</strong></td>
+        <td>@Model.Email</td>
+    </tr>
+    <tr>
+        <td><strong>Phone Number:</strong></td>
+        <td>@(Model.PhoneNumber ?? "Not updated")</td>
+    </tr>
+    <tr>
+        <td><strong>Date of Birth:</strong></td>
+        <td>@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Not updated")</td>
+    </tr>
+    <tr>
+        <td><strong>Address:</strong></td>
+        <td>@(Model.Address ?? "Not updated")</td>
+    </tr>
+    <tr>
+        <td><strong>Roles:</strong></td>
+        <td>@string.Join(", ", Model.Roles)</td>
+    </tr>
+    <tr>
+        <td><strong>Status:</strong></td>
+        <td>@(Model.IsActive ? "Active" : "Locked")</td>
+    </tr>
+    <tr>
+        <td><strong>Email Verified:</strong></td>
+        <td>@(Model.EmailVerified ? "Verified" : "Not verified")</td>
+    </tr>
+    <tr>
+        <td><strong>Joined:</strong></td>
+        <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+    </tr>
+    @if (Model.LastLoginAt.HasValue)
+    {
+        <tr>
+            <td><strong>Last Login:</strong></td>
+            <td>@Model.LastLoginAt.Value.ToString("dd/MM/yyyy HH:mm")</td>
+        </tr>
+    }
+</table>

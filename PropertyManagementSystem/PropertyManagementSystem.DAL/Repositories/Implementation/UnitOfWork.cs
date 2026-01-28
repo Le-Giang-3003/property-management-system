@@ -1,0 +1,61 @@
+using PropertyManagementSystem.DAL.Data;
+using PropertyManagementSystem.DAL.Entities;
+using PropertyManagementSystem.DAL.Repositories.Interface;
+
+namespace PropertyManagementSystem.DAL.Repositories.Implementation
+{
+    public class UnitOfWork : IUnitOfWork
+    {
+        private readonly AppDbContext _context;
+        private IUserRepository? _users;
+        private IRoleRepository? _roles;
+        private IUserRoleRepository? _userRoles;
+        private IPropertyRepository? _properties;
+        private IPropertyViewingRepository? _propertyViewings;
+        private IDocumentRepository? _documents;
+        private IRentalApplicationRepository? _rentalApplications;
+        private ILeaseRepository? _leases;
+        private IMaintenanceRepository? _maintenanceRequests;
+        private IPropertyImageRepository? _propertyImage;
+        private ILeaseSignatureRepository? _leaseSignatures;
+        private IFavoritePropertyRepository? _favoriteProperties;
+        private IInvoiceRepository? _invoices;
+        private IPaymentRepository? _payments;
+
+        public UnitOfWork(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public IUserRepository Users => _users ??= new UserRepository(_context);
+        public IRoleRepository Roles => _roles ??= new RoleRepository(_context);
+        public IUserRoleRepository UserRoles => _userRoles ??= new UserRoleRepository(_context);
+        public IPropertyRepository Properties => _properties ??= new PropertyRepository(_context);
+        public IPropertyViewingRepository PropertyViewings => _propertyViewings ??= new PropertyViewingRepository(_context);
+        public IDocumentRepository Documents => _documents ??= new DocumentRepository(_context);
+        public IRentalApplicationRepository RentalApplications => _rentalApplications ??= new RentalApplicationRepository(_context);
+        public ILeaseRepository Leases => _leases ??= new LeaseRepository(_context);
+        public IMaintenanceRepository MaintenanceRequests => _maintenanceRequests ??= new MaintenanceRepository(_context);
+        public IPropertyImageRepository PropertyImages => _propertyImage ??= new PropertyImageRepository(_context);
+        public ILeaseSignatureRepository LeaseSignatures => _leaseSignatures ??= new LeaseSignatureRepository(_context);
+        public IFavoritePropertyRepository FavoriteProperties => _favoriteProperties ??= new FavoritePropertyRepository(_context);
+        public IInvoiceRepository Invoices => _invoices ??= new InvoiceRepository(_context);
+        public IPaymentRepository Payments => _payments ??= new PaymentRepository(_context);
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public int SaveChanges()
+        {
+            return _context.SaveChanges();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            GC.SuppressFinalize(this);
+        }
+    }
+}

@@ -1,0 +1,716 @@
+@model PropertyManagementSystem.Web.ViewModels.Dashboard.LandlordDashboardViewModel
+
+@{
+    ViewData["Title"] = "Landlord Dashboard";
+    Layout = "_AuthLayout";
+    var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "User";
+}
+
+<div class="pm-dashboard">
+    <!-- Header -->
+    <div class="pm-dashboard-header">
+        <div>
+            <h1>Landlord Dashboard</h1>
+            <p class="pm-page-subtitle">Manage your properties and monitor performance</p>
+        </div>
+        <a asp-controller="Property" asp-action="Create" class="pm-btn pm-btn-primary">
+            <i class="bi bi-plus-lg"></i>
+            Add Property
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="pm-stats-grid">
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Total Properties</span>
+                <i class="bi bi-buildings pm-stat-icon-small"></i>
+            </div>
+            <div class="pm-stat-value-large">@Model.TotalProperties</div>
+            <p class="pm-stat-description">@Model.RentedProperties occupied, @Model.AvailableProperties vacant</p>
+        </div>
+
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Occupancy Rate</span>
+                <i class="bi bi-graph-up pm-stat-icon-small"></i>
+            </div>
+            <div class="pm-stat-value-large">@Model.OccupancyRate%</div>
+            <p class="pm-stat-description">+5% from last month</p>
+        </div>
+
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Monthly Income</span>
+                <i class="bi bi-currency-dollar pm-stat-icon-small"></i>
+            </div>
+            <div class="pm-stat-value-large">@Model.TotalMonthlyRevenue.ToString("N0") ₫</div>
+            <p class="pm-stat-description">Expected this month</p>
+        </div>
+
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Applications</span>
+                <i class="bi bi-people pm-stat-icon-small"></i>
+            </div>
+            <div class="pm-stat-value-large">@Model.PendingApplicationsCount</div>
+            <p class="pm-stat-description">Pending review</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="pm-quick-stats-grid">
+        <a asp-controller="Maintenance" asp-action="LandlordIndex" class="pm-quick-stat warning">
+            <div class="pm-quick-stat-icon">
+                <i class="bi bi-wrench"></i>
+            </div>
+            <div class="pm-quick-stat-content">
+                <h4>@Model.PendingMaintenanceRequests</h4>
+                <p>Pending Maintenance</p>
+            </div>
+            <i class="bi bi-chevron-right pm-quick-stat-link"></i>
+        </a>
+
+        <a asp-controller="RentalApplication" asp-action="Index" class="pm-quick-stat info">
+            <div class="pm-quick-stat-icon">
+                <i class="bi bi-file-earmark-person"></i>
+            </div>
+            <div class="pm-quick-stat-content">
+                <h4>@Model.PendingApplicationsCount</h4>
+                <p>Pending Applications</p>
+            </div>
+            <i class="bi bi-chevron-right pm-quick-stat-link"></i>
+        </a>
+
+        <a asp-controller="Lease" asp-action="Index" class="pm-quick-stat danger">
+            <div class="pm-quick-stat-icon">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <div class="pm-quick-stat-content">
+                <h4>@Model.ExpiringContracts.Count</h4>
+                <p>Expiring Contracts</p>
+            </div>
+            <i class="bi bi-chevron-right pm-quick-stat-link"></i>
+        </a>
+
+        <a asp-controller="Property" asp-action="MyProperties" class="pm-quick-stat secondary">
+            <div class="pm-quick-stat-icon">
+                <i class="bi bi-tools"></i>
+            </div>
+            <div class="pm-quick-stat-content">
+                <h4>@Model.MaintenanceProperties</h4>
+                <p>Under Maintenance</p>
+            </div>
+            <i class="bi bi-chevron-right pm-quick-stat-link"></i>
+        </a>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="pm-content-grid">
+        <!-- Recent Properties -->
+        <div class="pm-card pm-card-wide">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-building"></i> Your Properties</h4>
+                <a asp-controller="Property" asp-action="MyProperties" class="pm-btn pm-btn-ghost pm-btn-sm">
+                    View All <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="pm-card-body">
+                @if (Model.RecentProperties.Any())
+                {
+                    <div class="pm-properties-grid">
+                        @foreach (var property in Model.RecentProperties.Take(3))
+                        {
+                            <div class="pm-property-card-mini">
+                                <div class="pm-property-image-mini">
+                                    @if (!string.IsNullOrEmpty(property.ThumbnailUrl))
+                                    {
+                                        <img src="@property.ThumbnailUrl" alt="@property.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="pm-no-image">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                    }
+                                    <span class="pm-badge @GetStatusBadgeClass(property.Status)">
+                                        @GetStatusDisplay(property.Status)
+                                    </span>
+                                </div>
+                                <div class="pm-property-info-mini">
+                                    <h5>
+                                        <a asp-controller="Property" asp-action="Details" asp-route-id="@property.PropertyId">
+                                            @property.Name
+                                        </a>
+                                    </h5>
+                                    <p class="pm-location">
+                                        <i class="bi bi-geo-alt"></i> @property.Address
+                                    </p>
+                                    <div class="pm-specs">
+                                        <span><i class="bi bi-door-closed"></i> @property.Bedrooms</span>
+                                        <span><i class="bi bi-droplet"></i> @property.Bathrooms</span>
+                                        <span><i class="bi bi-rulers"></i> @property.SquareFeet m²</span>
+                                    </div>
+                                    <div class="pm-price">
+                                        <span class="amount">@property.RentAmount.ToString("N0") ₫</span>
+                                        <span class="period">/month</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty">
+                        <div class="pm-empty-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h4>No properties yet</h4>
+                        <p>Add your first property to get started</p>
+                        <a asp-controller="Property" asp-action="Create" class="pm-btn pm-btn-primary">
+                            <i class="bi bi-plus-lg"></i> Add Property
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Applications -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-file-earmark-person"></i> Recent Applications</h4>
+                <a asp-controller="RentalApplication" asp-action="Index" class="pm-btn pm-btn-ghost pm-btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="pm-card-body">
+                @if (Model.RecentApplications.Any())
+                {
+                    <div class="pm-list">
+                        @foreach (var app in Model.RecentApplications.Take(4))
+                        {
+                            <div class="pm-list-item">
+                                <div class="pm-avatar">@app.ApplicantName.Substring(0, 1).ToUpper()</div>
+                                <div class="pm-list-item-content">
+                                    <h4>@app.ApplicantName</h4>
+                                    <p><i class="bi bi-building"></i> @app.PropertyName</p>
+                                    <p><i class="bi bi-clock"></i> @app.ApplicationDate.ToString("MMM dd, yyyy")</p>
+                                </div>
+                                <div class="pm-list-item-meta">
+                                    <span class="pm-badge @GetAppStatusBadgeClass(app.Status)">@app.Status</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon"><i class="bi bi-inbox"></i></div>
+                        <h4>No applications</h4>
+                        <p>New applications will appear here</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Maintenance Requests -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-wrench"></i> Maintenance Requests</h4>
+                <a asp-controller="Maintenance" asp-action="LandlordIndex" class="pm-btn pm-btn-ghost pm-btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="pm-card-body">
+                @if (Model.RecentMaintenanceRequests.Any())
+                {
+                    <div class="pm-list">
+                        @foreach (var request in Model.RecentMaintenanceRequests.Take(4))
+                        {
+                            <div class="pm-list-item">
+                                <div class="pm-list-item-icon @GetPriorityIconClass(request.Priority)">
+                                    <i class="bi bi-tools"></i>
+                                </div>
+                                <div class="pm-list-item-content">
+                                    <h4>@request.Title</h4>
+                                    <p><i class="bi bi-building"></i> @request.PropertyName</p>
+                                    <p><i class="bi bi-clock"></i> @request.RequestDate.ToString("MMM dd, yyyy")</p>
+                                </div>
+                                <div class="pm-list-item-meta">
+                                    <span class="pm-badge @GetPriorityBadgeClass(request.Priority)">@request.Priority</span>
+                                    <span class="pm-badge @GetMaintenanceStatusBadgeClass(request.Status)">@request.Status</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon"><i class="bi bi-check-circle"></i></div>
+                        <h4>All clear!</h4>
+                        <p>No pending maintenance requests</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Expiring Contracts -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-calendar-x"></i> Expiring Contracts</h4>
+                <a asp-controller="Lease" asp-action="Index" class="pm-btn pm-btn-ghost pm-btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="pm-card-body">
+                @if (Model.ExpiringContracts.Any())
+                {
+                    <div class="pm-list">
+                        @foreach (var contract in Model.ExpiringContracts.Take(4))
+                        {
+                            var daysLeft = (contract.EndDate.ToDateTime(TimeOnly.MinValue) - DateTime.Now).Days;
+                            <div class="pm-list-item">
+                                <div class="pm-list-item-icon warning-icon">
+                                    <i class="bi bi-file-text"></i>
+                                </div>
+                                <div class="pm-list-item-content">
+                                    <h4>@contract.PropertyName</h4>
+                                    <p><i class="bi bi-person"></i> @contract.TenantName</p>
+                                    <p><i class="bi bi-calendar"></i> Ends: @contract.EndDate.ToString("MMM dd, yyyy")</p>
+                                </div>
+                                <div class="pm-list-item-meta">
+                                    <span class="pm-days-left @(daysLeft <= 7 ? "urgent" : "")">
+                                        @daysLeft days
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon"><i class="bi bi-check-circle"></i></div>
+                        <h4>No expiring contracts</h4>
+                        <p>All contracts are in good standing</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status) => status?.ToLower() switch
+    {
+        "available" => "pm-badge-success",
+        "rented" => "pm-badge-warning",
+        "maintenance" => "pm-badge-info",
+        _ => "pm-badge-secondary"
+    };
+
+    string GetStatusDisplay(string status) => status switch
+    {
+        "Available" => "Available",
+        "Rented" => "Rented",
+        "Maintenance" => "Maintenance",
+        _ => status
+    };
+
+    string GetAppStatusBadgeClass(string status) => status?.ToLower() switch
+    {
+        "pending" => "pm-badge-warning",
+        "approved" => "pm-badge-success",
+        "rejected" => "pm-badge-danger",
+        _ => "pm-badge-secondary"
+    };
+
+    string GetPriorityBadgeClass(string priority) => priority?.ToLower() switch
+    {
+        "high" => "pm-badge-danger",
+        "medium" => "pm-badge-warning",
+        "low" => "pm-badge-info",
+        _ => "pm-badge-secondary"
+    };
+
+    string GetPriorityIconClass(string priority) => priority?.ToLower() switch
+    {
+        "high" => "danger-icon",
+        "medium" => "warning-icon",
+        "low" => "info-icon",
+        _ => ""
+    };
+
+    string GetMaintenanceStatusBadgeClass(string status) => status?.ToLower() switch
+    {
+        "pending" => "pm-badge-warning",
+        "assigned" => "pm-badge-info",
+        "inprogress" => "pm-badge-primary",
+        "completed" => "pm-badge-success",
+        _ => "pm-badge-secondary"
+    };
+}
+
+@section Styles {
+    <style>
+        .pm-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard Header */
+        .pm-dashboard-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-dashboard-header h1 {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            margin: 0 0 var(--pm-space-2);
+            color: var(--pm-text);
+        }
+
+        .pm-page-subtitle {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        /* Stats Grid */
+        .pm-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--pm-space-4);
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-stat-card-modern {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+        }
+
+        .pm-stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--pm-space-3);
+        }
+
+        .pm-stat-label {
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-stat-icon-small {
+            width: 16px;
+            height: 16px;
+            color: var(--pm-text-muted);
+        }
+
+        .pm-stat-value-large {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin-bottom: var(--pm-space-1);
+        }
+
+        .pm-stat-description {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        /* Quick Stats Grid */
+        .pm-quick-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--pm-space-4);
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-quick-stat {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+            padding: var(--pm-space-5);
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-left-width: 4px;
+            border-radius: var(--pm-radius-lg);
+            text-decoration: none;
+            transition: all var(--pm-transition);
+        }
+
+        .pm-quick-stat:hover {
+            box-shadow: var(--pm-shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .pm-quick-stat.warning { border-left-color: var(--pm-warning); }
+        .pm-quick-stat.info { border-left-color: var(--pm-info); }
+        .pm-quick-stat.danger { border-left-color: var(--pm-danger); }
+        .pm-quick-stat.secondary { border-left-color: var(--pm-secondary); }
+
+        .pm-quick-stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .pm-quick-stat.warning .pm-quick-stat-icon { background: var(--pm-warning-100); color: var(--pm-warning); }
+        .pm-quick-stat.info .pm-quick-stat-icon { background: var(--pm-info-100); color: var(--pm-info); }
+        .pm-quick-stat.danger .pm-quick-stat-icon { background: var(--pm-danger-100); color: var(--pm-danger); }
+        .pm-quick-stat.secondary .pm-quick-stat-icon { background: var(--pm-slate-200); color: var(--pm-secondary); }
+
+        .pm-quick-stat-content {
+            flex: 1;
+        }
+
+        .pm-quick-stat-content h4 {
+            margin: 0;
+            font-size: var(--pm-text-xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+        }
+
+        .pm-quick-stat-content p {
+            margin: 0;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-secondary);
+        }
+
+        .pm-quick-stat-link {
+            color: var(--pm-text-muted);
+        }
+
+        /* Content Grid */
+        .pm-content-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-6);
+        }
+
+        .pm-card-wide {
+            grid-column: 1 / -1;
+        }
+
+        /* Properties Grid */
+        .pm-properties-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--pm-space-5);
+        }
+
+        .pm-property-card-mini {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            overflow: hidden;
+            transition: all var(--pm-transition);
+        }
+
+        .pm-property-card-mini:hover {
+            box-shadow: var(--pm-shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .pm-property-image-mini {
+            position: relative;
+            height: 160px;
+            background: var(--pm-slate-100);
+        }
+
+        .pm-property-image-mini img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pm-property-image-mini .pm-no-image {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--pm-text-muted);
+            font-size: 40px;
+        }
+
+        .pm-property-image-mini .pm-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .pm-property-info-mini {
+            padding: var(--pm-space-4);
+        }
+
+        .pm-property-info-mini h5 {
+            margin: 0 0 var(--pm-space-2);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+        }
+
+        .pm-property-info-mini h5 a {
+            color: var(--pm-text);
+            text-decoration: none;
+        }
+
+        .pm-property-info-mini h5 a:hover {
+            color: var(--pm-primary);
+        }
+
+        .pm-location {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin: 0 0 var(--pm-space-3);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-1);
+        }
+
+        .pm-specs {
+            display: flex;
+            gap: var(--pm-space-3);
+            padding: var(--pm-space-2) 0;
+            border-top: 1px solid var(--pm-border-light);
+            margin-bottom: var(--pm-space-3);
+        }
+
+        .pm-specs span {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pm-price .amount {
+            font-size: var(--pm-text-base);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-primary);
+        }
+
+        .pm-price .period {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        /* List */
+        .pm-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-list-item-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            background: var(--pm-slate-100);
+            color: var(--pm-text-secondary);
+        }
+
+        .pm-list-item-icon.danger-icon { background: var(--pm-danger-100); color: var(--pm-danger); }
+        .pm-list-item-icon.warning-icon { background: var(--pm-warning-100); color: var(--pm-warning); }
+        .pm-list-item-icon.info-icon { background: var(--pm-info-100); color: var(--pm-info); }
+
+        .pm-list-item-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-days-left {
+            padding: var(--pm-space-2) var(--pm-space-3);
+            background: var(--pm-warning-100);
+            color: var(--pm-warning-dark);
+            border-radius: var(--pm-radius);
+            font-size: var(--pm-text-xs);
+            font-weight: var(--pm-font-semibold);
+        }
+
+        .pm-days-left.urgent {
+            background: var(--pm-danger-100);
+            color: var(--pm-danger-dark);
+        }
+
+        /* Empty Compact */
+        .pm-empty-compact {
+            padding: var(--pm-space-8);
+        }
+
+        .pm-empty-compact .pm-empty-icon {
+            width: 60px;
+            height: 60px;
+        }
+
+        .pm-empty-compact .pm-empty-icon i {
+            font-size: 28px;
+        }
+
+        /* Responsive */
+        @@media (max-width: 1200px) {
+            .pm-stats-grid,
+            .pm-quick-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pm-properties-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 1024px) {
+            .pm-content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .pm-dashboard-header {
+                flex-direction: column;
+                gap: var(--pm-space-4);
+            }
+
+            .pm-header-actions {
+                width: 100%;
+            }
+
+            .pm-header-actions .pm-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .pm-stats-grid,
+            .pm-quick-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-properties-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}

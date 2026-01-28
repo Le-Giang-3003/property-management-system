@@ -1,0 +1,1284 @@
+@model List<PropertyManagementSystem.DAL.Entities.PropertyImage>
+
+@{
+    ViewData["Title"] = "Manage Images";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Landlord";
+    var property = ViewBag.Property as PropertyManagementSystem.DAL.Entities.Property;
+    var propertyId = ViewBag.PropertyId as int?;
+}
+
+<div class="manage-images-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">
+                <i class="bi bi-images"></i>
+                Manage Images
+            </h1>
+            <div class="property-info">
+                <strong>@property.Name</strong>
+                <span>@property.City</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button type="button" class="btn-upload" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-cloud-upload"></i>
+                Upload New Image
+            </button>
+            <a asp-action="Edit" asp-route-id="@propertyId" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <i class="bi bi-images"></i>
+            <span>Total: <strong>@Model.Count</strong> images</span>
+        </div>
+        <div class="stat-item">
+            <i class="bi bi-star-fill"></i>
+            <span>Thumbnail: <strong>@Model.Count(i => i.IsThumbnail)</strong></span>
+        </div>
+        <div class="stat-item">
+            <i class="bi bi-calendar"></i>
+            <span>Updated: <strong>@(Model.Any() ? Model.Max(i => i.UploadedAt).ToString("dd/MM/yyyy") : "N/A")</strong></span>
+        </div>
+    </div>
+
+    <!-- Images Grid -->
+    @if (Model.Any())
+    {
+        <div class="images-management-grid" id="imagesGrid">
+            @foreach (var image in Model.OrderByDescending(i => i.IsThumbnail).ThenBy(i => i.DisplayOrder))
+            {
+                <div class="image-card" data-image-id="@image.ImageId" draggable="true">
+                    <div class="image-preview">
+                        <img src="@image.ImageUrl" alt="@image.Caption" loading="lazy">
+                        @if (image.IsThumbnail)
+                        {
+                            <div class="thumbnail-badge">
+                                <i class="bi bi-star-fill"></i>
+                                <span>Thumbnail</span>
+                            </div>
+                        }
+                        <div class="image-overlay">
+                            <button type="button" class="btn-overlay view"
+                                    onclick="viewImage('@image.ImageUrl', '@(image.Caption ?? "Image")')"
+                                    title="View">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="image-info">
+                        <div class="image-details">
+                            <span class="display-order">
+                                <i class="bi bi-hash"></i>
+                                Order: @image.DisplayOrder
+                            </span>
+                            <div class="caption-wrapper">
+                                @if (string.IsNullOrEmpty(image.Caption))
+                                {
+                                    <span class="no-caption">No caption</span>
+                                }
+                                else
+                                {
+                                    <span class="caption">@image.Caption</span>
+                                }
+                            </div>
+                            <span class="upload-date">
+                                <i class="bi bi-calendar"></i>
+                                @image.UploadedAt.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                        </div>
+
+                        <div class="image-actions">
+                            @if (!image.IsThumbnail)
+                            {
+                                <button type="button" class="btn-action star"
+                                        onclick="setThumbnail(@image.ImageId)"
+                                        title="Set as Thumbnail">
+                                    <i class="bi bi-star"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn-action star active" disabled title="Current Thumbnail">
+                                    <i class="bi bi-star-fill"></i>
+                                </button>
+                            }
+                            <button type="button" class="btn-action edit"
+                                    onclick="editCaption(@image.ImageId, '@(image.Caption ?? "")')"
+                                    title="Edit Caption">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn-action delete"
+                                    onclick="deleteImage(@image.ImageId, '@(image.Caption ?? "Image")')"
+                                    title="Delete">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-images"></i>
+            <h3>No images yet</h3>
+            <p>Upload the first image for this property</p>
+            <button type="button" class="btn-upload-large" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-cloud-upload"></i>
+                Upload Now
+            </button>
+        </div>
+    }
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5><i class="bi bi-cloud-upload"></i> Upload Images</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="propertyId" value="@propertyId" />
+
+                <div class="modal-body">
+                    <div class="upload-area">
+                        <input type="file" name="files" id="fileInput"
+                               accept="image/*" multiple style="display: none;" />
+
+                        <div class="drop-zone" id="dropZone">
+                            <div class="drop-zone-content">
+                                <i class="bi bi-cloud-upload"></i>
+                                <h4>Drag and drop images here</h4>
+                                <p>or click to select files</p>
+                                <button type="button" class="btn-choose" onclick="triggerFileSelect()">
+                                    <i class="bi bi-folder2-open"></i>
+                                    Choose Files
+                                </button>
+                                <small>JPG, PNG, WEBP • Max 5MB/file • Select multiple images at once</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Container -->
+                    <div id="imagePreview" class="preview-container"></div>
+
+                    <!-- Upload Progress -->
+                    <div id="uploadProgress" class="upload-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <span class="progress-text" id="progressText">0%</span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">
+                        <i class="bi bi-upload"></i> Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Image Modal -->
+<div class="modal fade" id="viewImageModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="viewImageTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="viewImageImg" src="" class="w-100" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Caption Modal -->
+<div class="modal fade" id="editCaptionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5><i class="bi bi-pencil"></i> Edit Caption</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editImageId">
+                <div class="form-group">
+                    <label for="captionInput">Caption</label>
+                    <textarea id="captionInput" class="form-control" rows="3"
+                              placeholder="Enter image description..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCaptionBtn">
+                    <i class="bi bi-check2"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .manage-images-container {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .property-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+            .property-info strong {
+                font-size: 16px;
+                color: #1e293b;
+            }
+
+            .property-info span {
+                font-size: 14px;
+                color: #64748b;
+            }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-upload, .btn-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-upload {
+            background: #16a34a;
+            color: white;
+        }
+
+            .btn-upload:hover {
+                background: #15803d;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+            }
+
+        .btn-back {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+            .btn-back:hover {
+                background: #e2e8f0;
+                color: #1e293b;
+            }
+
+        /* Statistics Bar */
+        .stats-bar {
+            display: flex;
+            gap: 24px;
+            padding: 20px 24px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+            .stat-item i {
+                font-size: 20px;
+                color: #3b82f6;
+            }
+
+            .stat-item strong {
+                color: #1e293b;
+                font-weight: 600;
+            }
+
+        /* Images Grid */
+        .images-management-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .image-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: move;
+        }
+
+            .image-card:hover {
+                border-color: #3b82f6;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+            .image-card.dragging {
+                opacity: 0.5;
+                transform: scale(0.95);
+            }
+
+        .image-preview {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+            .image-preview img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                object-position: center;
+                background: #f8fafc;
+            }
+
+        .thumbnail-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+            .thumbnail-badge i {
+                animation: pulse 2s infinite;
+            }
+
+        @@keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .image-card:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .btn-overlay {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-overlay:hover {
+                transform: scale(1.1);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            }
+
+        .image-info {
+            padding: 20px;
+        }
+
+        .image-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .display-order {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .caption-wrapper {
+            min-height: 40px;
+        }
+
+        .caption {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .no-caption {
+            font-size: 14px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .upload-date {
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+            .btn-action.star:hover {
+                border-color: #fbbf24;
+                background: #fef3c7;
+                color: #f59e0b;
+            }
+
+            .btn-action.star.active {
+                border-color: #fbbf24;
+                background: #fbbf24;
+                color: white;
+            }
+
+            .btn-action.edit:hover {
+                border-color: #3b82f6;
+                background: #eff6ff;
+                color: #3b82f6;
+            }
+
+            .btn-action.delete:hover {
+                border-color: #dc2626;
+                background: #fef2f2;
+                color: #dc2626;
+            }
+
+            .btn-action:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: white;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e1;
+        }
+
+            .empty-state i {
+                font-size: 64px;
+                color: #cbd5e1;
+                margin-bottom: 20px;
+            }
+
+            .empty-state h3 {
+                font-size: 24px;
+                color: #1e293b;
+                margin: 0 0 12px 0;
+            }
+
+            .empty-state p {
+                font-size: 16px;
+                color: #64748b;
+                margin: 0 0 24px 0;
+            }
+
+        .btn-upload-large {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-upload-large:hover {
+                background: #15803d;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+            }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+            .drop-zone:hover,
+            .drop-zone.drag-over {
+                border-color: #3b82f6;
+                background: #eff6ff;
+            }
+
+        .drop-zone-content i {
+            font-size: 48px;
+            color: #3b82f6;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .drop-zone-content h4 {
+            font-size: 18px;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .drop-zone-content p {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0 0 20px 0;
+        }
+
+        .btn-choose {
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+            .btn-choose:hover {
+                background: #2563eb;
+                transform: translateY(-2px);
+            }
+
+        .drop-zone-content small {
+            display: block;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* Preview Container */
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+            .preview-container:empty {
+                display: none;
+            }
+
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+        }
+
+            .preview-item img {
+                width: 100%;
+                height: 120px;
+                object-fit: contain;
+                object-position: center;
+                background: #f8fafc;
+            }
+
+            .preview-item .remove-preview {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 24px;
+                height: 24px;
+                background: rgba(220, 38, 38, 0.9);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+            }
+
+        /* Upload Progress */
+        .upload-progress {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #16a34a, #22c55e);
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .manage-images-container {
+                padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .btn-upload, .btn-back {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .images-management-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const propertyId = @propertyId;
+        let selectedFiles = [];
+        let isProcessingFiles = false;
+
+        // Drop zone functionality
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        // Safe function to trigger file input click
+        function triggerFileSelect() {
+            if (isProcessingFiles || isUploading) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Processing...',
+                    text: 'Please wait until complete',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+            if (fileInput && !fileInput.disabled) {
+                // Reset value before clicking to allow selecting same files again
+                fileInput.value = '';
+                fileInput.click();
+            }
+        }
+
+        // Safe click handler for drop zone - only trigger if clicking on drop zone itself, not on buttons
+        dropZone.addEventListener('click', function(e) {
+            // Prevent if clicking on button or if already processing
+            if (e.target.closest('.btn-choose') || isProcessingFiles || isUploading) {
+                return;
+            }
+            // Only trigger if clicking directly on drop zone area
+            if (e.target === dropZone || e.target.closest('.drop-zone-content')) {
+                if (fileInput && !fileInput.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fileInput.click();
+                }
+            }
+        });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                if (!isProcessingFiles) {
+                    dropZone.classList.add('drag-over');
+                }
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('drag-over');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            if (isProcessingFiles) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            if (isProcessingFiles) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            if (this.files && this.files.length > 0) {
+                handleFiles(this.files);
+            }
+        });
+
+        function handleFiles(files) {
+            // Prevent multiple triggers
+            if (isProcessingFiles || isUploading) {
+                return;
+            }
+
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            // Set flag to prevent multiple processing
+            isProcessingFiles = true;
+
+            // Disable file input to prevent multiple clicks
+            if (fileInput) {
+                fileInput.disabled = true;
+            }
+
+            try {
+                selectedFiles = Array.from(files);
+                displayPreview();
+            } finally {
+                // Reset flag and enable input after processing
+                // Don't reset value immediately to prevent file explorer from reopening
+                setTimeout(() => {
+                    isProcessingFiles = false;
+                    if (fileInput) {
+                        fileInput.disabled = false;
+                        // Only reset value after a delay to prevent immediate re-trigger
+                        // Value will be reset when user clicks choose files again
+                    }
+                }, 300);
+            }
+        }
+
+        function displayPreview() {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'preview-item';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" alt="${file.name}">
+                            <button type="button" class="remove-preview" onclick="removeFile(${index})">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        `;
+                        preview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function removeFile(index) {
+            if (isProcessingFiles || isUploading) {
+                return;
+            }
+            selectedFiles.splice(index, 1);
+            displayPreview();
+
+            // Update file input
+            if (fileInput) {
+                const dt = new DataTransfer();
+                selectedFiles.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+                // Reset input value to allow selecting same files again
+                fileInput.value = '';
+            }
+        }
+
+        // Upload form
+        let isUploading = false;
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Prevent multiple uploads
+            if (isUploading) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Uploading...',
+                    text: 'Please wait for upload to complete',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            if (selectedFiles.length === 0) {
+                Swal.fire('Error', 'No files selected', 'error');
+                return;
+            }
+
+            // Set flag
+            isUploading = true;
+
+            const btn = document.getElementById('uploadBtn');
+            const progressDiv = document.getElementById('uploadProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+            progressDiv.style.display = 'block';
+
+            // Disable file input during upload
+            if (fileInput) {
+                fileInput.disabled = true;
+            }
+
+            try {
+                const formData = new FormData();
+
+                // Add anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    formData.append('__RequestVerificationToken', token.value);
+                }
+
+                // Add propertyId
+                formData.append('propertyId', propertyId);
+
+                // Add selected files
+                selectedFiles.forEach(file => {
+                    formData.append('files', file);
+                });
+
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressFill.style.width = percentComplete + '%';
+                        progressText.textContent = Math.round(percentComplete) + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', async function() {
+                    if (xhr.status === 200) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            if (result.success) {
+                                await Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: result.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                // Reset flags before reload
+                                isUploading = false;
+                                isProcessingFiles = false;
+                                location.reload();
+                            } else {
+                                throw new Error(result.message || 'Upload failed');
+                            }
+                        } catch (parseError) {
+                            isUploading = false;
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                            progressDiv.style.display = 'none';
+                            if (fileInput) {
+                                fileInput.disabled = false;
+                            }
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: parseError.message || 'Failed to parse server response'
+                            });
+                        }
+                    } else {
+                        isUploading = false;
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                        progressDiv.style.display = 'none';
+                        if (fileInput) {
+                            fileInput.disabled = false;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: `Upload failed with status ${xhr.status}`
+                        });
+                    }
+                });
+
+                xhr.addEventListener('error', function() {
+                    isUploading = false;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                    progressDiv.style.display = 'none';
+                    if (fileInput) {
+                        fileInput.disabled = false;
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Upload error occurred'
+                    });
+                });
+
+                xhr.addEventListener('abort', function() {
+                    isUploading = false;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                    progressDiv.style.display = 'none';
+                    if (fileInput) {
+                        fileInput.disabled = false;
+                    }
+                });
+
+                xhr.open('POST', '@Url.Action("UploadImages", "Property")');
+                xhr.send(formData);
+
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message || 'An error occurred'
+                });
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                progressDiv.style.display = 'none';
+                // Reset flags on error
+                isUploading = false;
+                if (fileInput) {
+                    fileInput.disabled = false;
+                }
+            }
+        });
+
+        // Reset state when modal is closed
+        const uploadModal = document.getElementById('uploadModal');
+        if (uploadModal) {
+            uploadModal.addEventListener('hidden.bs.modal', function() {
+                // Reset flags
+                isUploading = false;
+                isProcessingFiles = false;
+                
+                // Clear selected files and preview
+                selectedFiles = [];
+                const preview = document.getElementById('imagePreview');
+                if (preview) {
+                    preview.innerHTML = '';
+                }
+                
+                // Reset file input
+                if (fileInput) {
+                    fileInput.value = '';
+                    fileInput.disabled = false;
+                }
+                
+                // Reset upload button
+                const btn = document.getElementById('uploadBtn');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Upload';
+                }
+                
+                // Hide progress
+                const progressDiv = document.getElementById('uploadProgress');
+                if (progressDiv) {
+                    progressDiv.style.display = 'none';
+                }
+            });
+        }
+
+        // View image
+        function viewImage(url, title) {
+            document.getElementById('viewImageTitle').textContent = title;
+            document.getElementById('viewImageImg').src = url;
+            new bootstrap.Modal(document.getElementById('viewImageModal')).show();
+        }
+
+        // Set thumbnail
+        async function setThumbnail(imageId) {
+            try {
+                const response = await fetch('@Url.Action("SetThumbnail", "Property")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `imageId=${imageId}&propertyId=${propertyId}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: result.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    location.reload();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message
+                });
+            }
+        }
+
+        // Edit caption
+        function editCaption(imageId, currentCaption) {
+            document.getElementById('editImageId').value = imageId;
+            document.getElementById('captionInput').value = currentCaption;
+            new bootstrap.Modal(document.getElementById('editCaptionModal')).show();
+        }
+
+        document.getElementById('saveCaptionBtn').addEventListener('click', async function() {
+            const imageId = document.getElementById('editImageId').value;
+            const caption = document.getElementById('captionInput').value;
+
+            try {
+                const response = await fetch('@Url.Action("UpdateCaption", "Property")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `imageId=${imageId}&propertyId=${propertyId}&caption=${encodeURIComponent(caption)}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Caption updated',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    location.reload();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message
+                });
+            }
+        });
+
+        // Delete image
+        async function deleteImage(imageId, caption) {
+            const result = await Swal.fire({
+                title: 'Delete Image?',
+                text: `Delete "${caption}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('@Url.Action("DeleteImage", "Property")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        },
+                        body: `imageId=${imageId}&propertyId=${propertyId}`
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        location.reload();
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: error.message
+                    });
+                }
+            }
+        }
+
+        // Drag and drop reorder (optional - for future implementation)
+        const imageCards = document.querySelectorAll('.image-card');
+        imageCards.forEach(card => {
+            card.addEventListener('dragstart', function() {
+                this.classList.add('dragging');
+            });
+
+            card.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+            });
+        });
+    </script>
+}

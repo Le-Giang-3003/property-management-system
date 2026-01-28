@@ -1,0 +1,27 @@
+@using System.Security.Claims
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    var userName = User.Identity.Name;
+    var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+
+    <span>
+        Hello, <strong>@userName</strong>
+        (@string.Join(", ", roles))
+        |
+        <form asp-controller="Auth" asp-action="Logout" method="post" style="display: inline;">
+            @Html.AntiForgeryToken()
+            <button type="submit" style="background: none; border: none; color: blue; cursor: pointer; text-decoration: underline;">
+                Sign Out
+            </button>
+        </form>
+    </span>
+}
+else
+{
+    <span>
+        <a asp-controller="Auth" asp-action="Login">Sign In</a>
+        |
+        <a asp-controller="User" asp-action="Register">Sign Up</a>
+    </span>
+}

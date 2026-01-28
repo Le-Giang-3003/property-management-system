@@ -1,0 +1,490 @@
+@model PropertyManagementSystem.BLL.DTOs.User.UpdateProfileDto
+@{
+    ViewData["Title"] = "Edit Profile";
+    Layout = "_AuthLayout";
+}
+
+<div class="edit-profile-container">
+    <!-- Page Header -->
+    <div class="ep-header">
+        <h1 class="ep-title">Edit Profile</h1>
+        <p class="ep-subtitle">Update your personal information and profile photo</p>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="ep-alert ep-alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["Error"]</span>
+            <button type="button" class="ep-alert-close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="ep-alert ep-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["Success"]</span>
+            <button type="button" class="ep-alert-close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    }
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editProfileForm">
+        @Html.AntiForgeryToken()
+
+        <!-- Profile Photo Section -->
+        <div class="ep-card ep-photo-section">
+            <div class="ep-card-header">
+                <h3 class="ep-card-title">Profile Photo</h3>
+            </div>
+            <div class="ep-card-body">
+                <div class="ep-photo-upload">
+                    <div class="ep-avatar-preview">
+                        @if (!string.IsNullOrEmpty(Model.Avatar))
+                        {
+                            <img id="avatarPreview" src="@Model.Avatar" alt="Profile Photo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                            <span class="ep-avatar-initial" id="avatarInitial" style="display: none;">
+                                @(string.IsNullOrWhiteSpace(Model.FullName) ? "U" : Model.FullName.Trim()[0].ToString().ToUpper())
+                            </span>
+                        }
+                        else
+                        {
+                            <img id="avatarPreview" src="" alt="Profile Photo" style="display: none;" />
+                            <span class="ep-avatar-initial" id="avatarInitial">
+                                @(string.IsNullOrWhiteSpace(Model.FullName) ? "U" : Model.FullName.Trim()[0].ToString().ToUpper())
+                            </span>
+                        }
+                    </div>
+                    <div class="ep-photo-actions">
+                        <label for="avatarFile" class="ep-btn-outline ep-btn-upload">
+                            <i class="bi bi-camera"></i>
+                            Choose Photo
+                        </label>
+                        <input type="file" id="avatarFile" name="avatarFile" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" style="display: none;" />
+                        <button type="button" class="ep-btn-outline ep-btn-remove" id="removePhotoBtn" style="@(string.IsNullOrEmpty(Model.Avatar) ? "display: none;" : "")">
+                            <i class="bi bi-trash"></i>
+                            Remove Photo
+                        </button>
+                    </div>
+                    <small class="ep-input-hint">Allowed formats: JPG, PNG, WEBP, GIF. Max size: 5MB</small>
+                    <input type="hidden" asp-for="Avatar" id="avatarUrl" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Information Section -->
+        <div class="ep-card ep-personal-info">
+            <div class="ep-card-header">
+                <h3 class="ep-card-title">Personal Information</h3>
+            </div>
+            <div class="ep-card-body">
+                <div class="ep-form-grid">
+                    <div class="ep-form-group">
+                        <label class="ep-label" asp-for="FullName">
+                            <i class="bi bi-person"></i>
+                            Full Name *
+                        </label>
+                        <input type="text" asp-for="FullName" class="ep-input" placeholder="Enter your full name" />
+                        <span asp-validation-for="FullName" class="ep-validation-error"></span>
+                    </div>
+
+                    <div class="ep-form-group">
+                        <label class="ep-label" asp-for="PhoneNumber">
+                            <i class="bi bi-telephone"></i>
+                            Phone Number
+                        </label>
+                        <input type="tel" asp-for="PhoneNumber" class="ep-input" placeholder="(555) 123-4567" />
+                        <span asp-validation-for="PhoneNumber" class="ep-validation-error"></span>
+                    </div>
+
+                    <div class="ep-form-group">
+                        <label class="ep-label" asp-for="DateOfBirth">
+                            <i class="bi bi-calendar"></i>
+                            Date of Birth
+                        </label>
+                        <input type="date" asp-for="DateOfBirth" class="ep-input" />
+                        <span asp-validation-for="DateOfBirth" class="ep-validation-error"></span>
+                    </div>
+
+                    <div class="ep-form-group ep-form-group-full">
+                        <label class="ep-label" asp-for="Address">
+                            <i class="bi bi-geo-alt"></i>
+                            Address
+                        </label>
+                        <textarea asp-for="Address" class="ep-input ep-textarea" rows="3" placeholder="123 Main Street, CA 90001"></textarea>
+                        <span asp-validation-for="Address" class="ep-validation-error"></span>
+                    </div>
+                </div>
+
+                <div class="ep-form-actions">
+                    <button type="submit" class="ep-btn-primary">
+                        <i class="bi bi-check2"></i>
+                        Save Changes
+                    </button>
+                    <a href="@Url.Action("ManageProfile", "Profile")" class="ep-btn-outline">
+                        <i class="bi bi-x"></i>
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Styles {
+    <style>
+        .edit-profile-container {
+            padding: 24px 32px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .ep-header {
+            margin-bottom: 24px;
+        }
+
+        .ep-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .ep-subtitle {
+            font-size: 15px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Alerts */
+        .ep-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .ep-alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .ep-alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .ep-alert-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.7;
+            padding: 4px;
+        }
+
+        .ep-alert-close:hover {
+            opacity: 1;
+        }
+
+        /* Cards */
+        .ep-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .ep-card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .ep-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .ep-card-body {
+            padding: 24px;
+        }
+
+        /* Photo Upload Section */
+        .ep-photo-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .ep-avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .ep-avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ep-avatar-initial {
+            color: white;
+            font-size: 48px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ep-photo-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Forms */
+        .ep-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .ep-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .ep-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .ep-label i {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .ep-input {
+            padding: 12px 14px;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .ep-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .ep-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .ep-input-hint {
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .ep-validation-error {
+            font-size: 12px;
+            color: #ef4444;
+        }
+
+        /* Buttons */
+        .ep-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .ep-btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .ep-btn-outline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .ep-btn-outline:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .ep-btn-upload {
+            cursor: pointer;
+        }
+
+        .ep-form-actions {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .edit-profile-container {
+                padding: 16px;
+            }
+
+            .ep-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ep-photo-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .ep-btn-outline,
+            .ep-btn-primary {
+                width: 100%;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Handle file input change
+        document.getElementById('avatarFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+                const maxSize = 5 * 1024 * 1024; // 5MB
+
+                if (!allowedTypes.includes(file.type)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid File Type',
+                        text: 'Please select an image file (JPG, PNG, WEBP, or GIF)'
+                    });
+                    e.target.value = '';
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File Too Large',
+                        text: 'File size must not exceed 5MB'
+                    });
+                    e.target.value = '';
+                    return;
+                }
+
+                // Preview image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('avatarPreview');
+                    const initial = document.getElementById('avatarInitial');
+                    
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    initial.style.display = 'none';
+                    
+                    // Show remove button
+                    document.getElementById('removePhotoBtn').style.display = 'inline-flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle remove photo button
+        document.getElementById('removePhotoBtn').addEventListener('click', function() {
+            const preview = document.getElementById('avatarPreview');
+            const initial = document.getElementById('avatarInitial');
+            const fileInput = document.getElementById('avatarFile');
+            const avatarUrl = document.getElementById('avatarUrl');
+            
+            preview.src = '';
+            preview.style.display = 'none';
+            initial.style.display = 'flex';
+            fileInput.value = '';
+            avatarUrl.value = '';
+            this.style.display = 'none';
+        });
+
+        // Form submission with loading state
+        document.getElementById('editProfileForm').addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+        });
+    </script>
+}

@@ -1,17 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementSystem.DAL.Entities;
-
-public partial class UserRole
+namespace PropertyManagementSystem.DAL.Entities
 {
-    public int Id { get; set; }
+    public class UserRole
+    {
+        [Key]
+        public int UserRoleId { get; set; }
 
-    public int UserId { get; set; }
+        [ForeignKey("User")]
+        public int UserId { get; set; }
 
-    public int RoleId { get; set; }
+        [ForeignKey("Role")]
+        public int RoleId { get; set; }
 
-    public virtual Role Role { get; set; } = null!;
+        public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
 
-    public virtual User User { get; set; } = null!;
+        [ForeignKey("AssignedByUser")]
+        public int? AssignedBy { get; set; }
+
+        // Navigation
+        public User User { get; set; }
+        public Role Role { get; set; }
+        public User AssignedByUser { get; set; }
+    }
 }
+

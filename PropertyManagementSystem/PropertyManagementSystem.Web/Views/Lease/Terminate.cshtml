@@ -1,0 +1,140 @@
+@model PropertyManagementSystem.Web.ViewModels.Lease.TerminateLeaseViewModel
+@{
+    ViewData["Title"] = "Terminate Lease";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-x-circle"></i> Terminate Lease
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-warning border-warning">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+                            <div>
+                                <strong>Important Warning:</strong>
+                                <p class="mb-0">This action will terminate the lease and cannot be undone. Please review the information carefully before proceeding.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="bi bi-file-text"></i> Lease Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5">Lease Number:</dt>
+                                        <dd class="col-sm-7"><span class="badge bg-primary">@Model.LeaseNumber</span></dd>
+
+                                        <dt class="col-sm-5">Tenant:</dt>
+                                        <dd class="col-sm-7">@Model.TenantName</dd>
+
+                                        <dt class="col-sm-5">Property:</dt>
+                                        <dd class="col-sm-7">@Model.PropertyName</dd>
+
+                                        <dt class="col-sm-5">Address:</dt>
+                                        <dd class="col-sm-7">@Model.PropertyAddress</dd>
+                                    </dl>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5">Start Date:</dt>
+                                        <dd class="col-sm-7">@Model.StartDate.ToString("dd/MM/yyyy")</dd>
+
+                                        <dt class="col-sm-5">End Date:</dt>
+                                        <dd class="col-sm-7">@Model.EndDate.ToString("dd/MM/yyyy")</dd>
+
+                                        <dt class="col-sm-5">Rent:</dt>
+                                        <dd class="col-sm-7"><strong class="text-success">$@Model.MonthlyRent.ToString("N0")/month</strong></dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* ✅ THÊM @Html.AntiForgeryToken() *@
+                    <form asp-action="Terminate" asp-route-id="@Model.LeaseId" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Termination Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="TerminationDate" class="form-label fw-bold">
+                                                <i class="bi bi-calendar-x text-danger"></i>
+                                                Termination Date
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <input asp-for="TerminationDate"
+                                                   type="datetime-local"
+                                                   class="form-control" />
+                                            <span asp-validation-for="TerminationDate" class="text-danger"></span>
+
+                                            
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Reason" class="form-label fw-bold">
+                                        <i class="bi bi-chat-left-text text-warning"></i>
+                                        Termination Reason
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea asp-for="Reason"
+                                              class="form-control"
+                                              rows="6"
+                                              placeholder="Enter detailed termination reason (minimum 10 characters)..."></textarea>
+                                    <span asp-validation-for="Reason" class="text-danger small"></span>
+                                    <div class="form-text">
+                                        <i class="bi bi-exclamation-circle"></i>
+                                        Reason must be at least 10 characters
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Details" asp-route-id="@Model.LeaseId" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg" id="submitBtn">
+                                <i class="bi bi-x-circle"></i> Confirm Termination
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        document.getElementById('submitBtn').addEventListener('click', function (e) {
+            if (!confirm('Are you sure you want to terminate this lease?')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+}
+

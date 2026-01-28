@@ -1,0 +1,621 @@
+@model PropertyManagementSystem.Web.ViewModels.Dashboard.TenantDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_AuthLayout";
+    var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "User";
+}
+
+<div class="pm-dashboard">
+    <!-- Header -->
+    <div class="pm-dashboard-header">
+        <div>
+            <h1>Tenant Dashboard</h1>
+            <p class="pm-page-subtitle">Welcome back! Here's your property overview</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="pm-stats-grid">
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Current Lease</span>
+                <i class="bi bi-house-door pm-stat-icon-small"></i>
+            </div>
+            <div class="pm-stat-value-large">Active</div>
+            <p class="pm-stat-description">@(Model.ActiveLeases.Any() ? $"Ends " + Model.ActiveLeases.First().EndDate.ToString("MMM dd, yyyy") : "No active lease")</p>
+        </div>
+
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Next Payment</span>
+                <i class="bi bi-currency-dollar pm-stat-icon-small"></i>
+            </div>
+            <div class="pm-stat-value-large">@(Model.UpcomingPayments.Any() ? "$" + Model.UpcomingPayments.First().Amount.ToString("N0") : "$0")</div>
+            <p class="pm-stat-description">@(Model.UpcomingPayments.Any() ? "Due in " + (Model.UpcomingPayments.First().DueDate - DateTime.Now).Days + " days" : "No upcoming payments")</p>
+        </div>
+
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Maintenance</span>
+                <i class="bi bi-tools pm-stat-icon-small"></i>
+            </div>
+            <div class="pm-stat-value-large">@Model.OpenMaintenanceCount</div>
+            <p class="pm-stat-description">Active request@(Model.OpenMaintenanceCount != 1 ? "s" : "")</p>
+        </div>
+
+        <div class="pm-stat-card-modern">
+            <div class="pm-stat-header">
+                <span class="pm-stat-label">Documents</span>
+                <i class="bi bi-calendar pm-stat-icon-small"></i>
+            </div>
+            <div class="pm-stat-value-large">4</div>
+            <p class="pm-stat-description">Files available</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Content -->
+    <div class="pm-dashboard-grid">
+        <!-- Quick Actions -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-lightning"></i> Quick Actions</h4>
+            </div>
+            <div class="pm-card-body">
+                <div class="pm-quick-actions">
+                    <a asp-controller="Property" asp-action="SearchProperties" class="pm-quick-action-item">
+                        <div class="pm-quick-action-icon primary">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <div class="pm-quick-action-text">
+                            <h5>Find Properties</h5>
+                            <p>Search available rentals</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a asp-controller="Payment" asp-action="History" class="pm-quick-action-item">
+                        <div class="pm-quick-action-icon success">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+                        <div class="pm-quick-action-text">
+                            <h5>Make Payment</h5>
+                            <p>Pay rent or bills</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a asp-controller="Maintenance" asp-action="CreateRequest" class="pm-quick-action-item">
+                        <div class="pm-quick-action-icon warning">
+                            <i class="bi bi-wrench"></i>
+                        </div>
+                        <div class="pm-quick-action-text">
+                            <h5>Request Maintenance</h5>
+                            <p>Report an issue</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a asp-controller="Document" asp-action="MyDocuments" class="pm-quick-action-item">
+                        <div class="pm-quick-action-icon info">
+                            <i class="bi bi-folder"></i>
+                        </div>
+                        <div class="pm-quick-action-text">
+                            <h5>My Documents</h5>
+                            <p>View contracts & files</p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Payments -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-calendar-check"></i> Upcoming Payments</h4>
+                <a asp-controller="Payment" asp-action="History" class="pm-btn pm-btn-ghost pm-btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="pm-card-body">
+                @if (Model.UpcomingPayments.Any())
+                {
+                    <div class="pm-payment-list">
+                        @foreach (var payment in Model.UpcomingPayments)
+                        {
+                            <div class="pm-payment-item">
+                                <div class="pm-payment-icon">
+                                    <i class="bi bi-house-door"></i>
+                                </div>
+                                <div class="pm-payment-info">
+                                    <h5>@payment.Description</h5>
+                                    <p>Due: @payment.DueDate.ToString("MMMM d, yyyy")</p>
+                                </div>
+                                <div class="pm-payment-amount">
+                                    <span class="amount">@payment.Amount.ToString("N0") ₫</span>
+                                    <a asp-controller="Payment" asp-action="MakePayment" asp-route-invoiceId="@payment.InvoiceId" class="pm-btn pm-btn-primary pm-btn-sm">Pay Now</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <h4>All caught up!</h4>
+                        <p>No upcoming payments</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- My Leases -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-file-earmark-check"></i> My Active Leases</h4>
+                <a asp-controller="Lease" asp-action="MyLeases" class="pm-btn pm-btn-ghost pm-btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="pm-card-body">
+                @if (Model.ActiveLeases.Any())
+                {
+                    <div class="pm-lease-list">
+                        @foreach (var lease in Model.ActiveLeases)
+                        {
+                            <div class="pm-lease-item">
+                                <div class="pm-lease-property">
+                                    <div class="pm-lease-image">
+                                        @if (!string.IsNullOrEmpty(lease.PropertyImageUrl))
+                                        {
+                                            <img src="@Html.Raw(Html.Encode(lease.PropertyImageUrl))" 
+                                                 alt="@Html.Raw(Html.Encode(lease.PropertyName ?? "Property"))"
+                                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                            <i class="bi bi-building" style="display: none;"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-building"></i>
+                                        }
+                                    </div>
+                                    <div class="pm-lease-info">
+                                        <h5>@lease.PropertyName</h5>
+                                        <p><i class="bi bi-geo-alt"></i> @lease.PropertyAddress</p>
+                                        <div class="pm-lease-meta">
+                                            <span><i class="bi bi-calendar"></i> Ends: @lease.EndDate.ToString("MMM dd, yyyy")</span>
+                                            <span class="pm-badge @(lease.Status == "Active" ? "pm-badge-success" : "pm-badge-secondary")">@lease.Status</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a asp-controller="Lease" asp-action="Details" asp-route-id="@lease.LeaseId" class="pm-btn pm-btn-secondary pm-btn-sm">
+                                    View Details
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon">
+                            <i class="bi bi-file-earmark-x"></i>
+                        </div>
+                        <h4>No active leases</h4>
+                        <p>Start by browsing available properties</p>
+                        <a asp-controller="Property" asp-action="SearchProperties" class="pm-btn pm-btn-primary pm-btn-sm">
+                            Find Properties
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-clock-history"></i> Recent Activity</h4>
+            </div>
+            <div class="pm-card-body">
+                @if (Model.RecentActivities.Any())
+                {
+                    <div class="pm-timeline">
+                        @foreach (var activity in Model.RecentActivities)
+                        {
+                            <div class="pm-timeline-item">
+                                <div class="pm-timeline-time">@FormatActivityTime(activity.Timestamp)</div>
+                                <div class="pm-timeline-content">
+                                    <h4>@activity.Title</h4>
+                                    <p>@activity.Description</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pm-empty pm-empty-compact">
+                        <div class="pm-empty-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <h4>No recent activity</h4>
+                        <p>Your recent activities will appear here</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .pm-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard Header */
+        .pm-dashboard-header {
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-dashboard-header h1 {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            margin: 0 0 var(--pm-space-2);
+            color: var(--pm-text);
+        }
+
+        .pm-page-subtitle {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        /* Stats Grid */
+        .pm-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--pm-space-4);
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-stat-card-modern {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+        }
+
+        .pm-stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--pm-space-3);
+        }
+
+        .pm-stat-label {
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-stat-icon-small {
+            width: 16px;
+            height: 16px;
+            color: var(--pm-text-muted);
+        }
+
+        .pm-stat-value-large {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin-bottom: var(--pm-space-1);
+        }
+
+        .pm-stat-description {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        /* Dashboard Grid */
+        .pm-dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-6);
+        }
+
+        /* Quick Actions */
+        .pm-quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-quick-action-item {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+            padding: var(--pm-space-4);
+            background: var(--pm-slate-50);
+            border-radius: var(--pm-radius-lg);
+            text-decoration: none;
+            transition: all var(--pm-transition-fast);
+        }
+
+        .pm-quick-action-item:hover {
+            background: var(--pm-slate-100);
+            transform: translateX(4px);
+        }
+
+        .pm-quick-action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .pm-quick-action-icon.primary {
+            background: var(--pm-primary-100);
+            color: var(--pm-primary);
+        }
+
+        .pm-quick-action-icon.success {
+            background: var(--pm-success-100);
+            color: var(--pm-success);
+        }
+
+        .pm-quick-action-icon.warning {
+            background: var(--pm-warning-100);
+            color: var(--pm-warning);
+        }
+
+        .pm-quick-action-icon.info {
+            background: var(--pm-info-100);
+            color: var(--pm-info);
+        }
+
+        .pm-quick-action-text {
+            flex: 1;
+        }
+
+        .pm-quick-action-text h5 {
+            margin: 0;
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-quick-action-text p {
+            margin: 0;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-quick-action-item > i {
+            color: var(--pm-text-muted);
+        }
+
+        /* Payment List */
+        .pm-payment-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-payment-item {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+            padding: var(--pm-space-4);
+            background: var(--pm-slate-50);
+            border-radius: var(--pm-radius-lg);
+            border-left: 4px solid var(--pm-warning);
+        }
+
+        .pm-payment-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--pm-warning-100);
+            color: var(--pm-warning);
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .pm-payment-info {
+            flex: 1;
+        }
+
+        .pm-payment-info h5 {
+            margin: 0 0 var(--pm-space-1);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-payment-info p {
+            margin: 0;
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-payment-amount {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-payment-amount .amount {
+            font-size: var(--pm-text-lg);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+        }
+
+        /* Lease List */
+        .pm-lease-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-lease-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--pm-space-4);
+            background: var(--pm-slate-50);
+            border-radius: var(--pm-radius-lg);
+        }
+
+        .pm-lease-property {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-lease-image {
+            width: 64px;
+            height: 64px;
+            background: var(--pm-primary-100);
+            color: var(--pm-primary);
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .pm-lease-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pm-lease-info h5 {
+            margin: 0 0 var(--pm-space-1);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-lease-info > p {
+            margin: 0 0 var(--pm-space-2);
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-1);
+        }
+
+        .pm-lease-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-lease-meta span {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-1);
+        }
+
+        /* Empty Compact */
+        .pm-empty-compact {
+            padding: var(--pm-space-6);
+        }
+
+        .pm-empty-compact .pm-empty-icon {
+            width: 60px;
+            height: 60px;
+        }
+
+        .pm-empty-compact .pm-empty-icon i {
+            font-size: 28px;
+        }
+
+        /* Responsive */
+        @@media (max-width: 1200px) {
+            .pm-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 1024px) {
+            .pm-dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .pm-welcome-banner {
+                flex-direction: column;
+                gap: var(--pm-space-4);
+                text-align: center;
+                padding: var(--pm-space-6);
+            }
+
+            .pm-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-payment-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .pm-payment-amount {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: var(--pm-space-3);
+                padding-top: var(--pm-space-3);
+                border-top: 1px solid var(--pm-border);
+            }
+
+            .pm-lease-item {
+                flex-direction: column;
+                gap: var(--pm-space-4);
+            }
+
+            .pm-lease-item .pm-btn {
+                width: 100%;
+            }
+        }
+    </style>
+}
+
+@functions {
+    string FormatActivityTime(DateTime timestamp)
+    {
+        var now = DateTime.Now;
+        var diff = now - timestamp;
+
+        if (diff.TotalMinutes < 60)
+            return "Just now";
+        if (diff.TotalHours < 24 && timestamp.Date == now.Date)
+            return $"Today, {timestamp:h:mm tt}";
+        if (diff.TotalDays < 2 && timestamp.Date == now.Date.AddDays(-1))
+            return $"Yesterday, {timestamp:h:mm tt}";
+        if (diff.TotalDays < 7)
+            return timestamp.ToString("dddd, h:mm tt");
+        
+        return timestamp.ToString("MMM d, yyyy");
+    }
+}

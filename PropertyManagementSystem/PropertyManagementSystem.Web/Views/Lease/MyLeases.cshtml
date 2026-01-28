@@ -1,0 +1,315 @@
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.Lease>
+@{
+    ViewData["Title"] = "My Leases";
+    Layout = "_AuthLayout";
+}
+
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-file-earmark-check"></i>
+                My Leases
+            </h1>
+            <p class="pm-page-subtitle">View all properties you're currently renting</p>
+        </div>
+        <div class="pm-page-actions">
+            <a asp-action="Index" class="pm-btn pm-btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                All Contracts
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="pm-card">
+            <div class="pm-card-body">
+                <div class="pm-empty">
+                    <div class="pm-empty-icon">
+                        <i class="bi bi-file-earmark-x"></i>
+                    </div>
+                    <h4>No Active Leases</h4>
+                    <p>You don't have any rental contracts yet. Start by finding a property to rent.</p>
+                    <a asp-controller="Property" asp-action="SearchProperties" class="pm-btn pm-btn-primary">
+                        <i class="bi bi-search"></i>
+                        Browse Properties
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="pm-lease-grid">
+            @foreach (var lease in Model.OrderByDescending(l => l.StartDate))
+            {
+                <div class="pm-lease-card">
+                    <div class="pm-lease-header @GetStatusHeaderClass(lease.Status)">
+                        <div class="pm-lease-number">@lease.LeaseNumber</div>
+                        <span class="pm-lease-badge">@GetStatusDisplay(lease.Status)</span>
+                    </div>
+                    <div class="pm-lease-body">
+                        <h3 class="pm-lease-title">@lease.Property?.Name</h3>
+                        <p class="pm-lease-location">
+                            <i class="bi bi-geo-alt"></i>
+                            @lease.Property?.Address
+                        </p>
+                        
+                        <div class="pm-lease-details">
+                            <div class="pm-lease-detail">
+                                <span class="pm-detail-label">Monthly Rent</span>
+                                <span class="pm-detail-value rent">@lease.MonthlyRent.ToString("N0") ₫</span>
+                            </div>
+                            <div class="pm-lease-detail">
+                                <span class="pm-detail-label">Due Date</span>
+                                <span class="pm-detail-value">Day @lease.PaymentDueDay</span>
+                            </div>
+                        </div>
+
+                        <div class="pm-lease-duration">
+                            <i class="bi bi-calendar-range"></i>
+                            <span>@lease.StartDate.ToString("dd/MM/yyyy") - @lease.EndDate.ToString("dd/MM/yyyy")</span>
+                        </div>
+
+                        @if (lease.Property?.Landlord != null)
+                        {
+                            <div class="pm-landlord-info">
+                                <div class="pm-avatar pm-avatar-sm">@lease.Property.Landlord.FullName?.Substring(0, 1).ToUpper()</div>
+                                <div>
+                                    <span class="pm-landlord-label">Landlord</span>
+                                    <span class="pm-landlord-name">@lease.Property.Landlord.FullName</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="pm-lease-footer">
+                        <a asp-action="Details" asp-route-id="@lease.LeaseId" class="pm-btn pm-btn-primary pm-btn-sm pm-w-full">
+                            <i class="bi bi-eye"></i>
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@functions {
+    string GetStatusHeaderClass(string status) => status switch
+    {
+        "Active" => "active",
+        "Expired" => "expired",
+        "Terminated" => "terminated",
+        _ => "draft"
+    };
+
+    string GetStatusDisplay(string status) => status switch
+    {
+        "Draft" => "Draft",
+        "PendingSignature" => "Pending Signature",
+        "Active" => "Active",
+        "Expired" => "Expired",
+        "Terminated" => "Terminated",
+        "Renewed" => "Renewed",
+        _ => status
+    };
+}
+
+<style>
+    .pm-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .pm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--pm-space-6);
+    }
+
+    .pm-page-title {
+        font-size: var(--pm-text-2xl);
+        font-weight: var(--pm-font-bold);
+        color: var(--pm-text);
+        margin: 0 0 var(--pm-space-2);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-3);
+    }
+
+    .pm-page-title i {
+        color: var(--pm-primary);
+    }
+
+    .pm-page-subtitle {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-secondary);
+        margin: 0;
+    }
+
+    .pm-lease-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--pm-space-6);
+    }
+
+    .pm-lease-card {
+        background: var(--pm-surface);
+        border: 1px solid var(--pm-border);
+        border-radius: var(--pm-radius-xl);
+        overflow: hidden;
+        transition: all var(--pm-transition);
+    }
+
+    .pm-lease-card:hover {
+        box-shadow: var(--pm-shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .pm-lease-header {
+        padding: var(--pm-space-4) var(--pm-space-5);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .pm-lease-header.active {
+        background: linear-gradient(135deg, var(--pm-primary) 0%, var(--pm-primary-dark) 100%);
+        color: white;
+    }
+
+    .pm-lease-header.expired {
+        background: linear-gradient(135deg, var(--pm-danger) 0%, var(--pm-danger-dark) 100%);
+        color: white;
+    }
+
+    .pm-lease-header.terminated {
+        background: var(--pm-slate-700);
+        color: white;
+    }
+
+    .pm-lease-header.draft {
+        background: var(--pm-slate-200);
+        color: var(--pm-text);
+    }
+
+    .pm-lease-number {
+        font-weight: var(--pm-font-semibold);
+        font-size: var(--pm-text-sm);
+    }
+
+    .pm-lease-badge {
+        padding: var(--pm-space-1) var(--pm-space-3);
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: var(--pm-radius-full);
+        font-size: var(--pm-text-xs);
+        font-weight: var(--pm-font-semibold);
+    }
+
+    .pm-lease-header.draft .pm-lease-badge {
+        background: var(--pm-slate-300);
+    }
+
+    .pm-lease-body {
+        padding: var(--pm-space-5);
+    }
+
+    .pm-lease-title {
+        font-size: var(--pm-text-lg);
+        font-weight: var(--pm-font-semibold);
+        color: var(--pm-text);
+        margin: 0 0 var(--pm-space-2);
+    }
+
+    .pm-lease-location {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-muted);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-2);
+        margin: 0 0 var(--pm-space-5);
+    }
+
+    .pm-lease-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--pm-space-4);
+        padding: var(--pm-space-4) 0;
+        border-top: 1px solid var(--pm-border-light);
+        border-bottom: 1px solid var(--pm-border-light);
+        margin-bottom: var(--pm-space-4);
+    }
+
+    .pm-detail-label {
+        display: block;
+        font-size: var(--pm-text-xs);
+        color: var(--pm-text-muted);
+        margin-bottom: var(--pm-space-1);
+    }
+
+    .pm-detail-value {
+        font-size: var(--pm-text-lg);
+        font-weight: var(--pm-font-bold);
+        color: var(--pm-text);
+    }
+
+    .pm-detail-value.rent {
+        color: var(--pm-success);
+    }
+
+    .pm-lease-duration {
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-2);
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-secondary);
+        margin-bottom: var(--pm-space-4);
+    }
+
+    .pm-landlord-info {
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-3);
+        padding: var(--pm-space-3);
+        background: var(--pm-slate-50);
+        border-radius: var(--pm-radius-lg);
+    }
+
+    .pm-landlord-label {
+        display: block;
+        font-size: var(--pm-text-xs);
+        color: var(--pm-text-muted);
+    }
+
+    .pm-landlord-name {
+        font-size: var(--pm-text-sm);
+        font-weight: var(--pm-font-semibold);
+        color: var(--pm-text);
+    }
+
+    .pm-lease-footer {
+        padding: var(--pm-space-4) var(--pm-space-5);
+        background: var(--pm-slate-50);
+        border-top: 1px solid var(--pm-border);
+    }
+
+    .pm-w-full {
+        width: 100%;
+        justify-content: center;
+    }
+
+    @@media (max-width: 1024px) {
+        .pm-lease-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .pm-page-header {
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+    }
+</style>

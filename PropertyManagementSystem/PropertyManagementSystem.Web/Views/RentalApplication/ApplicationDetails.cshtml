@@ -1,0 +1,705 @@
+@model PropertyManagementSystem.DAL.Entities.RentalApplication
+@{
+    ViewData["Title"] = "Application Details";
+    Layout = "_AuthLayout";
+    
+    // ✅ VALIDATE: Chỉ cho approve/reject nếu Property thuộc về user này
+    var userId = 0;
+    var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    int.TryParse(userIdClaim, out userId);
+    var isPropertyOwner = Model.Property?.LandlordId == userId;
+    var canUpdate = isPropertyOwner && Model.Status == "Pending";
+
+    // ✅ FIX: Thêm check ExistingLease từ ViewBag
+    var hasExistingLease = ViewBag.ExistingLease != null;
+    var canCreateLease = isPropertyOwner && Model.Status == "Approved" && !hasExistingLease;
+    
+    // Set portal mode based on whether user owns the property
+    ViewData["PortalMode"] = isPropertyOwner ? "Landlord" : "Tenant";
+}
+
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-file-earmark-person"></i>
+                Application #@Model.ApplicationNumber
+            </h1>
+            <p class="pm-page-subtitle">View application details and status</p>
+        </div>
+        <div>
+            @switch (Model.Status)
+            {
+                case "Pending":
+                    <span class="pm-badge pm-badge-warning">Pending</span>
+                    break;
+                case "Approved":
+                    <span class="pm-badge pm-badge-success">Approved</span>
+                    break;
+                case "Rejected":
+                    <span class="pm-badge pm-badge-danger">Rejected</span>
+                    break;
+                case "Withdrawn":
+                    <span class="pm-badge pm-badge-secondary">Withdrawn</span>
+                    break;
+            }
+        </div>
+    </div>
+
+    <div class="pm-card">
+        <div class="pm-card-body">
+            <!-- Overview Information -->
+            <div class="pm-card-modern mb-4">
+                <div class="pm-stat-header">
+                    <span class="pm-stat-label">Overview</span>
+                </div>
+                <div class="pm-overview-grid">
+                    <div class="pm-overview-item">
+                        <span class="pm-overview-label">Submission Date</span>
+                        <span class="pm-overview-value">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                    </div>
+                    <div class="pm-overview-item">
+                        <span class="pm-overview-label">Desired Move-in Date</span>
+                        <span class="pm-overview-value">@Model.DesiredMoveInDate.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <div class="pm-overview-item">
+                        <span class="pm-overview-label">Number of Occupants</span>
+                        <span class="pm-overview-value">@Model.NumberOfOccupants people</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-house-door"></i>
+                    <h3>Property Information</h3>
+                </div>
+                <div class="pm-info-grid">
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Name:</span>
+                            <span class="pm-info-value">@Model.Property?.Name</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Address:</span>
+                            <span class="pm-info-value">@Model.Property?.Address</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Type:</span>
+                            <span class="pm-info-value">@Model.Property?.PropertyType</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Rent:</span>
+                            <span class="pm-info-value pm-text-primary">@Model.Property?.RentAmount.ToString("N0") ₫/month</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Area:</span>
+                            <span class="pm-info-value">@Model.Property?.SquareFeet sqft</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Bedrooms/Bathrooms:</span>
+                            <span class="pm-info-value">@Model.Property?.Bedrooms / @Model.Property?.Bathrooms</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applicant Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-person"></i>
+                    <h3>Applicant Information</h3>
+                </div>
+                <div class="pm-info-grid">
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Full Name:</span>
+                            <span class="pm-info-value">@Model.Applicant?.FullName</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Email:</span>
+                            <span class="pm-info-value">@Model.Applicant?.Email</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Phone Number:</span>
+                            <span class="pm-info-value">@Model.Applicant?.PhoneNumber</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Date of Birth:</span>
+                            <span class="pm-info-value">@Model.Applicant?.DateOfBirth?.ToString("MMM dd, yyyy")</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employment Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-briefcase"></i>
+                    <h3>Employment Information</h3>
+                </div>
+                <div class="pm-info-grid">
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Employment Status:</span>
+                            <span class="pm-badge pm-badge-info">@Model.EmploymentStatus</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Employer:</span>
+                            <span class="pm-info-value">@(Model.Employer ?? "Not provided")</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Monthly Income:</span>
+                            @if (Model.MonthlyIncome.HasValue)
+                            {
+                                <span class="pm-info-value pm-text-success">@Model.MonthlyIncome.Value.ToString("N0") ₫</span>
+                            }
+                            else
+                            {
+                                <span class="pm-info-value pm-text-muted">Not provided</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous Residence Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-geo-alt"></i>
+                    <h3>Previous Residence Information</h3>
+                </div>
+                <div class="pm-info-grid">
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Previous Address:</span>
+                            <span class="pm-info-value">@(Model.PreviousAddress ?? "Not provided")</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Previous Landlord:</span>
+                            <span class="pm-info-value">@(Model.PreviousLandlord ?? "Not provided")</span>
+                        </p>
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Previous Landlord Phone:</span>
+                            <span class="pm-info-value">@(Model.PreviousLandlordPhone ?? "Not provided")</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pet Information -->
+            <div class="pm-info-section mb-4">
+                <div class="pm-section-header">
+                    <i class="bi bi-heart"></i>
+                    <h3>Pet Information</h3>
+                </div>
+                <div>
+                    <p class="pm-info-item">
+                        <span class="pm-info-label">Has Pets:</span>
+                        @if (Model.HasPets)
+                        {
+                            <span class="pm-badge pm-badge-warning">Yes</span>
+                        }
+                        else
+                        {
+                            <span class="pm-badge pm-badge-success">No</span>
+                        }
+                    </p>
+                    @if (Model.HasPets && !string.IsNullOrEmpty(Model.PetDetails))
+                    {
+                        <p class="pm-info-item">
+                            <span class="pm-info-label">Details:</span>
+                            <span class="pm-info-value">@Model.PetDetails</span>
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <!-- Additional Notes -->
+            @if (!string.IsNullOrEmpty(Model.AdditionalNotes))
+            {
+                <div class="pm-info-section mb-4">
+                    <div class="pm-section-header">
+                        <i class="bi bi-sticky"></i>
+                        <h3>Additional Notes</h3>
+                    </div>
+                    <div class="pm-card-modern">
+                        <p class="pm-notes-text">@Model.AdditionalNotes</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Review Information -->
+            @if (Model.ReviewedAt.HasValue)
+            {
+                <div class="pm-info-section mb-4">
+                    <div class="pm-section-header">
+                        <i class="bi bi-check-circle"></i>
+                        <h3>Review Information</h3>
+                    </div>
+                    <div class="pm-info-grid">
+                        <div>
+                            <p class="pm-info-item">
+                                <span class="pm-info-label">Reviewed By:</span>
+                                <span class="pm-info-value">@Model.ReviewedByUser?.FullName</span>
+                            </p>
+                            <p class="pm-info-item">
+                                <span class="pm-info-label">Review Time:</span>
+                                <span class="pm-info-value">@Model.ReviewedAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                            </p>
+                        </div>
+                    </div>
+                    @if (Model.Status == "Rejected" && !string.IsNullOrEmpty(Model.RejectionReason))
+                    {
+                        <div class="pm-alert pm-alert-danger mt-4">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <div>
+                                <strong>Rejection Reason:</strong>
+                                <p>@Model.RejectionReason</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Existing Lease -->
+            @if (hasExistingLease && ViewBag.ExistingLease != null)
+            {
+                <div class="pm-card-modern mb-4" style="border-color: var(--pm-success); background: var(--pm-success-50);">
+                    <div class="pm-stat-header">
+                        <span class="pm-stat-label">
+                            <i class="bi bi-check-circle"></i> Lease Created
+                        </span>
+                    </div>
+                    <div class="pm-info-grid">
+                        <div>
+                            <p class="pm-info-item">
+                                <span class="pm-info-label">Lease Number:</span>
+                                <span class="pm-badge pm-badge-primary">@ViewBag.ExistingLease.LeaseNumber</span>
+                            </p>
+                            <p class="pm-info-item">
+                                <span class="pm-info-label">Duration:</span>
+                                <span class="pm-info-value">@ViewBag.ExistingLease.StartDate.ToString("MMM dd, yyyy") - @ViewBag.ExistingLease.EndDate.ToString("MMM dd, yyyy")</span>
+                            </p>
+                        </div>
+                        <div>
+                            <p class="pm-info-item">
+                                <span class="pm-info-label">Status:</span>
+                                @if (ViewBag.ExistingLease.Status == "Draft")
+                                {
+                                    <span class="pm-badge pm-badge-secondary">Draft</span>
+                                }
+                                else if (ViewBag.ExistingLease.Status == "Active")
+                                {
+                                    <span class="pm-badge pm-badge-success">Active</span>
+                                }
+                                else if (ViewBag.ExistingLease.Status == "Expired")
+                                {
+                                    <span class="pm-badge pm-badge-danger">Expired</span>
+                                }
+                                else
+                                {
+                                    <span class="pm-badge pm-badge-info">@ViewBag.ExistingLease.Status</span>
+                                }
+                            </p>
+                            <p class="pm-info-item">
+                                <span class="pm-info-label">Rent:</span>
+                                <span class="pm-info-value pm-text-success">@ViewBag.ExistingLease.MonthlyRent.ToString("N0") ₫/month</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="pm-lease-actions mt-4">
+                        <a asp-controller="Lease" asp-action="Details"
+                           asp-route-id="@ViewBag.ExistingLease.LeaseId"
+                           class="pm-btn pm-btn-primary">
+                            <i class="bi bi-eye"></i> View Lease Details
+                        </a>
+                        @if (ViewBag.ExistingLease.Status == "Draft")
+                        {
+                            <a asp-controller="Lease" asp-action="Edit"
+                               asp-route-id="@ViewBag.ExistingLease.LeaseId"
+                               class="pm-btn pm-btn-warning">
+                                <i class="bi bi-pencil"></i> Edit Lease
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Create Lease Button -->
+            @if (canCreateLease)
+            {
+                <div class="pm-card-modern mb-4" style="border-color: var(--pm-success); background: linear-gradient(135deg, var(--pm-success-50) 0%, var(--pm-success-100) 100%);">
+                    <div class="pm-stat-header">
+                        <span class="pm-stat-label">
+                            <i class="bi bi-check-circle"></i> Application Approved!
+                        </span>
+                    </div>
+                    <p class="pm-approval-text">
+                        You can create an official lease for <strong>@Model.Applicant?.FullName</strong>
+                    </p>
+                    <a asp-controller="Lease" asp-action="Create" asp-route-applicationId="@Model.ApplicationId"
+                       class="pm-btn pm-btn-success pm-w-full">
+                        <i class="bi bi-file-earmark-check"></i>
+                        <strong>Create Lease Now</strong>
+                    </a>
+                </div>
+            }
+
+            <!-- Review Form -->
+            @if (canUpdate)
+            {
+                <div class="pm-card-modern mb-4">
+                    <div class="pm-stat-header">
+                        <span class="pm-stat-label">
+                            <i class="bi bi-clipboard-check"></i> Review Application
+                        </span>
+                    </div>
+                    <p class="pm-review-note">
+                        After approval, you can create an official lease.
+                    </p>
+                    <div class="pm-review-actions">
+                        <form asp-action="Approve" method="post" onsubmit="return confirm('Are you sure you want to APPROVE this application?');" class="pm-w-full">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.ApplicationId" />
+                            <button type="submit" class="pm-btn pm-btn-success pm-w-full">
+                                <i class="bi bi-check-circle"></i> Approve Application
+                            </button>
+                        </form>
+                        <button type="button" class="pm-btn pm-btn-danger pm-w-full" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                            <i class="bi bi-x-circle"></i> Reject Application
+                        </button>
+                    </div>
+                </div>
+            }
+
+            @if (!isPropertyOwner && Model.Status == "Pending")
+            {
+                <div class="pm-alert pm-alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <div>
+                        <strong>Note:</strong> Only the property owner can review this application.
+                    </div>
+                </div>
+            }
+
+            <!-- Navigation Buttons -->
+            <div class="pm-navigation-actions">
+                @if (isPropertyOwner)
+                {
+                    <a asp-action="ByProperty" asp-route-propertyId="@Model.PropertyId" class="pm-btn pm-btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Property Applications
+                    </a>
+                }
+                else if (Model.ApplicantId == userId)
+                {
+                    <a asp-action="MyApplications" class="pm-btn pm-btn-secondary">
+                        <i class="bi bi-arrow-left"></i> My Applications
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="Index" class="pm-btn pm-btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Application List
+                    </a>
+                }
+
+                <a asp-controller="Property" asp-action="Details" asp-route-id="@Model.PropertyId" class="pm-btn pm-btn-ghost">
+                    <i class="bi bi-house-door"></i> View Property
+                </a>
+
+                @if (isPropertyOwner && Model.Status == "Approved")
+                {
+                    <a asp-controller="Lease" asp-action="Index" class="pm-btn pm-btn-ghost">
+                        <i class="bi bi-file-earmark-text"></i> Manage Leases
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Reject" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.ApplicationId" />
+
+                <div class="pm-modal-header">
+                    <h3><i class="bi bi-x-circle"></i> Reject Application</h3>
+                    <button type="button" class="pm-modal-close" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+
+                <div class="pm-modal-body">
+                    <div class="pm-alert pm-alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <div>
+                            You are rejecting application <strong>@Model.ApplicationNumber</strong>
+                        </div>
+                    </div>
+
+                    <div class="pm-form-group">
+                        <label for="rejectionReason" class="pm-label">
+                            Rejection Reason <span class="pm-text-danger">*</span>
+                        </label>
+                        <textarea name="rejectionReason" id="rejectionReason" class="pm-textarea" rows="4"
+                                  required placeholder="Please provide a clear reason for the applicant..."></textarea>
+                    </div>
+                </div>
+
+                <div class="pm-modal-footer">
+                    <button type="button" class="pm-btn pm-btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="pm-btn pm-btn-danger">
+                        <i class="bi bi-x-circle"></i> Confirm Rejection
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .pm-page {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pm-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-page-title {
+            font-size: var(--pm-text-2xl);
+            font-weight: var(--pm-font-bold);
+            color: var(--pm-text);
+            margin: 0 0 var(--pm-space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-page-title i {
+            color: var(--pm-primary);
+        }
+
+        .pm-page-subtitle {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        .pm-card-modern {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+            margin-bottom: var(--pm-space-4);
+        }
+
+        .pm-overview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--pm-space-4);
+            margin-top: var(--pm-space-3);
+        }
+
+        .pm-overview-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-1);
+        }
+
+        .pm-overview-label {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-overview-value {
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-info-section {
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-lg);
+            padding: var(--pm-space-5);
+            margin-bottom: var(--pm-space-4);
+        }
+
+        .pm-section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+            margin-bottom: var(--pm-space-4);
+            padding-bottom: var(--pm-space-3);
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .pm-section-header i {
+            font-size: 20px;
+            color: var(--pm-primary);
+        }
+
+        .pm-section-header h3 {
+            font-size: var(--pm-text-lg);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+            margin: 0;
+        }
+
+        .pm-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--pm-space-4);
+        }
+
+        .pm-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-1);
+            margin-bottom: var(--pm-space-3);
+        }
+
+        .pm-info-label {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            font-weight: var(--pm-font-medium);
+        }
+
+        .pm-info-value {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text);
+        }
+
+        .pm-notes-text {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .pm-approval-text {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text);
+            margin: var(--pm-space-3) 0;
+        }
+
+        .pm-lease-actions {
+            display: flex;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-review-note {
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-muted);
+            margin: var(--pm-space-3) 0;
+        }
+
+        .pm-review-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pm-space-3);
+        }
+
+        .pm-navigation-actions {
+            display: flex;
+            gap: var(--pm-space-3);
+            flex-wrap: wrap;
+            margin-top: var(--pm-space-6);
+            padding-top: var(--pm-space-6);
+            border-top: 1px solid var(--pm-border);
+        }
+
+        .pm-modal-header {
+            padding: var(--pm-space-5) var(--pm-space-6);
+            border-bottom: 1px solid var(--pm-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .pm-modal-header h3 {
+            margin: 0;
+            font-size: var(--pm-text-lg);
+            font-weight: var(--pm-font-semibold);
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pm-radius);
+            background: transparent;
+            border: none;
+            color: var(--pm-text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--pm-transition-fast);
+        }
+
+        .pm-modal-close:hover {
+            background: var(--pm-slate-100);
+            color: var(--pm-text);
+        }
+
+        .pm-modal-body {
+            padding: var(--pm-space-6);
+        }
+
+        .pm-modal-footer {
+            padding: var(--pm-space-4) var(--pm-space-6);
+            border-top: 1px solid var(--pm-border);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: var(--pm-space-3);
+        }
+
+        @@media (max-width: 768px) {
+            .pm-page-header {
+                flex-direction: column;
+                gap: var(--pm-space-4);
+            }
+
+            .pm-overview-grid,
+            .pm-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-lease-actions {
+                flex-direction: column;
+            }
+
+            .pm-navigation-actions {
+                flex-direction: column;
+            }
+
+            .pm-navigation-actions .pm-btn {
+                width: 100%;
+            }
+        }
+    </style>
+}

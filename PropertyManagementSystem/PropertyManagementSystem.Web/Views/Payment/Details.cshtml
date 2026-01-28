@@ -1,0 +1,243 @@
+@using PropertyManagementSystem.BLL.DTOs.Payments
+@model PaymentDto
+@{
+    ViewData["Title"] = "Payment Details";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Tenant";
+}
+
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-receipt"></i>
+                Payment #@Model.PaymentId
+            </h1>
+            <p class="pm-page-subtitle">View payment details and receipt</p>
+        </div>
+        <div class="pm-page-actions">
+            <a asp-action="History" class="pm-btn pm-btn-outline">
+                <i class="bi bi-arrow-left"></i>
+                Back to History
+            </a>
+        </div>
+    </div>
+
+    <div class="pm-grid pm-grid-cols-2 pm-gap-6">
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-info-circle"></i> Payment Information</h4>
+            </div>
+            <div class="pm-card-body">
+                <div class="pm-detail-grid">
+                    <div class="pm-detail-item">
+                        <label>Payment ID</label>
+                        <span class="pm-text-primary pm-font-bold">#@Model.PaymentId</span>
+                    </div>
+                    <div class="pm-detail-item">
+                        <label>Invoice</label>
+                        <span class="pm-badge pm-badge-secondary">@Model.InvoiceNumber</span>
+                    </div>
+                    <div class="pm-detail-item">
+                        <label>Amount Paid</label>
+                        <span class="pm-text-success pm-font-bold pm-text-xl">@Model.Amount.ToString("N0") ₫</span>
+                    </div>
+                    <div class="pm-detail-item">
+                        <label>Payment Method</label>
+                        <span class="pm-flex pm-items-center pm-gap-2">
+                            @if (Model.PaymentMethod == "BankTransfer")
+                            {
+                                <i class="bi bi-bank"></i>
+                            }
+                            else if (Model.PaymentMethod == "CreditCard")
+                            {
+                                <i class="bi bi-credit-card-2-front"></i>
+                            }
+                            else if (Model.PaymentMethod == "Cash")
+                            {
+                                <i class="bi bi-cash"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-wallet2"></i>
+                            }
+                            @Model.PaymentMethod
+                        </span>
+                    </div>
+                    <div class="pm-detail-item">
+                        <label>Payment Date</label>
+                        <span>@Model.PaymentDate.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="pm-detail-item">
+                        <label>Status</label>
+                        @switch (Model.Status)
+                        {
+                            case "Completed":
+                            case "Confirmed":
+                                <span class="pm-badge pm-badge-success">Completed</span>
+                                break;
+                            case "Pending":
+                                <span class="pm-badge pm-badge-warning">Pending</span>
+                                break;
+                            case "Failed":
+                                <span class="pm-badge pm-badge-danger">Failed</span>
+                                break;
+                            default:
+                                <span class="pm-badge pm-badge-secondary">@Model.Status</span>
+                                break;
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-file-text"></i> Invoice Summary</h4>
+            </div>
+            <div class="pm-card-body">
+                <div class="pm-detail-grid">
+                    <div class="pm-detail-item">
+                        <label>Invoice Number</label>
+                        <span>@Model.InvoiceNumber</span>
+                    </div>
+                    <div class="pm-detail-item">
+                        <label>Total Amount</label>
+                        <span>@Model.InvoiceTotalAmount.ToString("N0") ₫</span>
+                    </div>
+                    <div class="pm-detail-item">
+                        <label>Total Paid</label>
+                        <span class="pm-text-success">@Model.InvoicePaidAmount.ToString("N0") ₫</span>
+                    </div>
+                    <div class="pm-detail-item">
+                        <label>Remaining Balance</label>
+                        @if (Model.InvoiceRemainingAmount <= 0)
+                        {
+                            <span class="pm-badge pm-badge-success">Fully Paid</span>
+                        }
+                        else
+                        {
+                            <span class="pm-text-warning">@Model.InvoiceRemainingAmount.ToString("N0") ₫</span>
+                        }
+                    </div>
+                </div>
+
+                <hr class="pm-divider" />
+
+                <div class="pm-flex pm-gap-3">
+                    <a asp-action="DownloadReceipt" asp-route-id="@Model.PaymentId" class="pm-btn pm-btn-primary">
+                        <i class="bi bi-download"></i>
+                        Download Receipt
+                    </a>
+                    @if (Model.InvoiceRemainingAmount > 0)
+                    {
+                        <a asp-action="MakePayment" class="pm-btn pm-btn-outline">
+                            <i class="bi bi-plus-lg"></i>
+                            Make Another Payment
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pm-page {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .pm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--pm-space-6);
+        padding-bottom: var(--pm-space-6);
+        border-bottom: 1px solid var(--pm-border);
+    }
+
+    .pm-page-title {
+        font-size: var(--pm-text-2xl);
+        font-weight: var(--pm-font-bold);
+        color: var(--pm-text);
+        margin: 0 0 var(--pm-space-2);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-3);
+    }
+
+    .pm-page-title i {
+        color: var(--pm-primary);
+    }
+
+    .pm-page-subtitle {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-secondary);
+        margin: 0;
+    }
+
+    .pm-grid {
+        display: grid;
+    }
+
+    .pm-grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pm-gap-6 {
+        gap: var(--pm-space-6);
+    }
+
+    .pm-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--pm-space-4);
+    }
+
+    .pm-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--pm-space-1);
+    }
+
+    .pm-detail-item label {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-muted);
+        font-weight: var(--pm-font-medium);
+    }
+
+    .pm-detail-item span {
+        font-size: var(--pm-text-base);
+        color: var(--pm-text);
+    }
+
+    .pm-text-xl {
+        font-size: var(--pm-text-xl);
+    }
+
+    .pm-font-bold {
+        font-weight: var(--pm-font-bold);
+    }
+
+    .pm-divider {
+        border: none;
+        border-top: 1px solid var(--pm-border);
+        margin: var(--pm-space-5) 0;
+    }
+
+    @@media (max-width: 768px) {
+        .pm-grid-cols-2 {
+            grid-template-columns: 1fr;
+        }
+
+        .pm-page-header {
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

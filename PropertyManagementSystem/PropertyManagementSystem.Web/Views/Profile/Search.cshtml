@@ -1,0 +1,63 @@
+@model PropertyManagementSystem.BLL.DTOs.User.UserSearchDto
+@{
+    ViewData["Title"] = "Search Users";
+    var results = ViewBag.SearchResults as IEnumerable<PropertyManagementSystem.BLL.DTOs.User.UserSearchResultDto>;
+}
+
+<h2>Search Users</h2>
+
+<form asp-action="Search" method="post">
+    @Html.AntiForgeryToken()
+
+    <table cellpadding="5">
+        <tr>
+            <td><label asp-for="Name">Name:</label></td>
+            <td><input asp-for="Name" placeholder="Enter name..." /></td>
+            <td><label asp-for="PhoneNumber">Phone:</label></td>
+            <td><input asp-for="PhoneNumber" placeholder="Enter phone..." /></td>
+            <td><button type="submit">Search</button></td>
+        </tr>
+    </table>
+</form>
+
+<hr />
+
+@if (results != null)
+{
+    <h3>Results: @results.Count()</h3>
+
+    @if (results.Any())
+    {
+        <table border="1" cellpadding="8">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Roles</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in results)
+                {
+                    <tr>
+                        <td>@user.UserId</td>
+                        <td>@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>@(user.PhoneNumber ?? "-")</td>
+                        <td>@string.Join(", ", user.Roles)</td>
+                        <td>@(user.IsActive ? "Active" : "Locked")</td>
+                        <td><a href="@Url.Action("View", "Profile", new { id = user.UserId })">View</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No users found.</p>
+    }
+}

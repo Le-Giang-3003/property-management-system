@@ -1,0 +1,971 @@
+@using System.Security.Claims
+@using PropertyManagementSystem.Web.Extensions
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var title = ViewData["Title"] as string ?? "Property Management";
+    var userName = User.FindFirstValue(ClaimTypes.Name) ?? "User";
+    var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? "";
+    var userId = User.GetUserId();
+    string userInitial = string.IsNullOrEmpty(userName) ? "?" : userName.Substring(0, Math.Min(1, userName.Length)).ToUpper();
+
+    // Detect current view mode dynamically from route
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    // Check for explicit portal mode set by view
+    string displayRole = ViewData["PortalMode"]?.ToString() ?? "";
+
+    // If not explicitly set, detect from route
+    if (string.IsNullOrEmpty(displayRole))
+    {
+        // Landlord pages detection - all landlord-specific pages
+        var landlordPages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Dashboard/LandlordIndex",
+            "Property/MyProperties",
+            "Property/Create",
+            "Property/Edit",
+            "Property/ManageImages",
+            "Property/ChangeStatus",
+            "RentalApplication/Index",
+            "RentalApplication/Details",
+            "RentalApplication/ByProperty",
+            "Lease/Index",
+            "Lease/Create",
+            "Lease/Edit",
+            "Lease/Details",
+            "Lease/Terminate",
+            "Lease/Renew",
+            "Maintenance/LandlordIndex",
+            "PropertyViewing/ManageViewings",
+            "PropertyViewing/PendingRequest",
+            "Invoice/Index",
+            "Payment/LandlordIndex",
+            "Document/LandlordDocuments"
+        };
+
+        // Tenant pages detection
+        var tenantPages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Dashboard/Index",
+            "Property/SearchProperties",
+            "Property/PropertyFavorite",
+            "Property/Details",
+            "RentalApplication/MyApplications",
+            "RentalApplication/Create",
+            "Lease/MyLeases",
+            "Payment/MakePayment",
+            "Maintenance/TenantIndex",
+            "Maintenance/CreateRequest",
+            "PropertyViewing/MyViewings",
+            "PropertyViewing/Request"
+            // Note: Payment/History and Document/MyDocuments are shared between Tenant and Landlord
+            // PortalMode is set by controller based on role
+        };
+
+        var currentPage = $"{currentController}/{currentAction}";
+
+        if (landlordPages.Contains(currentPage))
+        {
+            displayRole = "Landlord";
+        }
+        else if (tenantPages.Contains(currentPage))
+        {
+            displayRole = "Tenant";
+        }
+        else if (currentAction == "TechnicianIndex")
+        {
+            displayRole = "Technician";
+        }
+        else
+        {
+            // Default to Tenant
+            displayRole = "Tenant";
+        }
+    }
+
+    var isMemberRole = User.IsInRole("Member");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Property Management System - Manage your properties, tenants, leases, and maintenance requests" />
+    <meta name="keywords" content="property management, rental, lease, tenant, landlord" />
+    <meta name="author" content="Property Manager" />
+    <meta property="og:title" content="@title - Property Manager" />
+    <meta property="og:description" content="Property Management System" />
+    <meta property="og:type" content="website" />
+    <title>@title - Property Manager</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        /* ========== LAYOUT STRUCTURE ========== */
+        .pm-layout {
+            min-height: 100vh;
+            background: var(--pm-bg);
+        }
+
+        /* ========== HEADER ========== */
+        .pm-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--pm-header-height);
+            background: white;
+            border-bottom: 1px solid var(--pm-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--pm-space-6);
+            z-index: var(--pm-z-fixed);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .pm-header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-mobile-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--pm-radius-lg);
+            background: var(--pm-slate-100);
+            border: none;
+            color: var(--pm-text);
+            font-size: 20px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--pm-transition-fast);
+        }
+
+        .pm-mobile-toggle:hover {
+            background: var(--pm-slate-200);
+        }
+
+        .pm-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+            text-decoration: none;
+        }
+
+        .pm-brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--pm-primary);
+            border-radius: var(--pm-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .pm-brand-text h1 {
+            font-size: var(--pm-text-xl);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .pm-brand-text p {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin: 0;
+        }
+
+        .pm-header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-4);
+        }
+
+        /* Notification Button */
+        .pm-notification-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--pm-radius-lg);
+            background: transparent;
+            border: none;
+            color: var(--pm-text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--pm-transition-fast);
+        }
+
+        .pm-notification-btn:hover {
+            background: var(--pm-slate-100);
+            color: var(--pm-text);
+        }
+
+        .pm-notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            background: var(--pm-danger);
+            border-radius: var(--pm-radius-full);
+            font-size: 10px;
+            font-weight: var(--pm-font-bold);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        /* User Menu */
+        .pm-user-menu {
+            position: relative;
+        }
+
+        .pm-user-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+            padding: var(--pm-space-2) var(--pm-space-3);
+            background: transparent;
+            border: none;
+            border-radius: var(--pm-radius-lg);
+            cursor: pointer;
+            transition: all var(--pm-transition-fast);
+        }
+
+        .pm-user-btn:hover {
+            background: var(--pm-slate-100);
+        }
+
+        .pm-user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pm-radius-full);
+            background: var(--pm-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: var(--pm-font-semibold);
+            font-size: var(--pm-text-sm);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pm-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pm-user-avatar-initial {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .pm-user-info {
+            text-align: left;
+        }
+
+        .pm-user-name {
+            display: block;
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text);
+        }
+
+        .pm-user-role {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+        }
+
+        .pm-dropdown-icon {
+            color: var(--pm-text-muted);
+            font-size: 12px;
+            transition: transform var(--pm-transition-fast);
+        }
+
+        .pm-user-menu.active .pm-dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        /* User Dropdown */
+        .pm-user-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 300px;
+            background: var(--pm-surface);
+            border: 1px solid var(--pm-border);
+            border-radius: var(--pm-radius-xl);
+            box-shadow: var(--pm-shadow-xl);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all var(--pm-transition);
+            z-index: var(--pm-z-dropdown);
+            overflow: hidden;
+        }
+
+        .pm-user-menu.active .pm-user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .pm-dropdown-header {
+            padding: var(--pm-space-4) var(--pm-space-5);
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .pm-dropdown-header p {
+            font-size: var(--pm-text-xs);
+            color: var(--pm-text-muted);
+            margin: 0 0 var(--pm-space-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pm-role-switch {
+            display: flex;
+            gap: var(--pm-space-2);
+        }
+
+        .pm-role-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--pm-space-2);
+            padding: var(--pm-space-2) var(--pm-space-3);
+            background: var(--pm-slate-100);
+            border: 1px solid transparent;
+            border-radius: var(--pm-radius-lg);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--pm-transition-fast);
+        }
+
+        .pm-role-btn:hover {
+            background: var(--pm-slate-200);
+            color: var(--pm-text);
+        }
+
+        .pm-role-btn.active {
+            background: var(--pm-primary);
+            color: white;
+            border-color: var(--pm-primary);
+        }
+
+        .pm-role-btn.active:hover {
+            background: var(--pm-primary-dark);
+            color: white;
+        }
+
+        .pm-dropdown-body {
+            padding: var(--pm-space-2);
+        }
+
+        .pm-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+            padding: var(--pm-space-3) var(--pm-space-4);
+            border-radius: var(--pm-radius-lg);
+            font-size: var(--pm-text-sm);
+            color: var(--pm-text-secondary);
+            text-decoration: none;
+            transition: all var(--pm-transition-fast);
+            border: none;
+            background: none;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .pm-dropdown-item:hover {
+            background: var(--pm-slate-50);
+            color: var(--pm-text);
+        }
+
+        .pm-dropdown-item i {
+            font-size: 18px;
+            width: 20px;
+        }
+
+        .pm-dropdown-item.logout {
+            color: var(--pm-danger);
+        }
+
+        .pm-dropdown-item.logout:hover {
+            background: var(--pm-danger-50);
+        }
+
+        .pm-dropdown-divider {
+            height: 1px;
+            background: var(--pm-border);
+            margin: var(--pm-space-2) 0;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .pm-sidebar {
+            position: fixed;
+            left: 0;
+            top: var(--pm-header-height);
+            width: var(--pm-sidebar-width);
+            height: calc(100vh - var(--pm-header-height));
+            background: var(--pm-slate-50);
+            border-right: 1px solid var(--pm-border);
+            padding: var(--pm-space-5) 0;
+            overflow-y: auto;
+            z-index: var(--pm-z-sticky);
+            transition: transform var(--pm-transition);
+        }
+
+        .pm-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .pm-sidebar::-webkit-scrollbar-thumb {
+            background: var(--pm-slate-300);
+            border-radius: 3px;
+        }
+
+        .pm-nav-section {
+            margin-bottom: var(--pm-space-6);
+        }
+
+        .pm-nav-title {
+            padding: 0 var(--pm-space-5);
+            margin-bottom: var(--pm-space-2);
+            font-size: var(--pm-text-xs);
+            font-weight: var(--pm-font-semibold);
+            color: var(--pm-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pm-nav-menu {
+            list-style: none;
+            padding: 0 var(--pm-space-3);
+            margin: 0;
+        }
+
+        .pm-nav-item {
+            margin-bottom: var(--pm-space-1);
+        }
+
+        .pm-nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--pm-space-3);
+            padding: var(--pm-space-3) var(--pm-space-4);
+            border-radius: var(--pm-radius-lg);
+            font-size: var(--pm-text-sm);
+            font-weight: var(--pm-font-medium);
+            color: var(--pm-slate-700);
+            text-decoration: none;
+            transition: all var(--pm-transition-fast);
+        }
+
+        .pm-nav-link:hover {
+            background: var(--pm-slate-100);
+            color: var(--pm-text);
+        }
+
+        .pm-nav-link.active {
+            background: var(--pm-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+        }
+
+        .pm-nav-link i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .pm-nav-badge {
+            margin-left: auto;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            background: var(--pm-danger);
+            border-radius: var(--pm-radius-full);
+            font-size: 10px;
+            font-weight: var(--pm-font-bold);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pm-nav-link.active .pm-nav-badge {
+            background: white;
+            color: var(--pm-primary);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .pm-main {
+            margin-left: var(--pm-sidebar-width);
+            margin-top: var(--pm-header-height);
+            min-height: calc(100vh - var(--pm-header-height));
+            padding: var(--pm-space-6);
+        }
+
+        /* Alerts */
+        .pm-main > .pm-alert {
+            animation: pm-fadeInDown var(--pm-transition-slow);
+        }
+
+        /* ========== OVERLAY ========== */
+        .pm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: calc(var(--pm-z-sticky) - 1);
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--pm-transition);
+        }
+
+        .pm-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @@media (max-width: 1024px) {
+            .pm-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .pm-sidebar.active {
+                transform: translateX(0);
+            }
+
+            .pm-main {
+                margin-left: 0;
+            }
+
+            .pm-mobile-toggle {
+                display: flex;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .pm-header {
+                padding: 0 var(--pm-space-4);
+            }
+
+            .pm-brand-text {
+                display: none;
+            }
+
+            .pm-user-info {
+                display: none;
+            }
+
+            .pm-main {
+                padding: var(--pm-space-4);
+            }
+
+            .pm-user-dropdown {
+                width: calc(100vw - 32px);
+                right: -8px;
+            }
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="pm-layout">
+        <!-- Header -->
+        <header class="pm-header">
+            <div class="pm-header-left">
+                <button class="pm-mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+                    <i class="bi bi-list"></i>
+                </button>
+                <a href="@Url.Action("Index", "Home")" class="pm-brand">
+                    <div class="pm-brand-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="pm-brand-text">
+                        <h1>PropertyPMS</h1>
+                    </div>
+                </a>
+            </div>
+
+            <div class="pm-header-right">
+                <button class="pm-notification-btn" aria-label="Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span class="pm-notification-badge">3</span>
+                </button>
+
+                <div class="pm-user-menu" id="userMenu">
+                    <button class="pm-user-btn" onclick="toggleUserMenu()" aria-label="User menu">
+                        <div class="pm-user-avatar" id="userAvatar" data-user-id="@(userId?.ToString() ?? "")">
+                            <span class="pm-user-avatar-initial">@userInitial</span>
+                        </div>
+                        <div class="pm-user-info">
+                            <span class="pm-user-name">@(userName ?? "User")</span>
+                            <span class="pm-user-role">@displayRole</span>
+                        </div>
+                        <i class="bi bi-chevron-down pm-dropdown-icon"></i>
+                    </button>
+
+                    <div class="pm-user-dropdown">
+                        <div class="pm-dropdown-header">
+                            <p>Switch Dashboard</p>
+                            <div class="pm-role-switch">
+                                <a href="@Url.Action("Index", "Dashboard")" 
+                                   class="pm-role-btn @(displayRole == "Tenant" ? "active" : "")">
+                                    <i class="bi bi-person"></i>
+                                    Tenant
+                                </a>
+                                <a href="@Url.Action("LandlordIndex", "Dashboard")" 
+                                   class="pm-role-btn @(displayRole == "Landlord" ? "active" : "")">
+                                    <i class="bi bi-building"></i>
+                                    Landlord
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="pm-dropdown-body">
+                            <a href="@Url.Action("ManageProfile", "Profile")" class="pm-dropdown-item">
+                                <i class="bi bi-person-circle"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="@Url.Action("ChangePassword", "Auth")" class="pm-dropdown-item">
+                                <i class="bi bi-key"></i>
+                                <span>Change Password</span>
+                            </a>
+                            <div class="pm-dropdown-divider"></div>
+                            <form id="logoutForm" method="post" asp-action="Logout" asp-controller="Auth" style="margin: 0;">
+                                <button type="submit" class="pm-dropdown-item logout">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sign Out</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="pm-sidebar" id="sidebar">
+            @if (displayRole == "Tenant")
+            {
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Main Menu</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "Dashboard")" class="pm-nav-link">
+                                <i class="bi bi-house-door"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("SearchProperties", "Property")" class="pm-nav-link">
+                                <i class="bi bi-search"></i>
+                                <span>Browse Properties</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyFavorites", "Property")" class="pm-nav-link">
+                                <i class="bi bi-heart"></i>
+                                <span>Favorites</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">My Rentals</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyApplications", "RentalApplication")" class="pm-nav-link">
+                                <i class="bi bi-file-text"></i>
+                                <span>My Applications</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyLeases", "Lease")" class="pm-nav-link">
+                                <i class="bi bi-file-earmark-check"></i>
+                                <span>My Leases</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyViewings", "PropertyViewing")" class="pm-nav-link">
+                                <i class="bi bi-calendar-check"></i>
+                                <span>Scheduled Viewings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Payments & Services</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("History", "Payment")" class="pm-nav-link">
+                                <i class="bi bi-credit-card"></i>
+                                <span>Payments</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("TenantIndex", "Maintenance")" class="pm-nav-link">
+                                <i class="bi bi-tools"></i>
+                                <span>Maintenance</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyDocuments", "Document")" class="pm-nav-link">
+                                <i class="bi bi-folder"></i>
+                                <span>Documents</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+            else if (displayRole == "Landlord")
+            {
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Main Menu</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("LandlordIndex", "Dashboard")" class="pm-nav-link">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("MyProperties", "Property")" class="pm-nav-link">
+                                <i class="bi bi-buildings"></i>
+                                <span>My Properties</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Tenant Management</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "RentalApplication")" class="pm-nav-link">
+                                <i class="bi bi-person-lines-fill"></i>
+                                <span>Applications</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("Index", "Lease")" class="pm-nav-link">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <span>Lease Contracts</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("ManageViewings", "PropertyViewing")" class="pm-nav-link">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>Viewing Schedule</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Finance & Operations</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("LandlordIndex", "Payment")" class="pm-nav-link">
+                                <i class="bi bi-cash-stack"></i>
+                                <span>Payments</span>
+                            </a>
+                        </li>
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("LandlordIndex", "Maintenance")" class="pm-nav-link">
+                                <i class="bi bi-wrench-adjustable"></i>
+                                <span>Maintenance</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Resources</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("LandlordDocuments", "Document")" class="pm-nav-link">
+                                <i class="bi bi-folder2-open"></i>
+                                <span>Documents</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+            else if (displayRole == "Technician")
+            {
+                <nav class="pm-nav-section">
+                    <div class="pm-nav-title">Main Menu</div>
+                    <ul class="pm-nav-menu">
+                        <li class="pm-nav-item">
+                            <a href="@Url.Action("TechnicianIndex", "Maintenance")" class="pm-nav-link">
+                                <i class="bi bi-list-task"></i>
+                                <span>My Assignments</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </aside>
+
+        <!-- Overlay for mobile -->
+        <div class="pm-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="pm-main">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="pm-alert pm-alert-success pm-animate-fadeInDown">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div>@TempData["SuccessMessage"]</div>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="pm-alert pm-alert-danger pm-animate-fadeInDown">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>@TempData["ErrorMessage"]</div>
+                </div>
+            }
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script>
+        // Toggle user menu
+        function toggleUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('active');
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.getElementById('userMenu');
+            const isClickInside = userMenu.contains(event.target);
+            if (!isClickInside && userMenu.classList.contains('active')) {
+                userMenu.classList.remove('active');
+            }
+        });
+
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Close sidebar
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
+        // Load user avatar
+        async function loadUserAvatar() {
+            const avatarContainer = document.getElementById('userAvatar');
+            if (!avatarContainer) return;
+            
+            const userId = avatarContainer.getAttribute('data-user-id');
+            if (!userId) return;
+            
+            try {
+                const response = await fetch(`/Profile/GetAvatar?userId=${userId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.avatar) {
+                        const img = document.createElement('img');
+                        img.src = data.avatar;
+                        img.alt = '@userName';
+                        img.onerror = function() {
+                            this.style.display = 'none';
+                            avatarContainer.querySelector('.pm-user-avatar-initial').style.display = 'flex';
+                        };
+                        const initial = avatarContainer.querySelector('.pm-user-avatar-initial');
+                        if (initial) initial.style.display = 'none';
+                        avatarContainer.insertBefore(img, avatarContainer.firstChild);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load avatar:', error);
+            }
+        }
+
+        // Highlight active nav link
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load avatar
+            loadUserAvatar();
+            
+            const currentPath = window.location.pathname.toLowerCase();
+            const navLinks = document.querySelectorAll('.pm-nav-link');
+            const isLandlord = '@displayRole' === 'Landlord';
+
+            navLinks.forEach(link => {
+                const linkPath = link.getAttribute('href')?.toLowerCase();
+                if (linkPath && currentPath === linkPath) {
+                    link.classList.add('active');
+                } else if (linkPath && currentPath.startsWith(linkPath) && linkPath !== '/') {
+                    link.classList.add('active');
+                }
+                // Special case: Property/Index should highlight MyProperties for landlord
+                else if (isLandlord && linkPath && linkPath.includes('/property/myproperties') && 
+                         (currentPath.includes('/property/index') || currentPath.includes('/property/myproperties'))) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Auto-dismiss alerts after 5 seconds
+            setTimeout(() => {
+                document.querySelectorAll('.pm-alert').forEach(alert => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-10px)';
+                    setTimeout(() => alert.remove(), 300);
+                });
+            }, 5000);
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        window.antiForgeryToken = '@Antiforgery.GetAndStoreTokens(Context).RequestToken';
+    </script>
+</body>
+</html>

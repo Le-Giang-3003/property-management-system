@@ -1,0 +1,466 @@
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.RentalApplication>
+@{
+    ViewData["Title"] = "Applications";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Landlord";
+}
+
+<style>
+    .page-container {
+        padding: 24px 32px;
+        background-color: #f8fafc;
+        min-height: calc(100vh - 70px);
+    }
+
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    .application-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 24px;
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .application-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .application-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .application-icon {
+        width: 48px;
+        height: 48px;
+        background: #eff6ff;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2563eb;
+        font-size: 20px;
+        margin-right: 16px;
+    }
+
+    .application-title-section {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .application-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .application-address {
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .application-number {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-approved {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-withdrawn {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .application-details {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        padding: 16px 0;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 16px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-bottom: 4px;
+    }
+
+    .detail-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .detail-value.income {
+        color: #16a34a;
+    }
+
+    .application-note {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #16a34a;
+    }
+
+    .application-note.rejected {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
+
+    .application-note.pending {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #d97706;
+    }
+
+    .application-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-view {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-view:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .btn-withdraw {
+        background: white;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-withdraw:hover {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
+
+    .btn-create-application {
+        background: white;
+        color: #2563eb;
+        border: 1px solid #2563eb;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-create-application:hover {
+        background: #2563eb;
+        color: white;
+    }
+
+    .empty-state {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 60px 24px;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: #94a3b8;
+        font-size: 32px;
+    }
+
+    .empty-state h4 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: #64748b;
+        margin-bottom: 24px;
+    }
+
+    @@media (max-width: 768px) {
+        .page-container {
+            padding: 16px;
+        }
+
+        .application-details {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .application-actions {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-buttons {
+            width: 100%;
+        }
+
+        .btn-view, .btn-withdraw {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="page-title">My Applications</h1>
+                <p class="page-subtitle">View and manage your rental applications</p>
+            </div>
+            <a asp-controller="Property" asp-action="SearchProperties" class="btn-create-application">
+                <i class="bi bi-plus-lg"></i>
+                Search Properties
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <h4>No applications yet</h4>
+            <p>You haven't submitted any rental applications. Start by searching for properties.</p>
+            <a asp-controller="Property" asp-action="SearchProperties" class="btn-view">
+                <i class="bi bi-search"></i>
+                Search Properties
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var app in Model.OrderByDescending(a => a.CreatedAt))
+        {
+            <div class="application-card">
+                <div class="application-header">
+                    <div class="application-title-section">
+                        <div class="application-icon">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div>
+                            <h3 class="application-title">@app.Property?.Name</h3>
+                            <p class="application-address">
+                                <i class="bi bi-geo-alt"></i>
+                                @app.Property?.Address
+                            </p>
+                            <p class="application-number">Application ID: @app.ApplicationNumber</p>
+                        </div>
+                    </div>
+                    <span class="status-badge @GetStatusClass(app.Status)">@GetStatusText(app.Status)</span>
+                </div>
+
+                <div class="application-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Submitted Date</span>
+                        <span class="detail-value">
+                            <i class="bi bi-calendar3"></i>
+                            @app.CreatedAt.ToString("MMM dd, yyyy")
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Desired Move-in</span>
+                        <span class="detail-value">
+                            <i class="bi bi-calendar3"></i>
+                            @app.DesiredMoveInDate.ToString("MMM dd, yyyy")
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Monthly Income</span>
+                        <span class="detail-value income">
+                            @if (app.MonthlyIncome.HasValue)
+                            {
+                                @:$@app.MonthlyIncome.Value.ToString("N0")
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not provided</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Occupants</span>
+                        <span class="detail-value">
+                            <i class="bi bi-people"></i>
+                            @app.NumberOfOccupants person(s)
+                        </span>
+                    </div>
+                </div>
+
+                @if (app.Status == "Approved" && app.ReviewedAt.HasValue)
+                {
+                    <div class="application-note">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Application approved on @app.ReviewedAt.Value.ToString("MMM dd, yyyy")
+                    </div>
+                }
+                else if (app.Status == "Rejected" && !string.IsNullOrEmpty(app.RejectionReason))
+                {
+                    <div class="application-note rejected">
+                        <i class="bi bi-x-circle-fill"></i>
+                        Rejected: @app.RejectionReason
+                    </div>
+                }
+                else if (app.Status == "Pending")
+                {
+                    <div class="application-note pending">
+                        <i class="bi bi-clock-fill"></i>
+                        Your application is being reviewed
+                    </div>
+                }
+
+                <div class="application-actions">
+                    <div class="action-buttons">
+                        <a asp-action="Details" asp-route-id="@app.ApplicationId" class="btn-view">
+                            <i class="bi bi-eye"></i>
+                            View Application
+                        </a>
+                        @if (app.Status == "Pending")
+                        {
+                            <form asp-action="Withdraw" asp-route-id="@app.ApplicationId" method="post"
+                                  style="display: inline;"
+                                  onsubmit="return confirm('Are you sure you want to withdraw this application?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-withdraw">
+                                    <i class="bi bi-x-lg"></i>
+                                    Withdraw
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@functions {
+    string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "status-pending",
+            "Approved" => "status-approved",
+            "Rejected" => "status-rejected",
+            "Withdrawn" => "status-withdrawn",
+            _ => "status-pending"
+        };
+    }
+
+    string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "Pending" => "Pending",
+            "Approved" => "Approved",
+            "Rejected" => "Rejected",
+            "Withdrawn" => "Withdrawn",
+            _ => status
+        };
+    }
+}

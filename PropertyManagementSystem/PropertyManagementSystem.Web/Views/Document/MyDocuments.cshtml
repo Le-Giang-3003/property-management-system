@@ -1,0 +1,365 @@
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.Document>
+@{
+    ViewData["Title"] = "My Documents";
+    Layout = "_AuthLayout";
+}
+
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-folder2-open"></i>
+                My Documents
+            </h1>
+            <p class="pm-page-subtitle">
+                @if (Model.Any())
+                {
+                    <span>Total: <strong>@Model.Count()</strong> documents</span>
+                }
+                else
+                {
+                    <span>No documents yet</span>
+                }
+            </p>
+        </div>
+        <div class="pm-page-actions">
+            <a asp-action="Upload" asp-route-portalMode="@ViewData["PortalMode"]" class="pm-btn pm-btn-primary">
+                <i class="bi bi-cloud-upload"></i>
+                Upload Document
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="pm-alert pm-alert-success pm-animate-fadeInDown">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["Success"]</span>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="pm-alert pm-alert-danger pm-animate-fadeInDown">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        var totalSize = Model.Sum(d => d.FileSize);
+        var imageCount = Model.Count(d => d.FileType.ToLower().Contains("jpg") || d.FileType.ToLower().Contains("jpeg") || d.FileType.ToLower().Contains("png"));
+        var docCount = Model.Count(d => d.FileType.ToLower().Contains("pdf") || d.FileType.ToLower().Contains("docx"));
+
+        <!-- Stats -->
+        <div class="pm-stats-row">
+            <div class="pm-stat-card">
+                <div class="pm-stat-icon primary">
+                    <i class="bi bi-files"></i>
+                </div>
+                <div class="pm-stat-content">
+                    <span class="pm-stat-label">Total Files</span>
+                    <span class="pm-stat-value">@Model.Count()</span>
+                </div>
+            </div>
+            <div class="pm-stat-card">
+                <div class="pm-stat-icon success">
+                    <i class="bi bi-file-image"></i>
+                </div>
+                <div class="pm-stat-content">
+                    <span class="pm-stat-label">Images</span>
+                    <span class="pm-stat-value">@imageCount</span>
+                </div>
+            </div>
+            <div class="pm-stat-card">
+                <div class="pm-stat-icon info">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div class="pm-stat-content">
+                    <span class="pm-stat-label">Documents</span>
+                    <span class="pm-stat-value">@docCount</span>
+                </div>
+            </div>
+            <div class="pm-stat-card">
+                <div class="pm-stat-icon warning">
+                    <i class="bi bi-hdd"></i>
+                </div>
+                <div class="pm-stat-content">
+                    <span class="pm-stat-label">Total Size</span>
+                    <span class="pm-stat-value" style="font-size: var(--pm-text-lg);">@FormatFileSize(totalSize)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="pm-card">
+            <div class="pm-card-header">
+                <h4><i class="bi bi-list-ul"></i> All Documents</h4>
+            </div>
+            <div class="pm-table-wrapper" style="border: none; border-radius: 0;">
+                <table class="pm-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;"></th>
+                            <th>File Name</th>
+                            <th>Type</th>
+                            <th>Related To</th>
+                            <th>Size</th>
+                            <th>Uploaded</th>
+                            <th class="pm-text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var doc in Model.OrderByDescending(d => d.UploadedAt))
+                        {
+                            <tr>
+                                <td class="pm-text-center">
+                                    <div class="pm-file-icon @GetFileIconColor(doc.FileType)">
+                                        <i class="@GetFileIconClass(doc.FileType)"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="pm-file-info">
+                                        <strong>@doc.FileName</strong>
+                                        @if (!string.IsNullOrEmpty(doc.Description))
+                                        {
+                                            <small class="pm-text-muted">@doc.Description</small>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="pm-badge pm-badge-info">@doc.DocumentType</span>
+                                </td>
+                                <td>
+                                    <span class="pm-badge pm-badge-secondary">@doc.EntityType</span>
+                                    <small class="pm-text-muted pm-ml-1">#@doc.EntityId</small>
+                                </td>
+                                <td>
+                                    <span class="pm-text-secondary">@FormatFileSize(doc.FileSize)</span>
+                                </td>
+                                <td>
+                                    <span class="pm-text-secondary">@doc.UploadedAt.ToString("dd/MM/yyyy")</span>
+                                    <br/>
+                                    <small class="pm-text-muted">@doc.UploadedAt.ToString("HH:mm")</small>
+                                </td>
+                                <td class="pm-text-center">
+                                    <div class="pm-flex pm-justify-center pm-gap-2">
+                                        <a asp-action="Download" asp-route-id="@doc.DocumentId" 
+                                           class="pm-btn pm-btn-ghost pm-btn-sm" title="Download">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@doc.DocumentId" 
+                                           class="pm-btn pm-btn-ghost pm-btn-sm" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="pm-btn pm-btn-ghost pm-btn-sm pm-text-danger"
+                                                onclick="confirmDelete(@doc.DocumentId, '@doc.FileName')"
+                                                title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="pm-card">
+            <div class="pm-card-body">
+                <div class="pm-empty">
+                    <div class="pm-empty-icon">
+                        <i class="bi bi-folder"></i>
+                    </div>
+                    <h4>No Documents Yet</h4>
+                    <p>Start by uploading your first document</p>
+                    <a asp-action="Upload" asp-route-portalMode="@ViewData["PortalMode"]" class="pm-btn pm-btn-primary">
+                        <i class="bi bi-cloud-upload"></i>
+                        Upload Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="pm-modal-backdrop" id="deleteModal">
+    <div class="pm-modal" style="max-width: 400px;">
+        <div class="pm-modal-header">
+            <h3><i class="bi bi-trash pm-text-danger"></i> Delete Document</h3>
+            <button class="pm-modal-close" onclick="closeDeleteModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="pm-modal-body">
+            <p>Are you sure you want to delete <strong id="deleteFileName"></strong>?</p>
+            <p class="pm-text-muted pm-text-sm">This action cannot be undone.</p>
+        </div>
+        <div class="pm-modal-footer">
+            <button class="pm-btn pm-btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <form id="deleteForm" method="post" style="display: inline;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="pm-btn pm-btn-danger">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pm-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .pm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--pm-space-6);
+    }
+
+    .pm-page-title {
+        font-size: var(--pm-text-2xl);
+        font-weight: var(--pm-font-bold);
+        color: var(--pm-text);
+        margin: 0 0 var(--pm-space-2);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-3);
+    }
+
+    .pm-page-title i {
+        color: var(--pm-primary);
+    }
+
+    .pm-page-subtitle {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-secondary);
+        margin: 0;
+    }
+
+    .pm-stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--pm-space-5);
+        margin-bottom: var(--pm-space-6);
+    }
+
+    .pm-file-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--pm-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .pm-file-icon.image { background: var(--pm-success-100); color: var(--pm-success); }
+    .pm-file-icon.pdf { background: var(--pm-danger-100); color: var(--pm-danger); }
+    .pm-file-icon.doc { background: var(--pm-primary-100); color: var(--pm-primary); }
+    .pm-file-icon.other { background: var(--pm-slate-200); color: var(--pm-slate-600); }
+
+    .pm-file-info {
+        display: flex;
+        flex-direction: column;
+        gap: var(--pm-space-1);
+    }
+
+    .pm-ml-1 { margin-left: var(--pm-space-1); }
+
+    @@media (max-width: 1024px) {
+        .pm-stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .pm-page-header {
+            flex-direction: column;
+            gap: var(--pm-space-4);
+        }
+
+        .pm-stats-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function confirmDelete(docId, fileName) {
+            document.getElementById('deleteFileName').textContent = fileName;
+            document.getElementById('deleteForm').action = '@Url.Action("Delete", "Document")/' + docId;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Auto-dismiss alerts
+        setTimeout(() => {
+            document.querySelectorAll('.pm-alert').forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+}
+
+@functions {
+    string GetFileIconClass(string fileType)
+    {
+        return fileType.ToLower() switch
+        {
+            "jpg" or "jpeg" or "png" or "webp" or "gif" => "bi bi-file-image",
+            "pdf" => "bi bi-file-pdf",
+            "docx" or "doc" => "bi bi-file-word",
+            "xlsx" or "xls" => "bi bi-file-excel",
+            "pptx" or "ppt" => "bi bi-file-ppt",
+            "mp4" or "mov" or "avi" => "bi bi-file-play",
+            "zip" or "rar" => "bi bi-file-zip",
+            _ => "bi bi-file-earmark"
+        };
+    }
+
+    string GetFileIconColor(string fileType)
+    {
+        return fileType.ToLower() switch
+        {
+            "jpg" or "jpeg" or "png" or "webp" or "gif" => "image",
+            "pdf" => "pdf",
+            "docx" or "doc" => "doc",
+            _ => "other"
+        };
+    }
+
+    string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}

@@ -1,25 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementSystem.DAL.Entities;
-
-public partial class ChatRoom
+namespace PropertyManagementSystem.DAL.Entities
 {
-    public int Id { get; set; }
+    public class ChatRoom
+    {
+        [Key]
+        public int ChatRoomId { get; set; }
 
-    public int? PropertyId { get; set; }
+        [MaxLength(200)]
+        public string Name { get; set; }
 
-    public int? ContractId { get; set; }
+        [Required, MaxLength(20)]
+        public string Type { get; set; } // Property, Contract, Direct
 
-    public int CreatedById { get; set; }
+        [ForeignKey("Property")]
+        public int? PropertyId { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+        [ForeignKey("Lease")]
+        public int? LeaseId { get; set; }
 
-    public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
+        public bool IsActive { get; set; } = true;
 
-    public virtual RentalContract? Contract { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? LastMessageAt { get; set; }
 
-    public virtual User CreatedBy { get; set; } = null!;
-
-    public virtual Property? Property { get; set; }
+        // Navigation
+        public Property Property { get; set; }
+        public Lease Lease { get; set; }
+        public ICollection<ChatParticipant> Participants { get; set; }
+        public ICollection<ChatMessage> Messages { get; set; }
+    }
 }
+

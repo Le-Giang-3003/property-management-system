@@ -1,0 +1,247 @@
+using PropertyManagementSystem.BLL.Services.Interface;
+using PropertyManagementSystem.DAL.Entities;
+using PropertyManagementSystem.DAL.Repositories.Interface;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading.Tasks;
+
+namespace PropertyManagementSystem.BLL.Services.Implementation
+{
+    public class PdfService : IPdfService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        // ✅ CONSTRUCTOR
+        public PdfService(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<byte[]> GenerateLeasePdfAsync(Lease lease)
+        {
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            var signatures = await _unitOfWork.LeaseSignatures.GetByLeaseIdAsync(lease.LeaseId);
+            var landlordSig = signatures.FirstOrDefault(s => s.SignerRole == "Landlord");
+            var tenantSig = signatures.FirstOrDefault(s => s.SignerRole == "Tenant");
+
+            var pdfBytes = global::QuestPDF.Fluent.Document.Create(document =>
+            {
+                document.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(40);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(10));
+
+                    // HEADER
+                    page.Header().Column(col =>
+                    {
+                        col.Item().Text("LEASE AGREEMENT")
+                            .FontSize(18)
+                            .Bold()
+                            .FontColor(Colors.Blue.Medium)
+                            .AlignCenter();
+
+                        col.Item().Text($"Created: {DateTime.Now:dd/MM/yyyy}")
+                            .FontSize(9)
+                            .AlignRight();
+                    });
+
+                    // CONTENT
+                    page.Content().PaddingVertical(10).Column(column =>
+                    {
+                        column.Spacing(3);
+
+                        column.Item().Text($"Lease Number: {lease.LeaseNumber}").Bold().FontSize(10);
+                        column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+
+                        // I. LANDLORD
+                        column.Item().PaddingTop(8).Text("I. LANDLORD (PARTY A)")
+                            .FontSize(10)
+                            .Bold()
+                            .FontColor(Colors.Blue.Medium);
+
+                        column.Item().Text($"{lease.Property?.Landlord?.FullName ?? "N/A"} | {lease.Property?.Landlord?.PhoneNumber ?? "N/A"}").FontSize(9);
+
+                        // II. TENANT
+                        column.Item().PaddingTop(6).Text("II. TENANT (PARTY B)")
+                            .FontSize(10)
+                            .Bold()
+                            .FontColor(Colors.Blue.Medium);
+
+                        column.Item().Text($"{lease.Tenant?.FullName ?? "N/A"} | {lease.Tenant?.PhoneNumber ?? "N/A"}").FontSize(9);
+
+                        // III. PROPERTY INFORMATION
+                        column.Item().PaddingTop(6).Text("III. PROPERTY INFORMATION")
+                            .FontSize(10)
+                            .Bold()
+                            .FontColor(Colors.Blue.Medium);
+
+                        column.Item().Text($"{lease.Property?.Name} - {lease.Property?.Address}").FontSize(9);
+                        column.Item().Text($"Area: {lease.Property?.SquareFeet} m² | Rooms: {lease.Property?.Bedrooms}/{lease.Property?.Bathrooms}").FontSize(9);
+
+                        // IV. FINANCIAL INFORMATION
+                        column.Item().PaddingTop(6).Text("IV. FINANCIAL INFORMATION")
+                            .FontSize(10)
+                            .Bold()
+                            .FontColor(Colors.Blue.Medium);
+
+                        column.Item().Text($"Rent: {lease.MonthlyRent:N0} VND/month | Deposit: {lease.SecurityDeposit:N0} VND").FontSize(9);
+                        column.Item().Text($"Payment: Day {lease.PaymentDueDay} of each month").FontSize(9);
+                        column.Item().Text($"Term: {lease.StartDate:dd/MM/yyyy} - {lease.EndDate:dd/MM/yyyy}").FontSize(9);
+
+                        // V. LEASE TERMS
+                        column.Item().PaddingTop(8).Text("V. LEASE TERMS")
+                            .FontSize(10)
+                            .Bold()
+                            .FontColor(Colors.Blue.Medium);
+
+                        column.Item()
+                            .Border(1)
+                            .BorderColor(Colors.Grey.Lighten2)
+                            .Padding(8)
+                            .Text(lease.Terms ?? "No terms specified")
+                            .FontSize(8)
+                            .LineHeight(1.3f);
+
+                        // VI. SPECIAL CONDITIONS
+                        if (!string.IsNullOrEmpty(lease.SpecialConditions))
+                        {
+                            column.Item().PaddingTop(6).Text("VI. SPECIAL CONDITIONS")
+                                .FontSize(10)
+                                .Bold()
+                                .FontColor(Colors.Orange.Medium);
+
+                            column.Item()
+                                .Border(1)
+                                .BorderColor(Colors.Orange.Lighten2)
+                                .Padding(8)
+                                .Text(lease.SpecialConditions)
+                                .FontSize(8)
+                                .LineHeight(1.3f);
+                        }
+
+                        // VII. SIGNATURES
+                        
+                            column.Item().PaddingTop(15).Row(row =>
+                            {
+                                // LANDLORD
+                                row.RelativeItem().Column(col =>
+                                {
+                                    col.Item().AlignCenter().Text("LANDLORD").Bold().FontSize(9);
+
+                                    if (landlordSig != null)
+                                    {
+                                        col.Item().AlignCenter().Text(landlordSig.User?.FullName ?? "").FontSize(8);
+
+                                        if (!string.IsNullOrEmpty(landlordSig.SignatureData))
+                                        {
+                                            try
+                                            {
+                                                var base64Data = landlordSig.SignatureData.Contains(",")
+                                                    ? landlordSig.SignatureData.Split(',')[1]
+                                                    : landlordSig.SignatureData;
+                                                var imageBytes = Convert.FromBase64String(base64Data);
+                                                col.Item().AlignCenter().Width(120).Image(imageBytes);
+                                            }
+                                            catch
+                                            {
+                                                col.Item().PaddingTop(20).AlignCenter()
+                                                    .Text("_____________________")
+                                                    .FontSize(8);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            col.Item().PaddingTop(20).AlignCenter()
+                                                .Text("_____________________")
+                                                .FontSize(8);
+                                        }
+
+                                        col.Item().AlignCenter().Text($"Signed: {landlordSig.SignedAt:dd/MM/yyyy}").FontSize(7);
+                                    }
+                                    else
+                                    {
+                                        col.Item().PaddingTop(30).AlignCenter()
+                                            .Text("_____________________")
+                                            .FontSize(8);
+                                    }
+                                });
+
+                                // TENANT
+                                row.RelativeItem().Column(col =>
+                                {
+                                    col.Item().AlignCenter().Text("TENANT").Bold().FontSize(9);
+
+                                    if (tenantSig != null)
+                                    {
+                                        col.Item().AlignCenter().Text(tenantSig.User?.FullName ?? "").FontSize(8);
+
+                                        if (!string.IsNullOrEmpty(tenantSig.SignatureData))
+                                        {
+                                            try
+                                            {
+                                                var base64Data = tenantSig.SignatureData.Contains(",")
+                                                    ? tenantSig.SignatureData.Split(',')[1]
+                                                    : tenantSig.SignatureData;
+                                                var imageBytes = Convert.FromBase64String(base64Data);
+                                                col.Item().AlignCenter().Width(120).Image(imageBytes);
+                                            }
+                                            catch
+                                            {
+                                                col.Item().PaddingTop(20).AlignCenter()
+                                                    .Text("_____________________")
+                                                    .FontSize(8);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            col.Item().PaddingTop(20).AlignCenter()
+                                                .Text("_____________________")
+                                                .FontSize(8);
+                                        }
+
+                                        col.Item().AlignCenter().Text($"Signed: {tenantSig.SignedAt:dd/MM/yyyy}").FontSize(7);
+                                    }
+                                    else
+                                    {
+                                        col.Item().PaddingTop(30).AlignCenter()
+                                            .Text("_____________________")
+                                            .FontSize(8);
+                                        
+                                    }
+                                });
+                            });
+
+                            if (lease.Status == "Active" && lease.SignedDate.HasValue)
+                            {
+                                column.Item().PaddingTop(5).AlignCenter()
+                                    .Text($"Lease effective from {lease.SignedDate.Value:dd/MM/yyyy}")
+                                    .FontSize(8)
+                                    .Italic()
+                                    .FontColor(Colors.Green.Medium);
+                            }
+                    });
+
+                    // FOOTER
+                    page.Footer().AlignCenter().Text(text =>
+                    {
+                        text.Span("Page ");
+                        text.CurrentPageNumber();
+                        text.Span(" / ");
+                        text.TotalPages();
+                    });
+                });
+            }).GeneratePdf();
+
+            return pdfBytes;
+        }
+    }
+}

@@ -1,25 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PropertyManagementSystem.DAL.Entities;
-
-public partial class ChatMessage
+namespace PropertyManagementSystem.DAL.Entities
 {
-    public int Id { get; set; }
+    public class ChatMessage
+    {
+        [Key]
+        public int MessageId { get; set; }
 
-    public int ChatRoomId { get; set; }
+        [ForeignKey("ChatRoom")]
+        public int ChatRoomId { get; set; }
 
-    public int SenderId { get; set; }
+        [ForeignKey("Sender")]
+        public int SenderId { get; set; }
 
-    public string Content { get; set; } = null!;
+        [Required, MaxLength(4000)]
+        public string Content { get; set; }
 
-    public DateTime SentAt { get; set; }
+        [MaxLength(20)]
+        public string MessageType { get; set; } = "Text"; // Text, Image, File
 
-    public bool IsRead { get; set; }
+        [MaxLength(500)]
+        public string AttachmentUrl { get; set; }
 
-    public DateTime? ReadAt { get; set; }
+        public bool IsEdited { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
-    public virtual ChatRoom ChatRoom { get; set; } = null!;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
-    public virtual User Sender { get; set; } = null!;
+        // Navigation
+        public ChatRoom ChatRoom { get; set; }
+        public User Sender { get; set; }
+    }
 }
+

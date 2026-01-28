@@ -1,0 +1,635 @@
+@model IEnumerable<PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto>
+@{
+    ViewData["Title"] = "Rental Viewings";
+    Layout = "_AuthLayout";
+    ViewData["PortalMode"] = "Landlord";
+
+    var newRequests = Model.Count(v => v.Status == "Requested");
+    var confirmed = Model.Count(v => v.Status == "Confirmed");
+    var completed = Model.Count(v => v.Status == "Completed");
+    var cancelled = Model.Count(v => v.Status == "Cancelled" || v.Status == "Rejected");
+}
+
+<div class="pm-page">
+    <!-- Page Header -->
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">Rental Viewings</h1>
+            <p class="pm-page-subtitle">Review and manage property viewing requests</p>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="pm-summary-cards">
+        <div class="pm-summary-card">
+            <div class="pm-summary-content">
+                <div class="pm-summary-value">@newRequests</div>
+                <div class="pm-summary-label">New Requests</div>
+            </div>
+        </div>
+        <div class="pm-summary-card">
+            <div class="pm-summary-content">
+                <div class="pm-summary-value">@confirmed</div>
+                <div class="pm-summary-label">Confirmed</div>
+            </div>
+        </div>
+        <div class="pm-summary-card">
+            <div class="pm-summary-content">
+                <div class="pm-summary-value">@completed</div>
+                <div class="pm-summary-label">Completed</div>
+            </div>
+        </div>
+        <div class="pm-summary-card">
+            <div class="pm-summary-content">
+                <div class="pm-summary-value">@cancelled</div>
+                <div class="pm-summary-label">Cancelled</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="pm-filter-bar">
+        <div class="pm-search-input">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Search viewings..." />
+        </div>
+        <select class="pm-filter-select" id="statusFilter">
+            <option value="">All Status</option>
+            <option value="Requested">Requested</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+        <select class="pm-filter-select" id="propertyFilter">
+            <option value="">All Properties</option>
+            @foreach (var property in Model.Select(v => v.PropertyName).Distinct().OrderBy(p => p))
+            {
+                <option value="@property">@property</option>
+            }
+        </select>
+    </div>
+
+    <!-- Viewings List -->
+    @if (!Model.Any())
+    {
+        <div class="pm-empty-state">
+            <div class="pm-empty-icon">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <h4>No viewing requests yet</h4>
+            <p>Viewing requests from tenants will appear here</p>
+        </div>
+    }
+    else
+    {
+        <div class="pm-viewings-list">
+            @foreach (var viewing in Model)
+            {
+                var initials = GetInitials(viewing.RequesterName);
+                var statusClass = GetStatusClass(viewing.Status);
+                
+                <div class="pm-viewing-card" data-status="@viewing.Status" data-property="@viewing.PropertyName">
+                    <div class="pm-viewing-card-header">
+                        <div class="pm-viewing-requester">
+                            <div class="pm-avatar">@initials</div>
+                            <div class="pm-requester-info">
+                                <div class="pm-requester-name">@viewing.RequesterName</div>
+                                <div class="pm-viewing-id">Viewing #@viewing.ViewingId</div>
+                                <div class="pm-requester-email">
+                                    <i class="bi bi-envelope"></i>
+                                    @viewing.RequesterEmail
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pm-status-tag @statusClass">
+                            @viewing.Status
+                        </div>
+                    </div>
+
+                    <div class="pm-viewing-card-body">
+                        <div class="pm-viewing-details-grid">
+                            <div class="pm-viewing-detail-item">
+                                <div class="pm-detail-label">Property</div>
+                                <div class="pm-detail-value">
+                                    <i class="bi bi-building"></i>
+                                    @viewing.PropertyName
+                                </div>
+                                <div class="pm-detail-meta">@viewing.PropertyAddress</div>
+                            </div>
+
+                            <div class="pm-viewing-detail-item">
+                                <div class="pm-detail-label">Requested</div>
+                                <div class="pm-detail-value">
+                                    @viewing.RequestedDate.ToString("MMM dd, yyyy")
+                                </div>
+                                @if (viewing.PreferredDate1.HasValue)
+                                {
+                                    <div class="pm-detail-meta">
+                                        Preferred: @viewing.PreferredDate1.Value.ToString("MMM dd, yyyy HH:mm")
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="pm-viewing-detail-item">
+                                <div class="pm-detail-label">Scheduled Date</div>
+                                @if (viewing.ScheduledDate.HasValue)
+                                {
+                                    <div class="pm-detail-value">
+                                        @viewing.ScheduledDate.Value.ToString("MMM dd, yyyy HH:mm")
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="pm-detail-value pm-text-muted">Not scheduled</div>
+                                }
+                                @if (viewing.IsVirtualViewing)
+                                {
+                                    <div class="pm-detail-meta">
+                                        <i class="bi bi-camera-video"></i> Virtual Viewing
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="pm-viewing-detail-item">
+                                <div class="pm-detail-label">Contact</div>
+                                <div class="pm-detail-value">
+                                    <i class="bi bi-telephone"></i>
+                                    @viewing.RequesterPhone
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pm-viewing-card-footer">
+                        <a asp-action="Details" asp-route-id="@viewing.ViewingId" class="pm-btn pm-btn-ghost pm-btn-sm">
+                            <i class="bi bi-eye"></i>
+                            View Details
+                        </a>
+                        
+                        @if (viewing.Status == "Requested")
+                        {
+                            <a asp-action="Confirm" asp-route-id="@viewing.ViewingId" class="pm-btn pm-btn-success pm-btn-sm">
+                                <i class="bi bi-check-circle"></i>
+                                Confirm
+                            </a>
+                            <form asp-action="Reject" asp-route-id="@viewing.ViewingId" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Are you sure you want to reject this viewing request?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="pm-btn pm-btn-danger pm-btn-sm">
+                                    <i class="bi bi-x-circle"></i>
+                                    Reject
+                                </button>
+                            </form>
+                        }
+                        else if (viewing.Status == "Confirmed")
+                        {
+                            <form asp-action="Complete" asp-route-id="@viewing.ViewingId" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="pm-btn pm-btn-success pm-btn-sm">
+                                    <i class="bi bi-check-circle"></i>
+                                    Mark Complete
+                                </button>
+                            </form>
+                            <a asp-action="Reschedule" asp-route-id="@viewing.ViewingId" class="pm-btn pm-btn-outline pm-btn-sm">
+                                <i class="bi bi-calendar-event"></i>
+                                Reschedule
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@functions {
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return "N/A";
+        
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return (parts[0][0].ToString() + parts[1][0].ToString()).ToUpper();
+        else if (parts.Length == 1 && parts[0].Length >= 2)
+            return parts[0].Substring(0, 2).ToUpper();
+        else if (parts.Length == 1)
+            return parts[0][0].ToString().ToUpper();
+        
+        return "N/A";
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Requested" => "status-pending",
+            "Confirmed" => "status-confirmed",
+            "Completed" => "status-completed",
+            "Cancelled" => "status-cancelled",
+            "Rejected" => "status-cancelled",
+            _ => "status-default"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        // Search and filter functionality
+        document.getElementById('searchInput')?.addEventListener('input', filterViewings);
+        document.getElementById('statusFilter')?.addEventListener('change', filterViewings);
+        document.getElementById('propertyFilter')?.addEventListener('change', filterViewings);
+
+        function filterViewings() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const propertyFilter = document.getElementById('propertyFilter').value;
+            const cards = document.querySelectorAll('.pm-viewing-card');
+
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                const status = card.getAttribute('data-status');
+                const property = card.getAttribute('data-property');
+
+                const matchesSearch = text.includes(searchText);
+                const matchesStatus = !statusFilter || status === statusFilter;
+                const matchesProperty = !propertyFilter || property === propertyFilter;
+
+                card.style.display = (matchesSearch && matchesStatus && matchesProperty) ? '' : 'none';
+            });
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .pm-page {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 32px;
+        }
+
+        .pm-page-header {
+            margin-bottom: 32px;
+        }
+
+        .pm-page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .pm-page-subtitle {
+            font-size: 16px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Summary Cards */
+        .pm-summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .pm-summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .pm-summary-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .pm-summary-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        /* Filter Bar */
+        .pm-filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+
+        .pm-search-input {
+            flex: 1;
+            position: relative;
+        }
+
+        .pm-search-input i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .pm-search-input input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .pm-filter-select {
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            min-width: 150px;
+        }
+
+        /* Viewings List */
+        .pm-viewings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .pm-viewing-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .pm-viewing-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .pm-viewing-requester {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .pm-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .pm-requester-info {
+            flex: 1;
+        }
+
+        .pm-requester-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .pm-viewing-id {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .pm-requester-email {
+            font-size: 14px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pm-requester-email i {
+            font-size: 12px;
+        }
+
+        .pm-status-tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .pm-status-tag.status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .pm-status-tag.status-confirmed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .pm-status-tag.status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .pm-status-tag.status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pm-status-tag.status-default {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .pm-viewing-card-body {
+            margin-bottom: 20px;
+        }
+
+        .pm-viewing-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .pm-viewing-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pm-detail-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .pm-detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pm-detail-value i {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .pm-detail-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .pm-detail-meta i {
+            margin-right: 4px;
+        }
+
+        .pm-text-muted {
+            color: #94a3b8;
+        }
+
+        .pm-viewing-card-footer {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .pm-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .pm-btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .pm-btn-ghost {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .pm-btn-ghost:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .pm-btn-success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .pm-btn-success:hover {
+            background: #16a34a;
+        }
+
+        .pm-btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .pm-btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .pm-btn-outline {
+            background: white;
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .pm-btn-outline:hover {
+            background: #eff6ff;
+        }
+
+        /* Empty State */
+        .pm-empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .pm-empty-icon {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        .pm-empty-state h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .pm-empty-state p {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Responsive */
+        @@media (max-width: 1200px) {
+            .pm-summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .pm-page {
+                padding: 16px;
+            }
+
+            .pm-summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-filter-bar {
+                flex-wrap: wrap;
+            }
+
+            .pm-viewing-details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pm-viewing-card-footer {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+}

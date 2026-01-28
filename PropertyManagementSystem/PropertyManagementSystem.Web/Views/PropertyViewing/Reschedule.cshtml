@@ -1,0 +1,74 @@
+﻿@model PropertyManagementSystem.BLL.DTOs.Schedule.RescheduleViewingRequestDto
+@{
+    ViewData["Title"] = "Reschedule Viewing";
+    var viewing = ViewBag.Viewing as PropertyManagementSystem.BLL.DTOs.Schedule.PropertyViewingDto;
+}
+
+<h2>Reschedule Viewing</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <p style="color:red;">@TempData["ErrorMessage"]</p>
+}
+
+@* === CURRENT INFO === *@
+@if (viewing != null)
+{
+    <h4>Current Viewing Info</h4>
+    <table border="1" cellpadding="5">
+        <tr>
+            <td><strong>Property:</strong></td>
+            <td>@viewing.PropertyName</td>
+        </tr>
+        <tr>
+            <td><strong>Address:</strong></td>
+            <td>@viewing.PropertyAddress</td>
+        </tr>
+        <tr>
+            <td><strong>Current Schedule:</strong></td>
+            <td>
+                @if (viewing.ScheduledDate.HasValue)
+                {
+                    @viewing.ScheduledDate.Value.ToString("dd/MM/yyyy HH:mm")
+                }
+                else
+                {
+                    <em>Not yet scheduled</em>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Status:</strong></td>
+            <td>@viewing.Status</td>
+        </tr>
+    </table>
+    <br />
+}
+
+@* === RESCHEDULE FORM === *@
+<h4>New Schedule</h4>
+
+<form asp-action="Reschedule" method="post">
+    <input type="hidden" asp-for="ViewingId" />
+
+    <div>
+        <label asp-for="NewScheduledDate">New Date & Time *</label><br />
+        <input asp-for="NewScheduledDate" type="datetime-local" required />
+        <span asp-validation-for="NewScheduledDate" style="color:red;"></span>
+    </div>
+    <br />
+
+    <div>
+        <label asp-for="Notes">Reason for Rescheduling (Optional)</label><br />
+        <textarea asp-for="Notes" rows="3" cols="50"
+                  placeholder="Explain why you need to reschedule..."></textarea>
+    </div>
+    <br />
+
+    <button type="submit">Reschedule</button>
+    <a href="javascript:history.back()">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

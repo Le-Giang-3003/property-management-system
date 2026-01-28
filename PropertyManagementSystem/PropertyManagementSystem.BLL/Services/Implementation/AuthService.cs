@@ -1,0 +1,215 @@
+using Microsoft.Extensions.Caching.Memory;
+using PropertyManagementSystem.BLL.DTOs.Auth;
+using PropertyManagementSystem.BLL.Services.Interface;
+using PropertyManagementSystem.DAL.Data;
+using PropertyManagementSystem.DAL.Entities;
+using PropertyManagementSystem.DAL.Repositories.Interface;
+using System.Security.Cryptography;
+
+namespace PropertyManagementSystem.BLL.Services.Implementation
+{
+    public class AuthService : IAuthService
+    {
+        private readonly IUserRepository _userRepository;
+        private readonly IGenericRepository<User> _userGenericRepository;
+        private readonly IPasswordService _passwordService;
+        private readonly IMemoryCache _cache;
+        private readonly AppDbContext _context;
+        private readonly IEmailService _emailService;
+
+        public AuthService(
+            IUserRepository userRepository,
+            IGenericRepository<User> userGenericRepository,
+            IPasswordService passwordService,
+            AppDbContext context, IMemoryCache cache, IEmailService emailService)
+        {
+            _userRepository = userRepository;
+            _userGenericRepository = userGenericRepository;
+            _passwordService = passwordService;
+            _context = context;
+            _cache = cache;
+            _emailService = emailService;
+        }
+
+        public async Task<LoginResult> LoginAsync(LoginRequestDto model)
+        {
+            var user = await _userRepository.GetUserWithRolesByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                return new LoginResult
+                {
+                    Success = false,
+                    Message = "Email not found"
+                };
+            }
+
+            if (!user.IsActive)
+            {
+                return new LoginResult
+                {
+                    Success = false,
+                    Message = "Account has been disabled"
+                };
+            }
+
+            if (!_passwordService.VerifyPassword(model.Password, user.PasswordHash))
+            {
+                return new LoginResult
+                {
+                    Success = false,
+                    Message = "Incorrect password"
+                };
+            }
+
+            // Update LastLoginAt
+            user.LastLoginAt = DateTime.UtcNow;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();
+
+            return new LoginResult
+            {
+                Success = true,
+                Message = "Login successful",
+                User = new DTOs.Auth.UserDto
+                {
+                    UserId = user.UserId,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    Avatar = user.Avatar,
+                    Roles = roles
+                }
+            };
+        }
+
+        public Task LogoutAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task<DTOs.Auth.UserDto?> GetCurrentUserAsync(int userId)
+        {
+            // Dùng GetUserByIdAsync thay vì GetUserWithRolesAsync
+            var user = await _userGenericRepository.GetByIdAsync(userId);
+            if (user == null) return null;
+
+            var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();
+
+            return new DTOs.Auth.UserDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FullName = user.FullName,
+                Avatar = user.Avatar,
+                Roles = roles
+            };
+        }
+
+        //phat
+        public async Task<bool> SendOtpEmailAsync(ForgotPasswordRequestDTO request)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(request.Email);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            var otpCode = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+
+            _cache.Set(
+                $"OTP_{request.Email}",
+                (otpCode, user.UserId, attemptCount: 0),
+                TimeSpan.FromMinutes(5)
+            );
+
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email, "Password reset OTP", $"Your OTP code is: {otpCode}");
+                Console.WriteLine($"OTP sent to: {user.Email}");
+                Console.WriteLine($"[Dev] OTP: {otpCode}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Send email error: {ex.Message}");
+                _cache.Remove($"OTP_{request.Email}");
+                return false;
+            }
+
+            return true;
+        }
+        public async Task<(bool isValid, int userId)> VerifyOtpAsync(VerifyOtpRequestDTO request)
+        {
+            var cacheKey = $"OTP_{request.Email}";
+
+            if (!_cache.TryGetValue(cacheKey, out (string otpCode, int userId, int attemptCount) data))
+            {
+                return (false, 0);
+            }
+
+            if (data.attemptCount >= 5)
+            {
+                _cache.Remove(cacheKey);
+                Console.WriteLine($"OTP locked (too many attempts): {request.Email}");
+                return (false, 0);
+            }
+
+            if (data.otpCode != request.OtpCode)
+            {
+                _cache.Set(cacheKey, (data.otpCode, data.userId, data.attemptCount + 1), TimeSpan.FromMinutes(5));
+                Console.WriteLine($"Invalid OTP. Attempt {data.attemptCount + 1}/5");
+                return (false, 0);
+            }
+
+            _cache.Remove(cacheKey);
+            Console.WriteLine($"OTP verified: {request.Email}");
+
+            return (true, data.userId);
+        }
+        public async Task<bool> ResetPasswordAsync(ResetPasswordRequestDTO request)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(request.Email);
+            if (user == null) return false;
+
+            var newHash = _passwordService.HashPassword(request.NewPassword);
+            user.PasswordHash = newHash;
+
+            await _userRepository.UpdateUserAsync(user);
+            return true;
+        }
+
+        public async Task<bool> ChangePasswordAsync(string email, ChangePasswordRequestDTO request)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null) return false;
+
+            if (!_passwordService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
+            {
+                Console.WriteLine($"ChangePassword failed: wrong current password for {email}");
+                return false;
+            }
+
+            if (request.NewPassword != request.ConfirmPassword)
+            {
+                Console.WriteLine($"ChangePassword failed: new password and confirm do not match for {email}");
+                return false;
+            }
+
+            var oldHash = user.PasswordHash;
+            var newHash = _passwordService.HashPassword(request.NewPassword);
+            user.PasswordHash = newHash;
+
+            await _userRepository.UpdateUserAsync(user);
+
+            Console.WriteLine($"ChangePassword success: email={user.Email}, old={oldHash}, new={user.PasswordHash}");
+            return true;
+        }
+
+        Task<Interface.UserDto?> IAuthService.GetCurrentUserAsync(int userId)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

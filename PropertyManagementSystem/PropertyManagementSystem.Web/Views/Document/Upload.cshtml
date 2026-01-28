@@ -1,0 +1,459 @@
+@{
+    ViewData["Title"] = "Upload Document";
+    Layout = "_AuthLayout";
+    var entityType = ViewBag.EntityType as string ?? "";
+    var entityId = ViewBag.EntityId as int? ?? 0;
+    var portalMode = ViewData["PortalMode"]?.ToString() ?? "";
+    var backAction = portalMode == "Landlord" ? "LandlordDocuments" : "MyDocuments";
+}
+
+<div class="pm-page">
+    <div class="pm-page-header">
+        <div>
+            <h1 class="pm-page-title">
+                <i class="bi bi-cloud-upload"></i>
+                Upload Document
+            </h1>
+            <p class="pm-page-subtitle">Upload and organize your documents</p>
+        </div>
+        <div class="pm-page-actions">
+            <a asp-action="@backAction" class="pm-btn pm-btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Back to Documents
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="pm-alert pm-alert-danger pm-animate-fadeInDown">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
+
+    <div class="pm-card">
+        <div class="pm-card-header">
+            <h4><i class="bi bi-file-earmark-plus"></i> Document Details</h4>
+        </div>
+        <div class="pm-card-body">
+            <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@Url.Action(backAction, "Document")" />
+
+                <div class="pm-form-grid">
+                    <!-- Document Type -->
+                    <div class="pm-form-group">
+                        <label class="pm-form-label">
+                            <i class="bi bi-file-earmark"></i> Document Type <span class="pm-text-danger">*</span>
+                        </label>
+                        <select name="documentType" class="pm-form-control" required>
+                            <option value="">-- Select document type --</option>
+                            @foreach (var item in ViewBag.DocumentTypes as List<SelectListItem>)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Entity Type -->
+                    <div class="pm-form-group">
+                        <label class="pm-form-label">
+                            <i class="bi bi-folder"></i> Related To <span class="pm-text-danger">*</span>
+                        </label>
+                        <select name="entityType" class="pm-form-control" required>
+                            <option value="">-- Select type --</option>
+                            @foreach (var item in ViewBag.EntityTypes as List<SelectListItem>)
+                            {
+                                <option value="@item.Value" selected="@(item.Value == entityType)">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Entity ID -->
+                    <div class="pm-form-group">
+                        <label class="pm-form-label">
+                            <i class="bi bi-hash"></i> Entity ID <span class="pm-text-danger">*</span>
+                        </label>
+                        <input type="number" name="entityId" class="pm-form-control"
+                               placeholder="E.g: 1, 2, 3..." required min="1" value="@entityId" />
+                        <small class="pm-form-hint">
+                            Enter ID of Property, Lease, Invoice, etc.
+                        </small>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="pm-form-group pm-form-group-full">
+                        <label class="pm-form-label">
+                            <i class="bi bi-paperclip"></i> Select File <span class="pm-text-danger">*</span>
+                        </label>
+                        <div class="pm-file-upload-area" id="dropZone">
+                            <input type="file" name="file" class="pm-file-input" id="fileInput" required />
+                            <div class="pm-file-upload-content">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                <p>Drag and drop your file here or <span class="pm-text-primary">browse</span></p>
+                                <small class="pm-text-muted">Maximum file size varies by type</small>
+                            </div>
+                        </div>
+                        <div id="fileInfo" class="pm-file-preview"></div>
+                        <div class="pm-form-hint-box">
+                            <strong>Allowed formats:</strong>
+                            <ul>
+                                <li><i class="bi bi-image"></i> Images: JPG, JPEG, PNG, WEBP (max 5MB)</li>
+                                <li><i class="bi bi-film"></i> Video: MP4 (max 50MB)</li>
+                                <li><i class="bi bi-file-text"></i> Documents: PDF, DOCX, XLSX, PPTX, CSV (max 10MB)</li>
+                                <li><i class="bi bi-file-zip"></i> Archive: ZIP - Admin only (max 20MB)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="pm-form-group pm-form-group-full">
+                        <label class="pm-form-label">
+                            <i class="bi bi-text-left"></i> Description (optional)
+                        </label>
+                        <textarea name="description" class="pm-form-control" rows="3"
+                                  placeholder="Enter document description..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="pm-form-actions">
+                    <a asp-action="@backAction" class="pm-btn pm-btn-secondary">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </a>
+                    <button type="submit" class="pm-btn pm-btn-primary" id="submitBtn">
+                        <i class="bi bi-upload"></i> Upload Document
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pm-page {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .pm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--pm-space-6);
+        flex-wrap: wrap;
+        gap: var(--pm-space-4);
+    }
+
+    .pm-page-title {
+        font-size: var(--pm-text-2xl);
+        font-weight: var(--pm-font-bold);
+        color: var(--pm-text);
+        margin: 0 0 var(--pm-space-2);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-3);
+    }
+
+    .pm-page-title i {
+        color: var(--pm-primary);
+    }
+
+    .pm-page-subtitle {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-secondary);
+        margin: 0;
+    }
+
+    .pm-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--pm-space-5);
+    }
+
+    .pm-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--pm-space-2);
+    }
+
+    .pm-form-group-full {
+        grid-column: 1 / -1;
+    }
+
+    .pm-form-label {
+        font-weight: var(--pm-font-medium);
+        color: var(--pm-text);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-2);
+    }
+
+    .pm-form-label i {
+        color: var(--pm-primary);
+    }
+
+    .pm-form-control {
+        padding: var(--pm-space-3) var(--pm-space-4);
+        border: 1px solid var(--pm-border);
+        border-radius: var(--pm-radius);
+        font-size: var(--pm-text-base);
+        background: var(--pm-surface);
+        color: var(--pm-text);
+        transition: all 0.2s ease;
+    }
+
+    .pm-form-control:focus {
+        outline: none;
+        border-color: var(--pm-primary);
+        box-shadow: 0 0 0 3px var(--pm-primary-100);
+    }
+
+    .pm-form-control::placeholder {
+        color: var(--pm-text-muted);
+    }
+
+    select.pm-form-control {
+        cursor: pointer;
+    }
+
+    textarea.pm-form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .pm-form-hint {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-muted);
+    }
+
+    .pm-form-hint-box {
+        background: var(--pm-slate-50);
+        border-radius: var(--pm-radius);
+        padding: var(--pm-space-4);
+        margin-top: var(--pm-space-3);
+    }
+
+    .pm-form-hint-box strong {
+        color: var(--pm-text);
+        display: block;
+        margin-bottom: var(--pm-space-2);
+    }
+
+    .pm-form-hint-box ul {
+        margin: 0;
+        padding-left: var(--pm-space-5);
+        color: var(--pm-text-secondary);
+        font-size: var(--pm-text-sm);
+    }
+
+    .pm-form-hint-box li {
+        margin-bottom: var(--pm-space-1);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-2);
+    }
+
+    .pm-form-hint-box li i {
+        color: var(--pm-primary);
+    }
+
+    .pm-file-upload-area {
+        position: relative;
+        border: 2px dashed var(--pm-border);
+        border-radius: var(--pm-radius-lg);
+        padding: var(--pm-space-8);
+        text-align: center;
+        background: var(--pm-slate-50);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .pm-file-upload-area:hover,
+    .pm-file-upload-area.dragover {
+        border-color: var(--pm-primary);
+        background: var(--pm-primary-50);
+    }
+
+    .pm-file-input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .pm-file-upload-content {
+        pointer-events: none;
+    }
+
+    .pm-file-upload-content i {
+        font-size: 48px;
+        color: var(--pm-primary);
+        margin-bottom: var(--pm-space-3);
+    }
+
+    .pm-file-upload-content p {
+        margin: 0 0 var(--pm-space-2);
+        color: var(--pm-text);
+    }
+
+    .pm-file-preview {
+        margin-top: var(--pm-space-3);
+    }
+
+    .pm-file-preview-item {
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-3);
+        padding: var(--pm-space-3) var(--pm-space-4);
+        background: var(--pm-surface);
+        border: 1px solid var(--pm-border);
+        border-radius: var(--pm-radius);
+    }
+
+    .pm-file-preview-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--pm-radius);
+        background: var(--pm-primary-100);
+        color: var(--pm-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .pm-file-preview-info {
+        flex: 1;
+    }
+
+    .pm-file-preview-name {
+        font-weight: var(--pm-font-medium);
+        color: var(--pm-text);
+    }
+
+    .pm-file-preview-meta {
+        font-size: var(--pm-text-sm);
+        color: var(--pm-text-muted);
+    }
+
+    .pm-form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--pm-space-3);
+        margin-top: var(--pm-space-6);
+        padding-top: var(--pm-space-6);
+        border-top: 1px solid var(--pm-border);
+    }
+
+    @@media (max-width: 768px) {
+        .pm-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pm-page-header {
+            flex-direction: column;
+        }
+
+        .pm-form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .pm-form-actions .pm-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+
+        // File preview
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            updateFilePreview(file);
+        });
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                fileInput.files = e.dataTransfer.files;
+                updateFilePreview(file);
+            }
+        });
+
+        function updateFilePreview(file) {
+            if (file) {
+                const size = (file.size / (1024 * 1024)).toFixed(2);
+                const icon = getFileIcon(file.name);
+                fileInfo.innerHTML = `
+                    <div class="pm-file-preview-item">
+                        <div class="pm-file-preview-icon">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="pm-file-preview-info">
+                            <div class="pm-file-preview-name">${file.name}</div>
+                            <div class="pm-file-preview-meta">${size} MB - ${file.type || 'Unknown type'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const icons = {
+                'jpg': 'bi bi-file-image',
+                'jpeg': 'bi bi-file-image',
+                'png': 'bi bi-file-image',
+                'webp': 'bi bi-file-image',
+                'gif': 'bi bi-file-image',
+                'pdf': 'bi bi-file-pdf',
+                'doc': 'bi bi-file-word',
+                'docx': 'bi bi-file-word',
+                'xls': 'bi bi-file-excel',
+                'xlsx': 'bi bi-file-excel',
+                'ppt': 'bi bi-file-ppt',
+                'pptx': 'bi bi-file-ppt',
+                'mp4': 'bi bi-file-play',
+                'zip': 'bi bi-file-zip',
+                'rar': 'bi bi-file-zip'
+            };
+            return icons[ext] || 'bi bi-file-earmark';
+        }
+
+        // Submit validation
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="pm-spinner"></span> Uploading...';
+        });
+
+        // Auto-dismiss alerts
+        setTimeout(() => {
+            document.querySelectorAll('.pm-alert').forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+}

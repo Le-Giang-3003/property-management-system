@@ -1,0 +1,47 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using PropertyManagementSystem.BLL.Identity;
+using PropertyManagementSystem.BLL.Services.Implementation;
+using PropertyManagementSystem.BLL.Services.Interface;
+using PropertyManagementSystem.DAL.Data;
+namespace PropertyManagementSystem.BLL
+{
+    public static class DependencyInjection
+    {
+        /// <summary>
+        /// Adds the business logic layer.
+        /// </summary>
+        /// <param name="services">The services.</param>
+        /// <returns></returns>
+        public static IServiceCollection AddBusinessLogicLayer(this IServiceCollection services, IConfiguration configuration)
+        {
+            // Register your business logic layer services here
+            services.AddScoped<IPropertyService, PropertyService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IPasswordService, PasswordService>();
+            services.AddScoped<IStatelessOtpService, StatelessOtpService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IInvoiceService, InvoiceService>();
+            services.AddScoped<ILeaseService , LeaseService>();
+            services.AddScoped<IInvoiceExportService , InvoiceExportService>();
+            services.AddScoped<IProfileService, ProfileService>();
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+            services.AddScoped<IPropertyViewingService, PropertyViewingService>();
+            services.AddScoped<IMaintenanceService, MaintenanceService>();
+            services.AddScoped<ILeaseService, LeaseService>();
+            services.AddScoped<AppDbContext, AppDbContext>();
+            services.AddScoped<IFavoritePropertyService, FavoritePropertyService>();
+            services.AddScoped<IDocumentService, DocumentService>();
+            services.AddScoped<IRentalApplicationService, RentalApplicationService>();
+            services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<IPropertyImageService, PropertyImageService>();
+            services.AddScoped<ILeaseService, LeaseService>();
+            services.AddScoped<IPdfService, PdfService>();
+
+
+            return services;
+        }
+    }
+}

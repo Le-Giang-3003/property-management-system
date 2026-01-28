@@ -1,0 +1,185 @@
+@model IEnumerable<PropertyManagementSystem.DAL.Entities.RentalApplication>
+@{
+    ViewData["Title"] = "Applications - " + ViewBag.PropertyName;
+}
+
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Property" asp-action="Index">
+                    <i class="fas fa-home"></i> Properties
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Property" asp-action="Details" asp-route-id="@ViewBag.PropertyId">
+                    @ViewBag.PropertyName
+                </a>
+            </li>
+            <li class="breadcrumb-item active">Applications</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-file-contract text-primary"></i> Applications</h2>
+            <p class="text-muted mb-0">
+                <i class="fas fa-building"></i> @ViewBag.PropertyName
+            </p>
+        </div>
+        <a asp-controller="Property" asp-action="Details" asp-route-id="@ViewBag.PropertyId"
+           class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <!-- Empty State -->
+        <div class="card shadow-sm text-center py-5">
+            <div class="card-body">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No applications yet</h4>
+                <p class="text-muted">This property has not received any applications</p>
+                <a asp-controller="Property" asp-action="Details" asp-route-id="@ViewBag.PropertyId"
+                   class="btn btn-primary mt-3">
+                    <i class="fas fa-arrow-left"></i> Back to Property
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Card -->
+        <div class="card mb-4 shadow-sm border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body text-white text-center py-4">
+                <div class="d-flex justify-content-around align-items-center">
+                    <div>
+                        <h3 class="fw-bold mb-0">@Model.Count()</h3>
+                        <small class="text-uppercase">Total</small>
+                    </div>
+                    <div class="vr bg-white opacity-50"></div>
+                    <div>
+                        <h3 class="fw-bold mb-0">@Model.Count(a => a.Status == "Pending")</h3>
+                        <small class="text-uppercase">Pending</small>
+                    </div>
+                    <div class="vr bg-white opacity-50"></div>
+                    <div>
+                        <h3 class="fw-bold mb-0">@Model.Count(a => a.Status == "Approved")</h3>
+                        <small class="text-uppercase">Approved</small>
+                    </div>
+                    <div class="vr bg-white opacity-50"></div>
+                    <div>
+                        <h3 class="fw-bold mb-0">@Model.Count(a => a.Status == "Rejected")</h3>
+                        <small class="text-uppercase">Rejected</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>App ID</th>
+                                <th>Applicant</th>
+                                <th>Submitted</th>
+                                <th>Income</th>
+                                <th class="text-center">Occupants</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var app in Model.OrderByDescending(a => a.CreatedAt))
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary">@app.ApplicationNumber</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@app.Applicant?.FullName</strong>
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope"></i> @app.Applicant?.Email
+                                        </small>
+                                        <br />
+                                        <small class="text-muted">
+                                            <i class="fas fa-phone"></i> @app.Applicant?.PhoneNumber
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div>@app.CreatedAt.ToString("dd/MM/yyyy")</div>
+                                        <small class="text-muted">@app.CreatedAt.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        @if (app.MonthlyIncome.HasValue)
+                                        {
+                                            <span class="fw-semibold text-success">
+                                                $@app.MonthlyIncome.Value.ToString("N0")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not provided</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark border">
+                                            <i class="fas fa-users"></i> @app.NumberOfOccupants
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        @switch (app.Status)
+                                        {
+                                            case "Pending":
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock"></i> Pending
+                                                </span>
+                                                break;
+                                            case "Approved":
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle"></i> Approved
+                                                </span>
+                                                break;
+                                            case "Rejected":
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times-circle"></i> Rejected
+                                                </span>
+                                                break;
+                                            case "Withdrawn":
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-ban"></i> Withdrawn
+                                                </span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="Details" asp-route-id="@app.ApplicationId"
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-4">
+            <a asp-controller="Property" asp-action="Details" asp-route-id="@ViewBag.PropertyId"
+               class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Property
+            </a>
+        </div>
+    }
+</div>

@@ -1,0 +1,53 @@
+/* Auth pages (Login/Register/...) */
+.auth-body {
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(1200px 600px at 50% 35%, #eaf3ff 0%, #d8e9ff 40%, #cfe4ff 100%);
+}
+
+.auth-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 560px;
+    border-radius: 18px;
+    box-shadow: 0 22px 70px rgba(16, 24, 40, 0.16);
+}
+
+.auth-logo {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #1f6bff;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 24px rgba(31, 107, 255, 0.35);
+}
+
+.auth-title {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 2.25rem;
+}
+
+.auth-muted {
+    color: #6b7280;
+}
+
+.auth-link {
+    color: #1f6bff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.auth-link:hover {
+    text-decoration: underline;
+}
+

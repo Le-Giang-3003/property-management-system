@@ -1,0 +1,193 @@
+@using PropertyManagementSystem.Web.ViewModels.User
+@model VerifyOtpViewModel
+@{
+    ViewData["Title"] = "Verify OTP";
+    Layout = "_LoginLayout";
+}
+
+<div class="pm-auth-card">
+    <a asp-controller="User" asp-action="Register" class="pm-auth-back">
+        <i class="bi bi-arrow-left"></i>
+        Back to Register
+    </a>
+
+    <div class="pm-auth-header">
+        <div class="pm-auth-icon">
+            <i class="bi bi-shield-check"></i>
+        </div>
+        <h1>Verify Your Email</h1>
+        <p>Enter the code sent to <strong>@Model.Email</strong></p>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+    {
+        <div class="pm-alert pm-alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>@Html.ValidationSummary(false)</div>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="pm-alert pm-alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="pm-alert pm-alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    <form asp-action="VerifyOtp" method="post" class="pm-auth-form">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="Email" />
+        <input type="hidden" asp-for="OtpHash" />
+
+        <div class="pm-form-group">
+            <label asp-for="Otp" class="pm-label">Verification Code</label>
+            <div class="pm-otp-input-wrapper">
+                <input asp-for="Otp"
+                       id="otpInput"
+                       type="text"
+                       class="pm-input pm-otp-input"
+                       placeholder="000000"
+                       maxlength="6"
+                       inputmode="numeric"
+                       pattern="[0-9]*"
+                       autocomplete="one-time-code"
+                       autofocus />
+            </div>
+            <span asp-validation-for="Otp" class="pm-error"></span>
+            <span class="pm-hint">
+                <i class="bi bi-info-circle"></i>
+                Enter the 6-digit code from your email
+            </span>
+        </div>
+
+        <button type="submit" class="pm-btn pm-btn-primary pm-auth-submit">
+            <i class="bi bi-check-circle"></i>
+            Verify Email
+        </button>
+    </form>
+
+    <div class="pm-auth-divider">
+        <span>Didn't receive the code?</span>
+    </div>
+
+    <div class="pm-auth-footer">
+        <button id="resendBtn" class="pm-resend-btn" disabled>
+            <i class="bi bi-arrow-clockwise"></i>
+            <span id="resendText">Resend code in <strong id="resendTimer">60</strong>s</span>
+        </button>
+    </div>
+</div>
+
+<style>
+    .pm-otp-input-wrapper {
+        max-width: 240px;
+        margin: 0 auto;
+    }
+
+    .pm-otp-input {
+        text-align: center;
+        font-size: var(--pm-text-2xl) !important;
+        font-weight: var(--pm-font-bold);
+        letter-spacing: 0.5rem;
+        height: 60px !important;
+    }
+
+    .pm-hint {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--pm-space-2);
+        margin-top: var(--pm-space-3);
+    }
+
+    .pm-resend-btn {
+        background: none;
+        border: none;
+        color: var(--pm-primary);
+        cursor: pointer;
+        font-size: var(--pm-text-base);
+        display: flex;
+        align-items: center;
+        gap: var(--pm-space-2);
+        margin: 0 auto;
+        padding: var(--pm-space-2) var(--pm-space-4);
+        transition: opacity 0.3s;
+    }
+
+        .pm-resend-btn:disabled {
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .pm-resend-btn:not(:disabled):hover {
+            opacity: 0.8;
+        }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const otpInput = document.getElementById('otpInput');
+        const resendBtn = document.getElementById('resendBtn');
+        const resendText = document.getElementById('resendText');
+        const resendTimerSpan = document.getElementById('resendTimer');
+
+        // Resend countdown (60 seconds)
+        let resendCountdown = 60;
+        let resendInterval;
+
+        // Only allow numbers
+        otpInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+        });
+
+        // Handle paste
+        otpInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const numbers = pastedText.replace(/[^0-9]/g, '').slice(0, 6);
+            this.value = numbers;
+        });
+
+        // Start resend countdown
+        function startResendCountdown() {
+            resendBtn.disabled = true;
+            resendCountdown = 60;
+
+            resendInterval = setInterval(() => {
+                resendCountdown--;
+                resendTimerSpan.textContent = resendCountdown;
+
+                if (resendCountdown <= 0) {
+                    clearInterval(resendInterval);
+                    resendBtn.disabled = false;
+                    resendText.innerHTML = 'Resend verification code';
+                }
+            }, 1000);
+        }
+
+        // Handle resend button click
+        resendBtn.addEventListener('click', function() {
+            if (!this.disabled) {
+                window.location.href = '@Url.Action("ResendOtp", "User", new { email = Model.Email })';
+            }
+        });
+
+        // Auto focus
+        otpInput.focus();
+
+        // Start countdown on page load
+        startResendCountdown();
+    </script>
+}
