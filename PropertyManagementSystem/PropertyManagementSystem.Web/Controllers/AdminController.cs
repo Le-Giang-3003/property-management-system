@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PropertyManagementSystem.BLL.DTOs.Admin;
 using PropertyManagementSystem.BLL.Services.Interface;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace PropertyManagementSystem.Web.Controllers
 {
@@ -104,6 +105,13 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError("", ex.Message);
+                ViewBag.Roles = await _adminService.GetAllRolesAsync();
+                return View(dto);
+            }
+            catch (DbUpdateException ex)
+            {
+                var inner = ex.InnerException?.Message ?? ex.Message;
+                TempData["ErrorMessage"] = $"Error creating user: {inner}";
                 ViewBag.Roles = await _adminService.GetAllRolesAsync();
                 return View(dto);
             }

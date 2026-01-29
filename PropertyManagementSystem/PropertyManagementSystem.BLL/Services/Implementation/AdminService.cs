@@ -153,24 +153,36 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 IsActive = true,
                 EmailVerified = true,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                UserRoles = new List<UserRole>
-                {
-                    new UserRole
-                    {
-                        RoleId = role.RoleId,
-                        AssignedAt = DateTime.UtcNow,
-                        AssignedBy = createdByAdminId
-                    }
-                }
+                UpdatedAt = DateTime.UtcNow
             };
 
-            await _unitOfWork.Users.AddNewUser(newUser);
+            await _unitOfWork.Users.AddAsync(newUser);
+            await _unitOfWork.SaveChangesAsync();
+
+            var userRole = new UserRole
+            {
+                UserId = newUser.UserId,
+                RoleId = role.RoleId,
+                AssignedAt = DateTime.UtcNow
+            };
+            await _unitOfWork.UserRoles.AddAsync(userRole);
+            await _unitOfWork.SaveChangesAsync();
 
             await LogActionAsync(createdByAdminId, "Create", "User", newUser.UserId,
                 $"Created user '{newUser.Email}' with role '{dto.Role}'");
 
-            return MapToAdminUserDto(newUser);
+            return new AdminUserDto
+            {
+                UserId = newUser.UserId,
+                Email = newUser.Email,
+                FullName = newUser.FullName,
+                PhoneNumber = newUser.PhoneNumber,
+                Address = newUser.Address,
+                IsActive = newUser.IsActive,
+                EmailVerified = newUser.EmailVerified,
+                CreatedAt = newUser.CreatedAt,
+                Roles = new List<string> { dto.Role }
+            };
         }
 
         public async Task<bool> UpdateUserAsync(UpdateUserDto dto, int updatedByAdminId)
@@ -522,17 +534,27 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
             var log = new AuditLog
             {
                 UserId = userId,
-                Action = action,
-                EntityType = entityType,
+                Action = action ?? "",
+                EntityType = entityType ?? "",
                 EntityId = entityId,
-                Description = description,
-                IpAddress = ipAddress,
+                Description = description ?? "",
+                IpAddress = ipAddress ?? "",
+                UserAgent = "",
+                OldValues = "",
+                NewValues = "",
                 ActiveRole = activeRole ?? "Admin",
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _auditLogRepo.AddAsync(log);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                await _auditLogRepo.AddAsync(log);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                // Audit is best-effort; do not fail the main operation (e.g. CreateUser)
+            }
         }
 
         #endregion
