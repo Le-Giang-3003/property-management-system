@@ -65,14 +65,18 @@ namespace PropertyManagementSystem.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRequest(CreateMaintenanceRequestDto dto)
         {
+            var userId = GetCurrentUserId();
+
             if (!ModelState.IsValid)
             {
+                var errors = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                TempData["ErrorMessage"] = "Vui lòng sửa lỗi: " + errors;
+                ViewBag.Properties = await GetUserPropertiesAsync(userId);
                 return View(dto);
             }
 
             try
             {
-                var userId = GetCurrentUserId();
                 var result = await _maintenanceService.CreateRequestAsync(dto, userId);
                 TempData["SuccessMessage"] = "Maintenance request created successfully!";
                 return RedirectToAction(nameof(TenantIndex));
@@ -80,6 +84,8 @@ namespace PropertyManagementSystem.Web.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"Error creating request: {ex.Message}";
+                // Reload properties for the view
+                ViewBag.Properties = await GetUserPropertiesAsync(userId);
                 return View(dto);
             }
         }

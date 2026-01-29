@@ -28,8 +28,14 @@ namespace PropertyManagementSystem.BLL.DTOs.Maintenance
         public string Location { get; set; }
 
         public DateTime? RepairDate { get; set; }
-        public TimeOnly? TimeFrom { get; set; }
-        public TimeOnly? TimeTo { get; set; }
+
+        /// <summary>Preferred start time as "HH:mm" from input type="time". Empty when optional field not filled.</summary>
+        [MaxLength(10)]
+        public string TimeFrom { get; set; }
+
+        /// <summary>Preferred end time as "HH:mm" from input type="time". Empty when optional field not filled.</summary>
+        [MaxLength(10)]
+        public string TimeTo { get; set; }
 
         public List<IFormFile> Images { get; set; }
     }

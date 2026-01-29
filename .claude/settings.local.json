@@ -3,7 +3,9 @@
     "allow": [
       "Bash(tree:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(sqlcmd:*)",
+      "Bash(dotnet build:*)"
     ]
   }
 }

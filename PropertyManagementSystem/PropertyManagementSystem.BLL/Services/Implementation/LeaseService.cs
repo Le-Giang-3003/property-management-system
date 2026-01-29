@@ -531,26 +531,54 @@ IV. TERMINATION:
         }
         public async Task<List<PropertySelectDto>> GetTenantActivePropertiesAsync(int tenantId)
         {
+            Console.WriteLine($"[GetTenantActivePropertiesAsync] Starting for tenantId: {tenantId}");
+
             // Get all leases for tenant - use GetByTenantIdAsync to ensure Property is loaded
             var allLeases = await _unitOfWork.Leases.GetByTenantIdAsync(tenantId);
             var leasesList = allLeases.ToList();
 
+            Console.WriteLine($"[GetTenantActivePropertiesAsync] Found {leasesList.Count} leases for tenant {tenantId}");
+
+            foreach (var lease in leasesList)
+            {
+                Console.WriteLine($"[GetTenantActivePropertiesAsync] Lease ID: {lease?.LeaseId}, PropertyId: {lease?.PropertyId}, Status: '{lease?.Status}', Property is null: {lease?.Property == null}");
+            }
+
             // Filter out ended leases (case-insensitive, handle whitespace)
             var endedStatuses = new[] { "Expired", "Terminated", "Renewed" };
-            
+
             var result = leasesList
-                .Where(l => 
+                .Where(l =>
                 {
                     // Must have lease, property, and status
-                    if (l == null || l.Property == null) return false;
-                    
+                    if (l == null || l.Property == null)
+                    {
+                        Console.WriteLine($"[GetTenantActivePropertiesAsync] Filtering out lease {l?.LeaseId}: l is null or Property is null");
+                        return false;
+                    }
+
                     // Status must exist and not be empty
                     var status = l.Status?.Trim();
-                    if (string.IsNullOrEmpty(status)) return false;
-                    
+                    if (string.IsNullOrEmpty(status))
+                    {
+                        Console.WriteLine($"[GetTenantActivePropertiesAsync] Filtering out lease {l.LeaseId}: Status is empty");
+                        return false;
+                    }
+
                     // Must not be an ended status (case-insensitive)
-                    return !endedStatuses.Any(ended => 
+                    var isEnded = endedStatuses.Any(ended =>
                         string.Equals(status, ended, StringComparison.OrdinalIgnoreCase));
+
+                    if (isEnded)
+                    {
+                        Console.WriteLine($"[GetTenantActivePropertiesAsync] Filtering out lease {l.LeaseId}: Status '{status}' is ended");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[GetTenantActivePropertiesAsync] Including lease {l.LeaseId}: Status '{status}' is active");
+                    }
+
+                    return !isEnded;
                 })
                 .Select(l => new PropertySelectDto
                 {
@@ -562,6 +590,7 @@ IV. TERMINATION:
                 .Select(g => g.First())
                 .ToList();
 
+            Console.WriteLine($"[GetTenantActivePropertiesAsync] Returning {result.Count} properties");
             return result;
         }
         public async Task<bool> ValidateTenantPropertyAccessAsync(int tenantId, int propertyId)

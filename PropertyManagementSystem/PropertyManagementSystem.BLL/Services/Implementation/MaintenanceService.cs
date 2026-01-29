@@ -42,8 +42,8 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
                 Description = dto.Description,
                 Location = dto.Location,
                 RepairDate = dto.RepairDate,
-                TimeFrom = dto.TimeFrom,
-                TimeTo = dto.TimeTo,
+                TimeFrom = ParseTimeOnly(dto.TimeFrom),
+                TimeTo = ParseTimeOnly(dto.TimeTo),
                 Status = "Pending",
                 RequestDate = DateTime.UtcNow,
                 ResolutionNotes = "",
@@ -368,6 +368,12 @@ namespace PropertyManagementSystem.BLL.Services.Implementation
         }
 
         // Helper Methods
+        private static TimeOnly? ParseTimeOnly(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            return TimeOnly.TryParse(value, out var t) ? t : null;
+        }
+
         private string GenerateRequestNumber(string latestNumber)
         {
             if (string.IsNullOrEmpty(latestNumber))
